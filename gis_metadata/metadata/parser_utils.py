@@ -16,6 +16,7 @@ KEYWORDS_THEME = 'thematic_keywords'
 
 ATTRIBUTES = 'attributes'
 BOUNDING_BOX = 'bounding_box'
+CONTACTS = 'contacts'
 DATES = 'dates'
 DIGITAL_FORMS = 'digital_forms'
 LARGER_WORKS = 'larger_works'
@@ -26,11 +27,10 @@ PROCESS_STEPS = 'process_steps'
 _required_keys = {
     'title', 'abstract', 'purpose', 'supplementary_info',
     'online_linkages', 'originators', 'publish_date', 'data_credits',
-    'contact_emails', 'contact_org', 'contact_person',
     'dist_contact_org', 'dist_contact_person', 'dist_email', 'dist_phone',
     'dist_address', 'dist_city', 'dist_state', 'dist_postal', 'dist_country',
     'dist_liability', 'processing_fees', 'processing_instrs', 'resource_desc', 'tech_prerequisites',
-    ATTRIBUTES, 'attribute_accuracy', BOUNDING_BOX, 'dataset_completeness',
+    ATTRIBUTES, 'attribute_accuracy', BOUNDING_BOX, CONTACTS, 'dataset_completeness',
     LARGER_WORKS, PROCESS_STEPS, 'use_constraints',
     DATES, KEYWORDS_PLACE, KEYWORDS_THEME
 }
@@ -73,6 +73,11 @@ _complex_definitions = {
         'south': '{south}',                       # Text
         'west': '{west}',                         # Text
         'north': '{north}'                        # Text
+    },
+    CONTACTS: {
+        'name': '{name}',                         # Text
+        'email': '{email}',                       # Text
+        'organization': '{organization}'          # Text
     },
     DATES: {
         DATE_TYPE: '{type}',                      # Text
@@ -189,7 +194,7 @@ def filter_property(prop, value):
 
     val = reduce_value(value)  # Filtering of value happens here
 
-    if prop in (ATTRIBUTES, DIGITAL_FORMS, KEYWORDS_PLACE, KEYWORDS_THEME, PROCESS_STEPS):
+    if prop in (ATTRIBUTES, CONTACTS, DIGITAL_FORMS, KEYWORDS_PLACE, KEYWORDS_THEME, PROCESS_STEPS):
         return val or []
     elif prop in (BOUNDING_BOX, DATES, LARGER_WORKS):
         return val or {}
@@ -485,7 +490,7 @@ def validate_any(prop, value):
     """ Validates any metadata property, complex or simple (string or array) """
 
     if value is not None:
-        if prop in [ATTRIBUTES, DIGITAL_FORMS]:
+        if prop in [ATTRIBUTES, CONTACTS, DIGITAL_FORMS]:
             validate_complex_list(prop, value)
 
         elif prop in [BOUNDING_BOX, LARGER_WORKS]:
@@ -711,4 +716,3 @@ class ParserProperty(object):
             setter_args['xpaths'] = self.xpath
 
         return self._updater(**setter_args)
-

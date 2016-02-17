@@ -343,4 +343,3 @@ class MetadataParser(object):
             validate_any(prop, getattr(self, prop))
 
         return self
-

@@ -10,7 +10,7 @@ from gis_metadata.metadata.parser_utils import get_complex_definitions, get_requ
 from gis_metadata.metadata.parser_utils import reduce_value, wrap_value
 from gis_metadata.metadata.parser_utils import DATE_TYPE, DATE_VALUES
 from gis_metadata.metadata.parser_utils import DATE_TYPE_SINGLE, DATE_TYPE_RANGE, DATE_TYPE_MULTIPLE
-from gis_metadata.metadata.parser_utils import ATTRIBUTES, DIGITAL_FORMS, PROCESS_STEPS
+from gis_metadata.metadata.parser_utils import ATTRIBUTES, CONTACTS, DIGITAL_FORMS, PROCESS_STEPS
 from gis_metadata.metadata.parser_utils import BOUNDING_BOX, DATES, LARGER_WORKS
 from gis_metadata.metadata.parser_utils import KEYWORDS_PLACE, KEYWORDS_THEME
 from gis_metadata.metadata.parser_utils import ParserException
@@ -44,7 +44,8 @@ class MetadataParserTestCase(unittest.TestCase):
             value, target,
             'Parser property "{0}.{1}" does not equal target:{2}'.format(
                 parser_type, prop, '\n\tparsed: "{0}" ({1})\n\texpected: "{2}" ({3})'.format(
-                    value, type(value).__name__, target, type(target).__name__)
+                    value, type(value).__name__, target, type(target).__name__
+                )
             )
         )
 
@@ -134,7 +135,7 @@ class MetadataParserTestCase(unittest.TestCase):
 
             if isinstance(parser, IsoParser) and prop == ATTRIBUTES:
                 val = []  # The ISO standard stores attributes in an external file
-            elif prop in (ATTRIBUTES, DIGITAL_FORMS, PROCESS_STEPS):
+            elif prop in (ATTRIBUTES, CONTACTS, DIGITAL_FORMS, PROCESS_STEPS):
                 val = [
                     {}.fromkeys(complex_defs[prop], 'test'),
                     {}.fromkeys(complex_defs[prop], prop)
@@ -293,7 +294,7 @@ class MetadataParserTests(MetadataParserTestCase):
 
     def test_reparse_complex_lists(self):
         complex_defs = get_complex_definitions()
-        complex_lists = (ATTRIBUTES, DIGITAL_FORMS)
+        complex_lists = (ATTRIBUTES, CONTACTS, DIGITAL_FORMS)
 
         for parser in (FgdcParser(self.fgdc_metadata), IsoParser(self.iso_metadata)):
 
@@ -419,7 +420,7 @@ class MetadataParserTests(MetadataParserTestCase):
                 self.assert_reparsed_simple_for(parser, simple_props, val, val)
 
     def test_validate_complex_lists(self):
-        complex_props = (ATTRIBUTES, DIGITAL_FORMS, PROCESS_STEPS)
+        complex_props = (ATTRIBUTES, CONTACTS, DIGITAL_FORMS, PROCESS_STEPS)
 
         invalid_values = ('', {'x': 'xxx'}, [{'x': 'xxx'}], set(), tuple())
 

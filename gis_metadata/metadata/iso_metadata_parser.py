@@ -11,6 +11,7 @@ from gis_metadata.xml.element_utils import XPATH_DELIM
 from parser_utils import DATE_TYPE, DATE_TYPE_SINGLE, DATE_TYPE_MULTIPLE
 from parser_utils import DATE_TYPE_RANGE, DATE_TYPE_RANGE_BEGIN, DATE_TYPE_RANGE_END
 from parser_utils import ATTRIBUTES
+from parser_utils import CONTACTS
 from parser_utils import BOUNDING_BOX
 from parser_utils import DATES
 from parser_utils import DIGITAL_FORMS
@@ -73,9 +74,7 @@ _iso_tag_formats = {
     'publish_date': '{_idinfo_citation}/date/CI_Date/date/Date',
     'publish_date_type': '{_idinfo_citation}/date/CI_Date/dateType/CI_DateTypeCode',
     'data_credits': '{_idinfo}/credit/CharacterString',
-    'contact_emails': '{_idinfo_resp_contact}/address/CI_Address/electronicMailAddress/CharacterString',
-    'contact_org': '{_idinfo_resp}/organisationName/CharacterString',
-    'contact_person': '{_idinfo_resp}/individualName/CharacterString',
+    CONTACTS: '{_idinfo_resp}',
     'dist_contact_org': '{_distinfo_resp}/organisationName/CharacterString',
     'dist_contact_person': '{_distinfo_resp}/individualName/CharacterString',
     'dist_address_type': '',  # Not available in ISO-19115
@@ -180,6 +179,17 @@ class IsoParser(MetadataParser):
             north=format_xpath(bb_format, bbox_path='northBoundLatitude/Decimal')
         )
 
+        ct_format = iso_data_map[CONTACTS] + '/{ct_path}'
+        self._contact_xpaths = format_xpaths(
+            _iso_definitions[CONTACTS],
+            name=format_xpath(ct_format, ct_path='individualName/CharacterString'),
+            organization=format_xpath(ct_format, ct_path='organisationName/CharacterString'),
+            email=format_xpath(
+                ct_format, ct_path='contactInfo/CI_Contact/address/CI_Address/electronicMailAddress/CharacterString'
+            )
+        )
+        self._contact_root = get_xpath_root(ct_format) + '/contactInfo'
+
         dt_format = iso_data_map[DATES] + '/{type_path}'
         self._dates_xpaths = {
             DATE_TYPE_MULTIPLE: format_xpath(dt_format, type_path='TimeInstant/timePosition'),
@@ -245,6 +255,9 @@ class IsoParser(MetadataParser):
 
             elif prop in ['attribute_accuracy', 'dataset_completeness']:
                 iso_data_map[prop] = ParserProperty(self._parse_property, self._update_report_item, xpath)
+
+            elif prop == CONTACTS:
+                iso_data_map[prop] = ParserProperty(self._parse_contacts, self._update_contacts)
 
             elif prop == BOUNDING_BOX:
                 iso_data_map[prop] = ParserProperty(self._parse_bounding_box, self._update_bounding_box)
@@ -358,6 +371,14 @@ class IsoParser(MetadataParser):
         """ Creates and returns a Bounding Box data structure parsed from the metadata """
 
         return parse_complex(self._xml_tree, None, self._bounding_box_xpaths, prop)
+
+    def _parse_contacts(self, prop=CONTACTS):
+        """ Creates and returns a list of one Contact structure parsed from the metadata """
+
+        xpath_root = self._contact_root
+        xpath_map = self._contact_xpaths
+
+        return parse_complex_list(self._xml_tree, xpath_root, xpath_map, prop)
 
     def _parse_dates(self, prop=DATES):
         """ Creates and returns a Date Types data structure parsed from the metadata """
@@ -495,6 +516,17 @@ class IsoParser(MetadataParser):
 
         return update_complex(xpath_root=xpath_root, xpath_map=xpath_map, **update_props)
 
+    def _update_contacts(self, **update_props):
+        """
+        Update operation for ISO Contacts metadata
+        :see: parser_utils._complex_definitions[CONTACTS]
+        """
+
+        xpath_root = self._contact_root
+        xpath_map = self._contact_xpaths
+
+        return update_complex_list(xpath_root=xpath_root, xpath_map=xpath_map, **update_props)
+
     def _update_dates(self, **update_props):
         """
         Update operation for ISO Dates metadata
@@ -622,7 +654,7 @@ class IsoParser(MetadataParser):
 
     def _update_process_steps(self, **update_props):
         """
-        Update operation for FGDC Process Steps metadata
+        Update operation for ISO Process Steps metadata
         :see: parser_utils._complex_definitions[PROCESS_STEPS]
         """
 
@@ -670,5 +702,3 @@ class IsoParser(MetadataParser):
                 xpath = default_value
 
         return default_value
-
-

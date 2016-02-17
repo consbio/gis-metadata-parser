@@ -91,6 +91,15 @@ http://conserveonline.org/workspaces/ecoregional.shapefile/
         <datacred>Coral Reefs at Risk by ecoregion: The Nature Conservancy</datacred>
         <ptcontac>
             <cntinfo>
+                <cntemail>david.patrick@tnc.org</cntemail>
+                <cntorgp>
+                    <cntper>David Patrick</cntper>
+                    <cntorg>The Nature Conservancy</cntorg>
+                </cntorgp>
+            </cntinfo>
+        </ptcontac>
+        <ptcontac>
+            <cntinfo>
                 <cntemail>tboucher@tnc.org</cntemail>
                 <cntperp>
                     <cntper>Timothy Boucher (tboucher@tnc.org)</cntper>

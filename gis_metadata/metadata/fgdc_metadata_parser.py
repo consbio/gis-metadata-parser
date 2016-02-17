@@ -8,6 +8,7 @@ from parser_utils import DATE_TYPE, DATE_TYPE_SINGLE, DATE_TYPE_MULTIPLE
 from parser_utils import DATE_TYPE_RANGE, DATE_TYPE_RANGE_BEGIN, DATE_TYPE_RANGE_END
 from parser_utils import ATTRIBUTES
 from parser_utils import BOUNDING_BOX
+from parser_utils import CONTACTS
 from parser_utils import DATES
 from parser_utils import DIGITAL_FORMS
 from parser_utils import KEYWORDS_PLACE
@@ -37,9 +38,7 @@ _fgdc_tag_formats = {
     'originators': 'idinfo/citation/citeinfo/origin',
     'publish_date': 'idinfo/citation/citeinfo/pubdate',
     'data_credits': 'idinfo/datacred',
-    'contact_emails': 'idinfo/ptcontac/cntinfo/cntemail',
-    'contact_org': 'idinfo/ptcontac/cntinfo/{org}/cntorg',
-    'contact_person': 'idinfo/ptcontac/cntinfo/{person}/cntper',
+    CONTACTS: 'idinfo/ptcontac/{ct_path}',
     'dist_contact_org': 'distinfo/distrib/cntinfo/{org}/cntorg',
     'dist_contact_person': 'distinfo/distrib/cntinfo/{person}/cntper',
     'dist_address_type': 'distinfo/distrib/cntinfo/cntaddr/addrtype',
@@ -97,6 +96,17 @@ class FgdcParser(MetadataParser):
 
         fgdc_data_map = {'root': FGDC_ROOT}
 
+        # Capture contact information that may differ per document
+
+        cntinfo = 'idinfo/ptcontac/cntinfo/{contact}'
+
+        if self._has_element(format_xpath(cntinfo, contact='cntorgp')):
+            contact = 'cntorgp'
+        elif self._has_element(format_xpath(cntinfo, contact='cntperp')):
+            contact = 'cntperp'
+        else:
+            contact = FgdcParser.DEFAULT_CONTACT_TAG
+
         # Capture and format other complex XPATHs
 
         ad_format = _fgdc_tag_formats[ATTRIBUTES]
@@ -118,6 +128,15 @@ class FgdcParser(MetadataParser):
             north=format_xpath(bb_format, bbox_path='northbc')
         )
         self._bounding_box_root = get_xpath_root(bb_format)
+
+        ct_format = _fgdc_tag_formats[CONTACTS]
+        self._contact_xpaths = format_xpaths(
+            _fgdc_definitions[CONTACTS],
+            name=format_xpath(ct_format, ct_path='cntinfo/{ct}/cntper'.format(ct=contact)),
+            organization=format_xpath(ct_format, ct_path='cntinfo/{ct}/cntorg'.format(ct=contact)),
+            email=format_xpath(ct_format, ct_path='cntinfo/cntemail')
+        )
+        self._contact_root = get_xpath_root(ct_format)
 
         dt_format = _fgdc_tag_formats[DATES]
         self._dates_xpaths = {
@@ -165,17 +184,6 @@ class FgdcParser(MetadataParser):
         )
         self._process_steps_root = get_xpath_root(ps_format)
 
-        # Capture contact information that may differ per document
-
-        cntinfo = 'idinfo/ptcontac/cntinfo/{contact}'
-
-        if self._has_element(format_xpath(cntinfo, contact='cntorgp')):
-            contact = 'cntorgp'
-        elif self._has_element(format_xpath(cntinfo, contact='cntperp')):
-            contact = 'cntperp'
-        else:
-            contact = FgdcParser.DEFAULT_CONTACT_TAG
-
         # Assign XPATHS and parser_utils.ParserProperties to fgdc_data_map
 
         fgdc_data_formats = dict(_fgdc_tag_formats)
@@ -187,10 +195,13 @@ class FgdcParser(MetadataParser):
             elif prop == BOUNDING_BOX:
                 fgdc_data_map[prop] = ParserProperty(self._parse_bounding_box, self._update_bounding_box)
 
-            elif prop in ['contact_org', 'dist_contact_org']:
+            elif prop == CONTACTS:
+                fgdc_data_map[prop] = ParserProperty(self._parse_contacts, self._update_contacts)
+
+            elif prop == 'dist_contact_org':
                 fgdc_data_map[prop] = format_xpath(xpath, org=contact)
 
-            elif prop in ['contact_person', 'dist_contact_person']:
+            elif prop == 'dist_contact_person':
                 fgdc_data_map[prop] = format_xpath(xpath, person=contact)
 
             elif prop == DATES:
@@ -222,6 +233,14 @@ class FgdcParser(MetadataParser):
         """ Creates and returns a Bounding Box data structure parsed from the metadata """
 
         return parse_complex(self._xml_tree, None, self._bounding_box_xpaths, prop)
+
+    def _parse_contacts(self, prop=CONTACTS):
+        """ Creates and returns a list of Contact data structures parsed from the metadata """
+
+        xpath_root = self._contact_root
+        xpath_map = self._contact_xpaths
+
+        return parse_complex_list(self._xml_tree, xpath_root, xpath_map, prop)
 
     def _parse_dates(self, prop=DATES):
         """ Creates and returns a Dates data structure parsed from the metadata """
@@ -270,6 +289,17 @@ class FgdcParser(MetadataParser):
         xpath_map = self._bounding_box_xpaths
 
         return update_complex(xpath_root=xpath_root, xpath_map=xpath_map, **update_props)
+
+    def _update_contacts(self, **update_props):
+        """
+        Update operation for FGDC Process Steps metadata
+        :see: parser_utils._complex_definitions[CONTACTS]
+        """
+
+        xpath_root = self._contact_root
+        xpath_map = self._contact_xpaths
+
+        return update_complex_list(xpath_root=xpath_root, xpath_map=xpath_map, **update_props)
 
     def _update_dates(self, **update_props):
         """
@@ -323,4 +353,3 @@ class FgdcParser(MetadataParser):
         xpath_map = self._process_steps_xpaths
 
         return update_complex_list(xpath_root=xpath_root, xpath_map=xpath_map, **update_props)
-
