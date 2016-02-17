@@ -1,0 +1,1038 @@
+﻿<?xml version='1.0' encoding='UTF-8'?>
+<MD_Metadata xmlns:gml="http://www.opengis.net/gml" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:gco="http://www.isotc211.org/2005/gco" xmlns:gts="http://www.isotc211.org/2005/gts" xmlns:srv="http://www.isotc211.org/2005/srv" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.isotc211.org/2005/gmd">
+    <gmd:contentInfo>
+        <gmd:MD_CoverageDescription>
+            <attributeDescription>
+                <RecordType>first form content</RecordType>
+            </attributeDescription>
+        </gmd:MD_CoverageDescription>
+    </gmd:contentInfo>
+    <gmd:contentInfo>
+        <gmd:MD_CoverageDescription>
+            <attributeDescription>
+                <RecordType>next form content</RecordType>
+            </attributeDescription>
+        </gmd:MD_CoverageDescription>
+    </gmd:contentInfo>
+    <gmd:contentInfo>
+        <gmd:MD_CoverageDescription>
+            <attributeDescription>
+                <RecordType>last form content</RecordType>
+            </attributeDescription>
+        </gmd:MD_CoverageDescription>
+    </gmd:contentInfo>
+    <gmd:contentInfo>
+        <gmd:MD_FeatureCatalogueDescription>
+            <gmd:includedWithDataset>
+                <gco:Boolean>true</gco:Boolean>
+            </gmd:includedWithDataset>
+            <gmd:featureTypes>
+                <gco:LocalName codeSpace="Header"/>
+            </gmd:featureTypes>
+            <gmd:featureTypes>
+                <gco:LocalName codeSpace="CTD Detail Record"/>
+            </gmd:featureTypes>
+            <gmd:featureCatalogueCitation href="http://www.isotc211.org/2005/gfc/resources/example/G_3.xml">
+                <gmd:CI_Citation>
+                    <gmd:title>
+                        <gco:CharacterString>Feature Catalogue for Provisional Processed CTD Data from the Deepwater Horizon Incident Response in the Gulf of Mexico May 08, 2010 through November 15 ,2010</gco:CharacterString>
+                    </gmd:title>
+                    <gmd:date gco:nilReason="unknown"/>
+                    <gmd:citedResponsibleParty>
+                        <gmd:CI_ResponsibleParty>
+                            <gmd:organisationName>
+                                <gco:CharacterString>DOC/NOAA/NESDIS/NODC/NCDDC&gt; National Coastal Data Development Center</gco:CharacterString>
+                            </gmd:organisationName>
+                            <gmd:contactInfo>
+                                <gmd:CI_Contact>
+                                    <gmd:phone>
+                                        <gmd:CI_Telephone>
+                                            <gmd:voice>
+                                                <gco:CharacterString>228-688-2936</gco:CharacterString>
+                                            </gmd:voice>
+                                            <gmd:voice>
+                                                <gco:CharacterString>866-732-2382</gco:CharacterString>
+                                            </gmd:voice>
+                                            <gmd:facsimile>
+                                                <gco:CharacterString>228-688-2010</gco:CharacterString>
+                                            </gmd:facsimile>
+                                        </gmd:CI_Telephone>
+                                    </gmd:phone>
+                                    <gmd:address>
+                                        <gmd:CI_Address>
+                                            <gmd:deliveryPoint>
+                                                <gco:CharacterString>Bldg 1100 Rm 101</gco:CharacterString>
+                                            </gmd:deliveryPoint>
+                                            <gmd:city>
+                                                <gco:CharacterString>Stennis Space Center</gco:CharacterString>
+                                            </gmd:city>
+                                            <gmd:administrativeArea>
+                                                <gco:CharacterString>MS</gco:CharacterString>
+                                            </gmd:administrativeArea>
+                                            <gmd:postalCode>
+                                                <gco:CharacterString>39529</gco:CharacterString>
+                                            </gmd:postalCode>
+                                            <gmd:country>
+                                                <gco:CharacterString>USA</gco:CharacterString>
+                                            </gmd:country>
+                                            <gmd:electronicMailAddress>
+                                                <gco:CharacterString>ncddc@noaa.gov</gco:CharacterString>
+                                            </gmd:electronicMailAddress>
+                                        </gmd:CI_Address>
+                                    </gmd:address>
+                                    <gmd:onlineResource>
+                                        <gmd:CI_OnlineResource>
+                                            <gmd:linkage>
+                                                <gmd:URL>ftp://ftp.ncddc.noaa.gov/pub/Metadata//ISO/87ffdfd0-775a-11e0-a1f0-0800200c9a66.xml</gmd:URL>
+                                            </gmd:linkage>
+                                            <gmd:protocol>
+                                                <gco:CharacterString>ftp</gco:CharacterString>
+                                            </gmd:protocol>
+                                        </gmd:CI_OnlineResource>
+                                    </gmd:onlineResource>
+                                    <gmd:hoursOfService>
+                                        <gco:CharacterString>Monday - Friday 8:00am - 5:00pm</gco:CharacterString>
+                                    </gmd:hoursOfService>
+                                </gmd:CI_Contact>
+                            </gmd:contactInfo>
+                            <gmd:role>
+                                <gmd:CI_RoleCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_RoleCode" codeListValue="pointOfContact" codeSpace="007">pointOfContact</gmd:CI_RoleCode>
+                            </gmd:role>
+                        </gmd:CI_ResponsibleParty>
+                    </gmd:citedResponsibleParty>
+                    <gmd:otherCitationDetails>
+                        <gco:CharacterString>Entity and Attribute Overview</gco:CharacterString>
+                    </gmd:otherCitationDetails>
+                </gmd:CI_Citation>
+            </gmd:featureCatalogueCitation>
+        </gmd:MD_FeatureCatalogueDescription>
+    </gmd:contentInfo>
+    <language>
+        <LanguageCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#LanguageCode" codeListValue="eng">eng</LanguageCode>
+    </language>
+    <hierarchyLevel>
+        <MD_ScopeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_ScopeCode" codeListValue="dataset">dataset</MD_ScopeCode>
+    </hierarchyLevel>
+    <contact>
+        <CI_ResponsibleParty>
+            <individualName>
+                <CharacterString>Conservation Biology Institute</CharacterString>
+            </individualName>
+            <organisationName>
+                <CharacterString>Conservation Biology Institute</CharacterString>
+            </organisationName>
+            <contactInfo>
+                <CI_Contact>
+                    <phone>
+                        <CI_Telephone>
+                            <voice>
+                                <CharacterString>541-757-0687</CharacterString>
+                            </voice>
+                        </CI_Telephone>
+                    </phone>
+                    <address>
+                        <CI_Address>
+                            <deliveryPoint>
+                                <CharacterString>136 SW Washington Ave, Suite 202</CharacterString>
+                            </deliveryPoint>
+                            <city>
+                                <CharacterString>Corvallis</CharacterString>
+                            </city>
+                            <administrativeArea>
+                                <CharacterString>OR</CharacterString>
+                            </administrativeArea>
+                            <postalCode>
+                                <CharacterString>97333</CharacterString>
+                            </postalCode>
+                            <country>
+                                <Country codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CountryCode" codeListValue="US" codeSpace="ISO3166-alpha2">US</Country>
+                            </country>
+                            <electronicMailAddress>
+                                <CharacterString>info@consbio.org</CharacterString>
+                            </electronicMailAddress>
+                        </CI_Address>
+                    </address>
+                </CI_Contact>
+            </contactInfo>
+            <role>
+                <CI_RoleCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_RoleCode" codeListValue="pointOfContact" codeSpace="ISOTC211/19115">pointOfContact</CI_RoleCode>
+            </role>
+        </CI_ResponsibleParty>
+    </contact>
+    <dateStamp />
+    <metadataStandardName>
+        <CharacterString>ISO 19139 Geographic Information - Metadata - Implementation Specification</CharacterString>
+    </metadataStandardName>
+    <metadataStandardVersion>
+        <CharacterString>2007</CharacterString>
+    </metadataStandardVersion>
+    <identificationInfo>
+        <MD_DataIdentification>
+            <aggregationInfo>
+                <MD_AggregateInformation>
+                    <aggregateDataSetName>
+                        <CI_Citation>
+                            <title>
+                                <CharacterString>Larger Works Title</CharacterString>
+                            </title>
+                            <otherCitationDetails>
+                                <CharacterString>Larger Works Details</CharacterString>
+                            </otherCitationDetails>
+                            <edition>
+                                <CharacterString>Larger Works Edition</CharacterString>
+                            </edition>
+                            <editionDate>
+                                <Date>2014-01-01</Date>
+                            </editionDate>
+                            <citedResponsibleParty>
+                                <CI_ResponsibleParty>
+                                    <individualName>
+                                        <CharacterString>Larger Works Contact</CharacterString>
+                                    </individualName>
+                                    <organisationName>
+                                        <CharacterString>Larger Works Institute</CharacterString>
+                                    </organisationName>
+                                    <contactInfo>
+                                        <CI_Contact>
+                                            <address>
+                                                <CI_Address>
+                                                    <city>
+                                                        <CharacterString>Larger Works city</CharacterString>
+                                                    </city>
+                                                </CI_Address>
+                                            </address>
+                                            <onlineResource>
+                                                <CI_OnlineResource>
+                                                    <linkage>
+                                                        <URL>larger.works.com</URL>
+                                                    </linkage>
+                                                </CI_OnlineResource>
+                                            </onlineResource>
+                                        </CI_Contact>
+                                    </contactInfo>
+                                </CI_ResponsibleParty>
+                            </citedResponsibleParty>
+                        </CI_Citation>
+                    </aggregateDataSetName>
+                </MD_AggregateInformation>
+            </aggregationInfo>
+            <citation>
+                <CI_Citation>
+                    <title>
+                        <CharacterString>Invasive Aquatic Species Occurrences</CharacterString>
+                    </title>
+                    <collectiveTitle>
+                        <CharacterString>LARGER WORKS: Invasive Aquatic Species Occurrences</CharacterString>
+                    </collectiveTitle>
+                    <identifier>
+                        <MD_Identifier>
+                            <code>
+                                <CharacterString>resource description</CharacterString>
+                            </code>
+                        </MD_Identifier>
+                    </identifier>
+                    <otherCitationDetails>
+                        <CharacterString>more citation details</CharacterString>
+                    </otherCitationDetails>
+                    <date>
+                        <CI_Date>
+                            <date>
+                                <Date>2011-01-01</Date>
+                            </date>
+                            <dateType>
+                                <CI_DateTypeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_DateTypeCode" codeListValue="publication" codeSpace="ISOTC211/19115">publication</CI_DateTypeCode>
+                            </dateType>
+                        </CI_Date>
+                    </date>
+                    <citedResponsibleParty>
+                        <CI_ResponsibleParty>
+                            <organisationName>
+                                <CharacterString>Conservation Biology Institute</CharacterString>
+                                <!-- WARNING: translation from FGDC is ambiguous, this may require correction -->
+                            </organisationName>
+                            <role>
+                                <CI_RoleCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_RoleCode" codeListValue="originator" codeSpace="ISOTC211/19115">originator</CI_RoleCode>
+                            </role>
+                            <contactInfo>
+                                <CI_Contact>
+                                    <onlineResource>
+                                        <CI_OnlineResource>
+                                            <linkage>
+                                                <URL>abc.onlinelinkage.com</URL>
+                                            </linkage>
+                                        </CI_OnlineResource>
+                                    </onlineResource>
+                                </CI_Contact>
+                            </contactInfo>
+                        </CI_ResponsibleParty>
+                    </citedResponsibleParty>
+                </CI_Citation>
+            </citation>
+            <abstract>
+                <CharacterString>This dataset shows the distribution of invasive aquatic species.</CharacterString>
+            </abstract>
+            <environmentDescription>
+                <CharacterString>using environmentDescription instead of supplementaryInfo for technical prerequisites</CharacterString>
+            </environmentDescription>
+            <purpose>
+                <CharacterString>Created to support the BLM REA process</CharacterString>
+            </purpose>
+            <credit>
+                <CharacterString>data is credible</CharacterString>
+            </credit>
+            <status>
+                <MD_ProgressCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_ProgressCode" codeListValue="completed" codeSpace="ISOTC211/19115">completed</MD_ProgressCode>
+            </status>
+            <pointOfContact>
+                <CI_ResponsibleParty>
+                    <individualName>
+                        <CharacterString>James Strittholt</CharacterString>
+                    </individualName>
+                    <organisationName>
+                        <CharacterString>Conservation Biology Institute</CharacterString>
+                    </organisationName>
+                    <contactInfo>
+                        <CI_Contact>
+                            <phone>
+                                <CI_Telephone>
+                                    <voice>
+                                        <CharacterString>541-757-0687</CharacterString>
+                                    </voice>
+                                </CI_Telephone>
+                            </phone>
+                            <address>
+                                <CI_Address>
+                                    <deliveryPoint>
+                                        <CharacterString>136 SW Washington Ave, Suite 202</CharacterString>
+                                    </deliveryPoint>
+                                    <city>
+                                        <CharacterString>Corvallis</CharacterString>
+                                    </city>
+                                    <administrativeArea>
+                                        <CharacterString>OR</CharacterString>
+                                    </administrativeArea>
+                                    <postalCode>
+                                        <CharacterString>97333</CharacterString>
+                                    </postalCode>
+                                    <country>
+                                        <Country codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CountryCode" codeListValue="US" codeSpace="ISO3166-alpha2">US</Country>
+                                    </country>
+                                    <electronicMailAddress>
+                                        <CharacterString>info@consbio.org</CharacterString>
+                                    </electronicMailAddress>
+                                </CI_Address>
+                            </address>
+                        </CI_Contact>
+                    </contactInfo>
+                    <role>
+                        <CI_RoleCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_RoleCode" codeListValue="pointOfContact" codeSpace="ISOTC211/19115">pointOfContact</CI_RoleCode>
+                    </role>
+                </CI_ResponsibleParty>
+            </pointOfContact>
+            <resourceConstraints>
+                <MD_Constraints>
+                    <useLimitation>
+                        <CharacterString>a strict limitation</CharacterString>
+                    </useLimitation>
+                </MD_Constraints>
+                <MD_LegalConstraints>
+                    <otherConstraints>
+                        <CharacterString>a real liability</CharacterString>
+                    </otherConstraints>
+                </MD_LegalConstraints>
+            </resourceConstraints>
+            <resourceMaintenance>
+                <MD_MaintenanceInformation>
+                    <maintenanceAndUpdateFrequency>
+                        <MD_MaintenanceFrequencyCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_MaintenanceFrequencyCode" codeListValue="notPlanned" codeSpace="ISOTC211/19115">notPlanned</MD_MaintenanceFrequencyCode>
+                    </maintenanceAndUpdateFrequency>
+                </MD_MaintenanceInformation>
+            </resourceMaintenance>
+            <descriptiveKeywords>
+                <MD_Keywords>
+                    <keyword>
+                        <CharacterString>Fish</CharacterString>
+                    </keyword>
+                    <keyword>
+                        <CharacterString>Wildlife</CharacterString>
+                    </keyword>
+                    <type>
+                        <MD_KeywordTypeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_KeywordTypeCode" codeListValue="theme" codeSpace="ISOTC211/19115">theme</MD_KeywordTypeCode>
+                    </type>
+                    <thesaurusName>
+                        <CI_Citation>
+                            <title>
+                                <CharacterString>BLM-Theme</CharacterString>
+                            </title>
+                            <date nilReason="missing" />
+                        </CI_Citation>
+                    </thesaurusName>
+                </MD_Keywords>
+            </descriptiveKeywords>
+            <descriptiveKeywords>
+                <MD_Keywords>
+                    <keyword>
+                        <CharacterString>Arizona</CharacterString>
+                    </keyword>
+                    <keyword>
+                        <CharacterString>California</CharacterString>
+                    </keyword>
+                    <type>
+                        <MD_KeywordTypeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_KeywordTypeCode" codeListValue="place" codeSpace="ISOTC211/19115">place</MD_KeywordTypeCode>
+                    </type>
+                    <thesaurusName>
+                        <CI_Citation>
+                            <title>
+                                <CharacterString>BLM-State</CharacterString>
+                            </title>
+                            <date nilReason="missing" />
+                        </CI_Citation>
+                    </thesaurusName>
+                </MD_Keywords>
+            </descriptiveKeywords>
+            <descriptiveKeywords>
+                <MD_Keywords>
+                    <keyword>
+                        <CharacterString>Sonoran Desert</CharacterString>
+                    </keyword>
+                    <type>
+                        <MD_KeywordTypeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_KeywordTypeCode" codeListValue="place" codeSpace="ISOTC211/19115">place</MD_KeywordTypeCode>
+                    </type>
+                    <thesaurusName>
+                        <CI_Citation>
+                            <title>
+                                <CharacterString>BLM-Ecoregion</CharacterString>
+                            </title>
+                            <date nilReason="missing" />
+                        </CI_Citation>
+                    </thesaurusName>
+                </MD_Keywords>
+            </descriptiveKeywords>
+            <descriptiveKeywords>
+                <MD_Keywords>
+                    <keyword>
+                        <CharacterString>US</CharacterString>
+                    </keyword>
+                    <keyword>
+                        <CharacterString>United States</CharacterString>
+                    </keyword>
+                    <keyword>
+                        <CharacterString>U.S.</CharacterString>
+                    </keyword>
+                    <type>
+                        <MD_KeywordTypeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_KeywordTypeCode" codeListValue="place" codeSpace="ISOTC211/19115">place</MD_KeywordTypeCode>
+                    </type>
+                    <thesaurusName>
+                        <CI_Citation>
+                            <title>
+                                <CharacterString>National Institute of Standards and Technology</CharacterString>
+                            </title>
+                            <date nilReason="missing" />
+                        </CI_Citation>
+                    </thesaurusName>
+                </MD_Keywords>
+            </descriptiveKeywords>
+            <spatialRepresentationType>
+                <MD_SpatialRepresentationTypeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_SpatialRepresentationTypeCode" codeListValue="vector" codeSpace="ISOTC211/19115">vector</MD_SpatialRepresentationTypeCode>
+            </spatialRepresentationType>
+            <language>
+                <LanguageCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#LanguageCode" codeListValue="eng">eng</LanguageCode>
+            </language>
+            <topicCategory>
+                <MD_TopicCategoryCode>biota</MD_TopicCategoryCode>
+            </topicCategory>
+            <extent>
+                <EX_Extent>
+                    <description>
+                        <CharacterString>publication date</CharacterString>
+                    </description>
+                    <temporalElement>
+                        <EX_TemporalExtent>
+                            <extent>
+                                <TimeInstant id="_66b99e683d41fed11943dce2d1f049">
+                                    <timePosition>2011-01-01</timePosition>
+                                </TimeInstant>
+                            </extent>
+                        </EX_TemporalExtent>
+                    </temporalElement>
+                </EX_Extent>
+            </extent>
+            <extent>
+                <EX_Extent>
+                    <geographicElement>
+                        <EX_GeographicBoundingBox>
+                            <westBoundLongitude>
+                                <Decimal>-116.33665673</Decimal>
+                            </westBoundLongitude>
+                            <eastBoundLongitude>
+                                <Decimal>-111.247685898</Decimal>
+                            </eastBoundLongitude>
+                            <southBoundLatitude>
+                                <Decimal>32.3804377656</Decimal>
+                            </southBoundLatitude>
+                            <northBoundLatitude>
+                                <Decimal>34.8636229386</Decimal>
+                            </northBoundLatitude>
+                        </EX_GeographicBoundingBox>
+                    </geographicElement>
+                </EX_Extent>
+            </extent>
+            <supplementalInformation>
+                <CharacterString>this is supplementary</CharacterString>
+            </supplementalInformation>
+        </MD_DataIdentification>
+    </identificationInfo>
+    <distributionInfo>
+        <MD_Distribution>
+            <distributionFormat>
+                <MD_Format>
+                    <name>
+                        <CharacterString>first distribution name</CharacterString>
+                    </name>
+                    <fileDecompressionTechnique>
+                        <CharacterString>first distribution technique</CharacterString>
+                    </fileDecompressionTechnique>
+                    <specification>
+                        <CharacterString>first distribution specification</CharacterString>
+                    </specification>
+                    <version>
+                        <CharacterString>first distribution version</CharacterString>
+                    </version>
+                </MD_Format>
+            </distributionFormat>
+            <distributionFormat>
+                <MD_Format>
+                    <name>
+                        <CharacterString>next distribution name</CharacterString>
+                    </name>
+                    <fileDecompressionTechnique>
+                        <CharacterString>next distribution technique</CharacterString>
+                    </fileDecompressionTechnique>
+                    <specification>
+                        <CharacterString>next distribution specification</CharacterString>
+                    </specification>
+                    <version>
+                        <CharacterString>next distribution version</CharacterString>
+                    </version>
+                </MD_Format>
+            </distributionFormat>
+            <transferOptions>
+                <MD_DigitalTransferOptions>
+                    <onLine>
+                        <CI_OnlineResource>
+                            <protocol>
+                                <CharacterString>first protocol</CharacterString>
+                            </protocol>
+                            <linkage>
+                                <URL>first.network.resource.com</URL>
+                            </linkage>
+                            <description>
+                                <CharacterString>first resource description</CharacterString>
+                            </description>
+                        </CI_OnlineResource>
+                    </onLine>
+                </MD_DigitalTransferOptions>
+            </transferOptions>
+            <transferOptions>
+                <MD_DigitalTransferOptions>
+                    <onLine>
+                        <CI_OnlineResource>
+                            <linkage>
+                                <URL>next.network.resource.com</URL>
+                            </linkage>
+                            <description>
+                                <CharacterString>next resource description</CharacterString>
+                            </description>
+                        </CI_OnlineResource>
+                    </onLine>
+                </MD_DigitalTransferOptions>
+            </transferOptions>
+            <transferOptions>
+                <MD_DigitalTransferOptions>
+                    <onLine>
+                        <CI_OnlineResource>
+                            <protocol>
+                                <CharacterString>last protocol</CharacterString>
+                            </protocol>
+                            <linkage>
+                                <URL>last.network.resource.com</URL>
+                            </linkage>
+                            <description>
+                                <CharacterString>last resource description</CharacterString>
+                            </description>
+                        </CI_OnlineResource>
+                    </onLine>
+                </MD_DigitalTransferOptions>
+            </transferOptions>
+            <distributor>
+                <MD_Distributor>
+                    <distributorContact>
+                        <CI_ResponsibleParty>
+                            <individualName>
+                                <CharacterString>Matt Bobo</CharacterString>
+                            </individualName>
+                            <organisationName>
+                                <CharacterString>Bureau of Land Management</CharacterString>
+                            </organisationName>
+                            <positionName>
+                                <CharacterString>REA Data Coordinator</CharacterString>
+                            </positionName>
+                            <contactInfo>
+                                <CI_Contact>
+                                    <phone>
+                                        <CI_Telephone>
+                                            <voice>
+                                                <CharacterString>303-236-0721</CharacterString>
+                                            </voice>
+                                        </CI_Telephone>
+                                    </phone>
+                                    <address>
+                                        <CI_Address>
+                                            <deliveryPoint>
+                                                <CharacterString>Building 50, Denver Federal Center</CharacterString>
+                                            </deliveryPoint>
+                                            <city>
+                                                <CharacterString>Denver</CharacterString>
+                                            </city>
+                                            <administrativeArea>
+                                                <CharacterString>CO</CharacterString>
+                                            </administrativeArea>
+                                            <postalCode>
+                                                <CharacterString>80225</CharacterString>
+                                            </postalCode>
+                                            <country>
+                                                <Country codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CountryCode" codeListValue="US" codeSpace="ISO3166-alpha2">US</Country>
+                                            </country>
+                                            <electronicMailAddress>
+                                                <CharacterString>jdoe@blm.gov</CharacterString>
+                                            </electronicMailAddress>
+                                        </CI_Address>
+                                    </address>
+                                </CI_Contact>
+                            </contactInfo>
+                            <role>
+                                <CI_RoleCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_RoleCode" codeListValue="distributor" codeSpace="ISOTC211/19115">distributor</CI_RoleCode>
+                            </role>
+                        </CI_ResponsibleParty>
+                    </distributorContact>
+                    <distributionOrderProcess>
+                        <MD_StandardOrderProcess>
+                            <fees>
+                                <CharacterString>N/A</CharacterString>
+                            </fees>
+                            <orderingInstructions>
+                                <CharacterString>remember turnaround is variable</CharacterString>
+                            </orderingInstructions>
+                            <turnaround>
+                                <CharacterString>Variable</CharacterString>
+                            </turnaround>
+                        </MD_StandardOrderProcess>
+                    </distributionOrderProcess>
+                    <distributorFormat>
+                        <MD_Format>
+                            <name>
+                                <CharacterString>ArcGIS File Geodatabase Feature Class</CharacterString>
+                            </name>
+                            <version>
+                                <CharacterString>ArcGIS 10</CharacterString>
+                            </version>
+                            <specification>
+                                <CharacterString>Varies</CharacterString>
+                            </specification>
+                            <fileDecompressionTechnique>
+                                <CharacterString>No compression applied</CharacterString>
+                            </fileDecompressionTechnique>
+                        </MD_Format>
+                    </distributorFormat>
+                    <distributorTransferOptions>
+                        <MD_DigitalTransferOptions>
+                            <transferSize>
+                                <Real>0</Real>
+                            </transferSize>
+                        </MD_DigitalTransferOptions>
+                    </distributorTransferOptions>
+                    <distributorTransferOptions>
+                        <MD_DigitalTransferOptions>
+                            <transferSize>
+                                <Real>0</Real>
+                            </transferSize>
+                            <offLine>
+                                <MD_Medium>
+                                    <density>
+                                        <Real>0</Real>
+                                    </density>
+                                    <densityUnits>
+                                        <CharacterString />
+                                    </densityUnits>
+                                    <mediumNote>
+                                        <CharacterString />
+                                    </mediumNote>
+                                </MD_Medium>
+                            </offLine>
+                        </MD_DigitalTransferOptions>
+                    </distributorTransferOptions>
+                    <distributorTransferOptions>
+                        <MD_DigitalTransferOptions>
+                            <onLine>
+                                <CI_OnlineResource>
+                                    <linkage nilReason="missing" />
+                                    <description>
+                                        <CharacterString />
+                                    </description>
+                                </CI_OnlineResource>
+                            </onLine>
+                        </MD_DigitalTransferOptions>
+                    </distributorTransferOptions>
+                </MD_Distributor>
+            </distributor>
+            <transferOptions>
+                <MD_DigitalTransferOptions>
+                    <onLine>
+                        <CI_OnlineResource>
+                            <linkage>
+                                <URL />
+                            </linkage>
+                        </CI_OnlineResource>
+                    </onLine>
+                </MD_DigitalTransferOptions>
+            </transferOptions>
+        </MD_Distribution>
+    </distributionInfo>
+    <dataQualityInfo>
+        <DQ_DataQuality>
+            <scope>
+                <DQ_Scope>
+                    <level>
+                        <MD_ScopeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_ScopeCode" codeListValue="dataset" codeSpace="ISOTC211/19115">dataset</MD_ScopeCode>
+                    </level>
+                </DQ_Scope>
+            </scope>
+            <report>
+                <DQ_ConceptualConsistency>
+                    <measureDescription>
+                        <CharacterString>Basic checks were performed to ensure data integrity and consistency.</CharacterString>
+                    </measureDescription>
+                </DQ_ConceptualConsistency>
+            </report>
+            <report>
+                <DQ_CompletenessOmission>
+                    <measureDescription>
+                        <CharacterString>Data were not checked for completeness.</CharacterString>
+                    </measureDescription>
+                </DQ_CompletenessOmission>
+            </report>
+            <report>
+                <DQ_QuantitativeAttributeAccuracy>
+                    <measureDescription>
+                        <CharacterString>Assessment not applied</CharacterString>
+                    </measureDescription>
+                    <result nilReason="missing" />
+                </DQ_QuantitativeAttributeAccuracy>
+            </report>
+            <lineage>
+                <LI_Lineage>
+                    <processStep>
+                        <LI_ProcessStep>
+                            <description>
+                                <CharacterString>Merged source datasets using the model: Models\Change_Agents\SOD_IV.tbx\SOD_IV_C_AquaticSpecies Selected target species from SOD_USGS_NAS_pt ("ScientificName" in ( 'Dreissena rostriformis bugensis', 'Corbicula fluminea')) and merged with SOD_NIISS_Asian_Clams_pt.</CharacterString>
+                            </description>
+                            <dateTime>
+                                <DateTime>2011-01-01T00:00:00</DateTime>
+                            </dateTime>
+                            <processor>
+                                <CI_ResponsibleParty>
+                                    <individualName>
+                                        <CharacterString>Brendan Ward</CharacterString>
+                                    </individualName>
+                                    <organisationName>
+                                        <CharacterString>Conservation Biology Institute</CharacterString>
+                                    </organisationName>
+                                    <contactInfo>
+                                        <CI_Contact>
+                                            <phone>
+                                                <CI_Telephone>
+                                                    <voice>
+                                                        <CharacterString>541-757-0687</CharacterString>
+                                                    </voice>
+                                                </CI_Telephone>
+                                            </phone>
+                                            <address>
+                                                <CI_Address>
+                                                    <deliveryPoint>
+                                                        <CharacterString>136 SW Washington Ave, Suite 202</CharacterString>
+                                                    </deliveryPoint>
+                                                    <city>
+                                                        <CharacterString>Corvallis</CharacterString>
+                                                    </city>
+                                                    <administrativeArea>
+                                                        <CharacterString>OR</CharacterString>
+                                                    </administrativeArea>
+                                                    <postalCode>
+                                                        <CharacterString>97333</CharacterString>
+                                                    </postalCode>
+                                                    <country>
+                                                        <Country codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CountryCode" codeListValue="US" codeSpace="ISO3166-alpha2">US</Country>
+                                                    </country>
+                                                    <electronicMailAddress>
+                                                        <CharacterString>bcward@consbio.org</CharacterString>
+                                                    </electronicMailAddress>
+                                                </CI_Address>
+                                            </address>
+                                        </CI_Contact>
+                                    </contactInfo>
+                                    <role>
+                                        <CI_RoleCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_RoleCode" codeListValue="processor" codeSpace="ISOTC211/19115">processor</CI_RoleCode>
+                                    </role>
+                                </CI_ResponsibleParty>
+                            </processor>
+                           <source>
+                                <LI_Source>
+                                    <sourceCitation>
+                                        <CI_Citation>
+                                            <title>
+                                                <CharacterString>Modelled merged dataset title</CharacterString>
+                                            </title>
+                                            <alternateTitle>
+                                                <CharacterString>Merged modelled dataset</CharacterString>
+                                            </alternateTitle>
+                                        </CI_Citation>
+                                    </sourceCitation>
+                                </LI_Source>
+                            </source>
+                        </LI_ProcessStep>
+                    </processStep>
+                    <processStep>
+                        <LI_ProcessStep>
+                            <description>
+                                <CharacterString>Merged more datasets</CharacterString>
+                            </description>
+                            <dateTime>
+                                <DateTime>2012-01-01T01:02:03</DateTime>
+                            </dateTime>
+                            <processor>
+                                <CI_ResponsibleParty>
+                                    <individualName>
+                                        <CharacterString>Mike Lundin</CharacterString>
+                                    </individualName>
+                                    <organisationName>
+                                        <CharacterString>Conservation Biology Institute</CharacterString>
+                                    </organisationName>
+                                    <contactInfo>
+                                        <CI_Contact>
+                                            <phone>
+                                                <CI_Telephone>
+                                                    <voice>
+                                                        <CharacterString>541-757-0687</CharacterString>
+                                                    </voice>
+                                                </CI_Telephone>
+                                            </phone>
+                                            <address>
+                                                <CI_Address>
+                                                    <deliveryPoint>
+                                                        <CharacterString>136 SW Washington Ave, Suite 202</CharacterString>
+                                                    </deliveryPoint>
+                                                    <city>
+                                                        <CharacterString>Corvallis</CharacterString>
+                                                    </city>
+                                                    <administrativeArea>
+                                                        <CharacterString>OR</CharacterString>
+                                                    </administrativeArea>
+                                                    <postalCode>
+                                                        <CharacterString>97333</CharacterString>
+                                                    </postalCode>
+                                                    <country>
+                                                        <Country codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CountryCode" codeListValue="US" codeSpace="ISO3166-alpha2">US</Country>
+                                                    </country>
+                                                    <electronicMailAddress>
+                                                        <CharacterString>mlundin@consbio.org</CharacterString>
+                                                    </electronicMailAddress>
+                                                </CI_Address>
+                                            </address>
+                                        </CI_Contact>
+                                    </contactInfo>
+                                    <role>
+                                        <CI_RoleCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_RoleCode" codeListValue="processor" codeSpace="ISOTC211/19115">processor</CI_RoleCode>
+                                    </role>
+                                </CI_ResponsibleParty>
+                            </processor>
+                            <source>
+                                <LI_Source>
+                                    <sourceCitation>
+                                        <CI_Citation>
+                                            <title>
+                                                <CharacterString>First merged dataset title</CharacterString>
+                                            </title>
+                                            <alternateTitle>
+                                                <CharacterString>Merged dataset 1</CharacterString>
+                                            </alternateTitle>
+                                        </CI_Citation>
+                                    </sourceCitation>
+                                </LI_Source>
+                            </source>
+                            <source>
+                                <LI_Source>
+                                    <sourceCitation>
+                                        <CI_Citation>
+                                            <title>
+                                                <CharacterString>Second merged dataset title</CharacterString>
+                                            </title>
+                                            <alternateTitle>
+                                                <CharacterString>Merged dataset 2</CharacterString>
+                                            </alternateTitle>
+                                        </CI_Citation>
+                                    </sourceCitation>
+                                </LI_Source>
+                            </source>
+                        </LI_ProcessStep>
+                    </processStep>
+                    <source>
+                        <LI_Source>
+                            <description>
+                                <CharacterString>Asian Clam Spatial and attribute information</CharacterString>
+                            </description>
+                            <scaleDenominator>
+                                <MD_RepresentativeFraction>
+                                    <denominator>
+                                        <Integer>0</Integer>
+                                    </denominator>
+                                </MD_RepresentativeFraction>
+                            </scaleDenominator>
+                            <sourceCitation>
+                                <CI_Citation>
+                                    <title>
+                                        <CharacterString>Asian Clam Occurrence Points (NISS)</CharacterString>
+                                    </title>
+                                    <alternateTitle>
+                                        <CharacterString>Asian Clam Occurrence Points (NISS)</CharacterString>
+                                    </alternateTitle>
+                                    <date>
+                                        <CI_Date>
+                                            <date>
+                                                <Date>2011-01-01</Date>
+                                            </date>
+                                            <dateType>
+                                                <CI_DateTypeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_DateTypeCode" codeListValue="publication" codeSpace="ISOTC211/19115">publication</CI_DateTypeCode>
+                                            </dateType>
+                                        </CI_Date>
+                                    </date>
+                                    <citedResponsibleParty>
+                                        <CI_ResponsibleParty>
+                                            <organisationName>
+                                                <CharacterString>NIISS</CharacterString>
+                                                <!-- WARNING: translation from FGDC is ambiguous, this may require correction -->
+                                            </organisationName>
+                                            <role>
+                                                <CI_RoleCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_RoleCode" codeListValue="publisher" codeSpace="ISOTC211/19115">publisher</CI_RoleCode>
+                                            </role>
+                                        </CI_ResponsibleParty>
+                                    </citedResponsibleParty>
+                                    <citedResponsibleParty>
+                                        <CI_ResponsibleParty>
+                                            <organisationName>
+                                                <CharacterString>National Parks Service</CharacterString>
+                                                <!-- WARNING: translation from FGDC is ambiguous, this may require correction -->
+                                            </organisationName>
+                                            <role>
+                                                <CI_RoleCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_RoleCode" codeListValue="originator" codeSpace="ISOTC211/19115">originator</CI_RoleCode>
+                                            </role>
+                                        </CI_ResponsibleParty>
+                                    </citedResponsibleParty>
+                                </CI_Citation>
+                            </sourceCitation>
+                            <sourceExtent>
+                                <EX_Extent>
+                                    <description>
+                                        <CharacterString>publication date</CharacterString>
+                                    </description>
+                                    <temporalElement>
+                                        <EX_TemporalExtent>
+                                            <extent>
+                                                <TimeInstant id="_f02c829534519e1c7b59f0a3bdeb6b">
+                                                    <timePosition>2011-01-01</timePosition>
+                                                </TimeInstant>
+                                            </extent>
+                                        </EX_TemporalExtent>
+                                    </temporalElement>
+                                </EX_Extent>
+                            </sourceExtent>
+                        </LI_Source>
+                    </source>
+                    <source>
+                        <LI_Source>
+                            <description>
+                                <CharacterString>Nonindigenous Dquatic Species Spatial and attribute information</CharacterString>
+                            </description>
+                            <scaleDenominator>
+                                <MD_RepresentativeFraction>
+                                    <denominator>
+                                        <Integer>0</Integer>
+                                    </denominator>
+                                </MD_RepresentativeFraction>
+                            </scaleDenominator>
+                            <sourceCitation>
+                                <CI_Citation>
+                                    <title>
+                                        <CharacterString>Nonindigenous Dquatic Species</CharacterString>
+                                    </title>
+                                    <alternateTitle>
+                                        <CharacterString>Nonindigenous Dquatic Species</CharacterString>
+                                    </alternateTitle>
+                                    <date>
+                                        <CI_Date>
+                                            <date>
+                                                <Date>2011-01-01</Date>
+                                            </date>
+                                            <dateType>
+                                                <CI_DateTypeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_DateTypeCode" codeListValue="publication" codeSpace="ISOTC211/19115">publication</CI_DateTypeCode>
+                                            </dateType>
+                                        </CI_Date>
+                                    </date>
+                                    <citedResponsibleParty>
+                                        <CI_ResponsibleParty>
+                                            <organisationName>
+                                                <CharacterString>United States Geological Survey</CharacterString>
+                                                <!-- WARNING: translation from FGDC is ambiguous, this may require correction -->
+                                            </organisationName>
+                                            <role>
+                                                <CI_RoleCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_RoleCode" codeListValue="originator" codeSpace="ISOTC211/19115">originator</CI_RoleCode>
+                                            </role>
+                                        </CI_ResponsibleParty>
+                                    </citedResponsibleParty>
+                                </CI_Citation>
+                            </sourceCitation>
+                            <sourceExtent>
+                                <EX_Extent>
+                                    <description>
+                                        <CharacterString>publication date</CharacterString>
+                                    </description>
+                                    <temporalElement>
+                                        <EX_TemporalExtent>
+                                            <extent>
+                                                <TimeInstant id="_e4fcc95df327303e7158c52cf677a6">
+                                                    <timePosition>2011-01-01</timePosition>
+                                                </TimeInstant>
+                                            </extent>
+                                        </EX_TemporalExtent>
+                                    </temporalElement>
+                                </EX_Extent>
+                            </sourceExtent>
+                        </LI_Source>
+                    </source>
+                </LI_Lineage>
+            </lineage>
+        </DQ_DataQuality>
+    </dataQualityInfo>
+    <metadataConstraints>
+        <MD_SecurityConstraints>
+            <classification>
+                <MD_ClassificationCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_ClassificationCode" codeListValue="unclassified" codeSpace="ISOTC211/19115">unclassified</MD_ClassificationCode>
+            </classification>
+            <classificationSystem>
+                <CharacterString>None</CharacterString>
+            </classificationSystem>
+            <handlingDescription>
+                <CharacterString>None</CharacterString>
+            </handlingDescription>
+        </MD_SecurityConstraints>
+    </metadataConstraints>
+</MD_Metadata>

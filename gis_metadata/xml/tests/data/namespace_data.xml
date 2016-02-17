@@ -1,0 +1,19 @@
+<abc:a
+    xmlns:abc="http://www.w3schools.com" xmlns:def="http://www.w3schools.com" xmlns:ghi="http://www.w3schools.com" xmlns:tuv="http://www.w3schools.com" xmlns="http://www.w3schools.com"
+    tuv:t1="t" tuv:t2="tt"
+>
+    aaa
+    <abc:b>bbb</abc:b>
+    <abc:c tuv:t2="ttt" tuv:t4="tttt">
+        ctext
+        <def:d />
+        <def:d>dd</def:d>
+        <def:d>ddd</def:d>
+        <def:e tuv:t5="ttttt" />eee
+        <def:f />
+        <ghi:g>
+            <ghi:h><ghi:i /><ghi:i /></ghi:h>
+            <ghi:h><ghi:i /><ghi:i /></ghi:h>
+        </ghi:g>
+    </abc:c>ctail
+</abc:a>

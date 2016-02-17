@@ -1,0 +1,339 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<metadata>
+    <idinfo>
+        <descript>
+            <abstract>Percent of coral reefs at risk, by marine ecoregion.</abstract>
+            <purpose>This classification represents a new work.</purpose>
+            <supplinf>USERS PLEASE NOTE - shapefile does NOT accurately represent outer boundaries.
+Download this data at:
+http://conserveonline.org/workspaces/ecoregional.shapefile/
+            </supplinf>
+        </descript>
+        <citation>
+            <citeinfo>
+                <origin>The Nature Conservancy (http://nature.org)</origin>
+                <pubdate>July, 2007</pubdate>
+                <title>Percent of Reefs at Risk by Marine Ecoregion</title>
+                <onlink>http://app.databasin.org/app/pages/datasetPage.jsp?id=983be3aea8f345ab976adb895c94e689</onlink>
+                <othercit>The Atlas of Global Conservation: Changes, Challenges, and Opportunities to Make a Difference. Ed. J. L. Molnar. Berkeley: University of California Press.</othercit>
+                <pubinfo>
+                    <publish />
+                    <pubplace />
+                </pubinfo>
+                <lworkcit>
+                    <citeinfo>
+                        <origin>The Nature Conservancy (http://nature.org)</origin>
+                        <pubdate />
+                        <title>Percent of Reefs at Risk by Marine Ecoregion</title>
+                        <onlink>http://app.databasin.org/app/pages/datasetPage.jsp?id=983be3aea8f345ab976adb895c94e689</onlink>
+                        <pubinfo>
+                            <publish>published info</publish>
+                            <pubplace>published here</pubplace>
+                        </pubinfo>
+                    </citeinfo>
+                </lworkcit>
+            </citeinfo>
+        </citation>
+        <timeperd>
+            <timeinfo>
+                <rngdates>
+                    <begdate>July, 2007</begdate>
+                    <enddate>July, 2012</enddate>
+                </rngdates>
+                <mdattim>
+                    <sngdate>
+                        <caldate>July, 2008</caldate>
+                    </sngdate>
+                    <sngdate>
+                        <caldate>July, 2009</caldate>
+                    </sngdate>
+                    <sngdate>
+                        <caldate>July, 2010</caldate>
+                    </sngdate>
+                </mdattim>
+                <sngdate>
+                    <caldate>July, 2011</caldate>
+                </sngdate>
+                <current />
+            </timeinfo>
+        </timeperd>
+        <status>
+            <progress />
+            <update />
+        </status>
+        <spdom>
+            <bounding>
+                <westbc>-179.99999999998656</westbc>
+                <eastbc>179.99999999998656</eastbc>
+                <northbc>87.81211601444309</northbc>
+                <southbc>-86.78249642712764</southbc>
+            </bounding>
+        </spdom>
+        <keywords>
+            <place>
+                <placekey>Oregon</placekey>
+                <placekey>Washington</placekey>
+            </place>
+            <theme>
+                <themekey>Marine</themekey>
+                <themekey>Biogeography</themekey>
+                <themekey>Ecoregion</themekey>
+                <themekey>Realm</themekey>
+                <themekey>The Nature Conservancy</themekey>
+                <themekey>coral reefs</themekey>
+                <themekey>risk</themekey>
+                <themekey>threat</themekey>
+                <themekey>habitat</themekey>
+                <themekt>Data Basin tags</themekt>
+            </theme>
+        </keywords>
+        <useconst>This work is licensed under a Creative Commons Attribution-NonCommercial 3.0 License (http://creativecommons.org/licenses/by-nc/3.0).</useconst>
+        <datacred>Coral Reefs at Risk by ecoregion: The Nature Conservancy</datacred>
+        <ptcontac>
+            <cntinfo>
+                <cntemail>tboucher@tnc.org</cntemail>
+                <cntperp>
+                    <cntper>Timothy Boucher (tboucher@tnc.org)</cntper>
+                    <cntorg> The Nature Conservancy (http://nature.org)</cntorg>
+                </cntperp>
+            </cntinfo>
+        </ptcontac>
+    </idinfo>
+    <distinfo>
+        <distrib>
+            <cntinfo>
+                <cntorgp>
+                    <cntorg>Data Basin</cntorg>
+                    <cntper>Data Basin Administrator</cntper>
+                </cntorgp>
+                <cntaddr>
+                    <addrtype>physical address</addrtype>
+                    <address>136 SW Washington Ave, Suite 202</address>
+                    <city>Corvallis</city>
+                    <state>OR</state>
+                    <postal>97333</postal>
+                    <country>USA</country>
+                </cntaddr>
+                <cntvoice>541-757-0687</cntvoice>
+                <cntemail>databasin_admin@consbio.org</cntemail>
+            </cntinfo>
+        </distrib>
+        <resdesc>Percent of Reefs at Risk by Marine Ecoregion</resdesc>
+        <distliab>No warranty is made by Data Basin for use of this dataset.  No warranty is made by Data Basin regarding the accuracy, reliability, or completeness of this dataset. In no event shall Data Basin have any liability whatsoever for payment of any consequential, incidental, indirect, special, or tort damages of any kind, including, but not limited to, any loss of profits arising out of the use or reliance on the geographic or attribute data contained within this dataset or arising out of the delivery, installation, operation, or support by Data Basin.</distliab>
+        <stdorder>
+            <digform>
+                <digtopt>
+                    <onlineopt>
+                        <computer>
+                            <networka>
+                                <networkr>FL1 A B C1</networkr>
+                                <networkr>FL1 A B C2</networkr>
+                            </networka>
+                        </computer>
+                        <computer>
+                            <networka>
+                                <networkr>FL1 A B1 C1</networkr>
+                                <networkr>FL1 A B1 C2</networkr>
+                            </networka>
+                        </computer>
+                    </onlineopt>
+                    <onlineopt>
+                        <computer>
+                            <networka>
+                                <networkr>FL1 A1 B2 C1</networkr>
+                                <networkr>FL1 A1 B2 C2</networkr>
+                            </networka>
+                        </computer>
+                        <computer>
+                            <networka>
+                                <networkr>FL1 A2 B3 C1</networkr>
+                                <networkr>FL1 A2 B3 C2</networkr>
+                            </networka>
+                        </computer>
+                    </onlineopt>
+                </digtopt>
+                <digtinfo>
+                    <formname>Feature Layer1</formname>
+                    <formvern>ArcGIS  10</formvern>
+                    <formcont>Content Description...</formcont>
+                    <formspec>Feature Spec</formspec>
+                    <filedec>No compression applied</filedec>
+                </digtinfo>
+                <digtopt>
+                    <onlinopt>
+                        <computer>
+                            <networka>
+                                <networkr>http://app.databasin.org/app/pages/datasetPage.jsp?id=983be3aea8f345ab976adb895c94e689</networkr>
+                            </networka>
+                        </computer>
+                        <accinstr>Download from http://databasin.org</accinstr>
+                    </onlinopt>
+                </digtopt>
+            </digform>
+            <digform>
+                <digtopt>
+                    <onlineopt>
+                        <computer>
+                            <networka>
+                                <networkr>FL2 AA B C1</networkr>
+                                <networkr>FL2 AA B C2</networkr>
+                            </networka>
+                        </computer>
+                        <computer>
+                            <networka>
+                                <networkr>FL2 AA B1 C1</networkr>
+                                <networkr>FL2 AA B1 C2</networkr>
+                            </networka>
+                        </computer>
+                    </onlineopt>
+                    <onlineopt>
+                        <computer>
+                            <networka>
+                                <networkr>FL2 AA1 B2 C1</networkr>
+                                <networkr>FL2 AA1 B2 C2</networkr>
+                            </networka>
+                        </computer>
+                        <computer>
+                            <networka>
+                                <networkr>FL2 AA2 B3 C1</networkr>
+                                <networkr>FL2 AA2 B3 C2</networkr>
+                            </networka>
+                        </computer>
+                    </onlineopt>
+                </digtopt>
+                <digtinfo>
+                    <formname>Feature Layer2</formname>
+                    <formvern>ArcGIS  11</formvern>
+                    <formcont>Content Description cont'd...</formcont>
+                    <formspec>Feature Specification</formspec>
+                    <filedec>Big compression applied</filedec>
+                </digtinfo>
+                <digtopt>
+                    <onlinopt>
+                        <computer>
+                            <networka>
+                                <networkr>http://app.databasin.org/app/pages/datasetPage.jsp?id=983be3aea8f345ab976adb895c94e689</networkr>
+                            </networka>
+                        </computer>
+                        <accinstr>Download from http://databasin.org</accinstr>
+                    </onlinopt>
+                </digtopt>
+            </digform>
+            <fees>None</fees>
+            <ordering>Download from http://databasin.org</ordering>
+        </stdorder>
+        <techpreq>ESRI ArcGIS Desktop and supporting operating systems.</techpreq>
+    </distinfo>
+    <eainfo>
+        <detailed>
+            <attr>
+                <attrlabl>FID</attrlabl>
+                <attalias>FID</attalias>
+                <attrdef>Internal feature number.</attrdef>
+                <attrdomv />
+            </attr>
+            <attr>
+                <attrlabl>Shape</attrlabl>
+                <attalias>Shape</attalias>
+                <attrdef>Feature geometry.</attrdef>
+                <attrdomv />
+            </attr>
+            <attr>
+                <attrlabl>ECO_CODE</attrlabl>
+                <attalias>ECO_CODE</attalias>
+                <attrdef>Unique ecoregion identifier</attrdef>
+                <attrdomv />
+            </attr>
+            <attr>
+                <attrlabl>ECOREGION</attrlabl>
+                <attalias>ECOREGION</attalias>
+                <attrdef>Ecoregion name</attrdef>
+                <attrdomv />
+            </attr>
+            <attr>
+                <attrlabl>PROV_CODE</attrlabl>
+                <attalias>PROV_CODE</attalias>
+                <attrdef>Unique province identifier</attrdef>
+                <attrdomv />
+            </attr>
+            <attr>
+                <attrlabl>PROVINCE</attrlabl>
+                <attalias>PROVINCE</attalias>
+                <attrdef>Province name</attrdef>
+                <attrdomv />
+            </attr>
+            <attr>
+                <attrlabl>RLM_CODE</attrlabl>
+                <attalias>RLM_CODE</attalias>
+                <attrdef>Unique realm identifier</attrdef>
+                <attrdomv />
+            </attr>
+            <attr>
+                <attrlabl>REALM</attrlabl>
+                <attalias>REALM</attalias>
+                <attrdef>Realm name</attrdef>
+                <attrdomv />
+            </attr>
+            <attr>
+                <attrlabl>ReefRisk</attrlabl>
+                <attalias>ReefRisk</attalias>
+                <attrdef>percent of reefs at risk per marine ecoregion</attrdef>
+                <attrdomv />
+            </attr>
+            <attr>
+                <attrlabl>ReefRisk_m</attrlabl>
+                <attalias>ReefRisk_m</attalias>
+                <attrdef>percent of reefs at risk per marine ecoregion for map labels</attrdef>
+                <attrdomv />
+            </attr>
+            <attr>
+                <attrlabl>rfrisk_pct</attrlabl>
+                <attalias>rfrisk_pct</attalias>
+                <attrdef>percent of reefs at risk per marine ecoregion</attrdef>
+                <attrdomv />
+            </attr>
+        </detailed>
+    </eainfo>
+    <dataqual>
+        <lineage>
+            <procstep>
+                <date Sync="TRUE">20070210</date>
+                <time Sync="TRUE">15093700</time>
+            </procstep>
+            <procstep>
+                <date Sync="TRUE">20070418</date>
+                <time Sync="TRUE">10392700</time>
+            </procstep>
+            <procstep>
+                <procdesc>Consolidated Data Basin Info</procdesc>
+                <srcused>first source</srcused>
+                <srcused>next source</srcused>
+            </procstep>
+            <procstep>
+                <procdesc>Metadata imported. (C:\data_file1.shp.xml)</procdesc>
+            </procstep>
+            <procstep>
+                <procdesc>
+ Dataset copied. (C:\data_file\dated)
+                </procdesc>
+            </procstep>
+            <procstep>
+                <procdesc>
+Dataset moved. (C:\data_file\workspace\dated)
+                </procdesc>
+                <srcused>later source used</srcused>
+                <srcused>last source used</srcused>
+            </procstep>
+            <procstep>
+                <procdesc>Metadata imported. (D:\data_file2.xml)</procdesc>
+            </procstep>
+            <procstep>
+                <procdesc>Metadata imported. (D:\data_file3.shp.xml)</procdesc>
+            </procstep>
+        </lineage>
+        <complete>Global</complete>
+        <attracc>
+            <attraccr>Accuracy: 100%</attraccr>
+        </attracc>
+    </dataqual>
+</metadata>

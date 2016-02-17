@@ -1,0 +1,16 @@
+<a t1="t" t2="tt">
+    aaa
+    <b>bbb</b>
+    <c t2="ttt" t4="tttt">
+        ctext
+        <d />
+        <d>dd</d>
+        <d>ddd</d>
+        <e t5="ttttt" />eee
+        <f />
+        <g>
+            <h><i /><i /></h>
+            <h><i /><i /></h>
+        </g>
+    </c>ctail
+</a>
