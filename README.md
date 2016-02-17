@@ -3,13 +3,12 @@ Parser for GIS metadata standards including FGDC and ISO-19115.
 
 
 #Installation#
-Install with pip install git+https://github.com/consbio/gis-metadata-parser.git.
+Install with `pip install git+https://github.com/consbio/gis-metadata-parser.git`.
 
 #Usage#
 
 Parsers can be instantiated from files, XML strings or URLs. They can be converted from one standard to another as well.
 ```
-#!python
 from gis_metadata.metadata.fgdc_metadata_parser import FgdcParser
 from gis_metadata.metadata.iso_metadata_parser import IsoParser
 from gis_metadata.metadata.metadata_parser import get_metadata_parser
@@ -19,7 +18,7 @@ fgdc_from_file = FgdcParser(file(r'/path/to/metadata.xml'))
 iso_from_file = IsoParser(file(r'/path/to/metadata.xml'))
 
 # Detect standard based on root element, metadata
-fgdc_from_string = FgdcParser(
+fgdc_from_string = get_metadata_parser(
     """
     <?xml version='1.0' encoding='UTF-8'?>
     <metadata>
@@ -30,7 +29,7 @@ fgdc_from_string = FgdcParser(
 )
 
 # Detect standard based on root element, MD_Metadata or MI_Metadata
-iso_from_string = IsoParser(
+iso_from_string = get_metadata_parser(
     """
     <?xml version='1.0' encoding='UTF-8'?>
     <MD_Metadata>
@@ -47,11 +46,9 @@ iso_converted = fgdc_from_file.convert_to(IsoParser)
 
 Finally, the properties of the parser can be updated, validated, applied and output:
 ```
-#!python
-
 fgdc_from_file = FgdcParser(file(r'/path/to/metadata.xml'))
 
-# Simple properties
+# Example simple properties
 fgdc_from_file.title
 fgdc_from_file.abstract
 fgdc_from_file.place_keywords
@@ -64,6 +61,8 @@ fgdc_from_file.dates
 fgdc_from_file.digital_forms
 fgdc_from_file.larger_works
 fgdc_from_file.process_steps
+
+# :see: gis_metadata.metadata.parser_utils._required_keys for list of all properties
 
 # Update properties
 fgdc_from_file.title = 'New Title'
