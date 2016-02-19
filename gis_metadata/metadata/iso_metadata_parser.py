@@ -188,7 +188,7 @@ class IsoParser(MetadataParser):
                 ct_format, ct_path='contactInfo/CI_Contact/address/CI_Address/electronicMailAddress/CharacterString'
             )
         )
-        self._contact_root = get_xpath_root(ct_format) + '/contactInfo'
+        self._contact_root = get_xpath_root(ct_format)
 
         dt_format = iso_data_map[DATES] + '/{type_path}'
         self._dates_xpaths = {
