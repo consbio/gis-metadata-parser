@@ -134,6 +134,7 @@ class FgdcParser(MetadataParser):
             _fgdc_definitions[CONTACTS],
             name=format_xpath(ct_format, ct_path='cntinfo/{ct}/cntper'.format(ct=contact)),
             organization=format_xpath(ct_format, ct_path='cntinfo/{ct}/cntorg'.format(ct=contact)),
+            position=format_xpath(ct_format, ct_path='cntinfo/cntpos'.format(ct=contact)),
             email=format_xpath(ct_format, ct_path='cntinfo/cntemail')
         )
         self._contact_root = get_xpath_root(ct_format)

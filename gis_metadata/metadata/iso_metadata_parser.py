@@ -184,6 +184,7 @@ class IsoParser(MetadataParser):
             _iso_definitions[CONTACTS],
             name=format_xpath(ct_format, ct_path='individualName/CharacterString'),
             organization=format_xpath(ct_format, ct_path='organisationName/CharacterString'),
+            position=format_xpath(ct_format, ct_path='positionName/CharacterString'),
             email=format_xpath(
                 ct_format, ct_path='contactInfo/CI_Contact/address/CI_Address/electronicMailAddress/CharacterString'
             )

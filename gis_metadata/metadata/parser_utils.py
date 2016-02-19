@@ -77,7 +77,8 @@ _complex_definitions = {
     CONTACTS: {
         'name': '{name}',                         # Text
         'email': '{email}',                       # Text
-        'organization': '{organization}'          # Text
+        'organization': '{organization}',         # Text
+        'position': '{position}'                  # Text
     },
     DATES: {
         DATE_TYPE: '{type}',                      # Text
