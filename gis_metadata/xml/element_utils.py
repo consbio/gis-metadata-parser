@@ -820,7 +820,7 @@ def _element_to_object(element, parent_type=None):
     if isinstance(element, ElementType):
         obj_type = element.tag
         obj_value = (element.text or '').strip(), (element.tail or '').strip()
-        obj_value = ', '.join(str(val) for val in obj_value if val)
+        obj_value = ', '.join(unicode(val) for val in obj_value if val)
 
         converted = {obj_type: {
             object_key(obj_type, key): val.strip() for key, val in element.attrib.iteritems() if val
