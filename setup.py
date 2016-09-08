@@ -14,9 +14,7 @@ class RunTests(Command):
         pass
 
     def run(self):
-        errno = subprocess.call([sys.executable, '-m', 'unittest', 'gis_metadata.xml.tests.tests'])
-        if errno == 0:
-            errno = subprocess.call([sys.executable, '-m', 'unittest', 'gis_metadata.metadata.tests.tests'])
+        errno = subprocess.call([sys.executable, '-m', 'unittest', 'gis_metadata.tests.tests'])
         raise SystemExit(errno)
 
 
@@ -24,7 +22,7 @@ setup(
     name='gis-metadata-parser',
     description='Parser for GIS metadata standards including FGDC and ISO-19115',
     keywords='fgdc,iso,ISO-19115,metadata,xml,parser',
-    version='0.2.0',
+    version='0.2.1',
     packages=[
         'gis_metadata', 'gis_metadata.tests'
     ],
