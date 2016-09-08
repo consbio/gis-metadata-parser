@@ -26,7 +26,7 @@ from gis_metadata.parser_utils import PROCESS_STEPS
 from gis_metadata.parser_utils import ParserException, ParserProperty
 
 from gis_metadata.parser_utils import format_xpath, format_xpaths
-from gis_metadata.parser_utils import get_complex_definitions, get_xpath_branch, get_xpath_root
+from gis_metadata.parser_utils import get_complex_definitions, get_xpath_branch
 from gis_metadata.parser_utils import parse_complex, parse_complex_list, parse_dates
 from gis_metadata.parser_utils import update_complex, update_complex_list, update_property
 
@@ -43,7 +43,10 @@ KEYWORD_TYPE_THEME = 'theme'
 _iso_definitions = get_complex_definitions()
 
 _iso_tag_roots = {
-    # First process private dependency tags (case of key determines order)
+    # First process private dependency tags (order enforced by key sorting)
+    '_contentinfo': 'contentInfo',
+    '_contentinfo_catalog': '{_contentinfo}/MD_FeatureCatalogueDescription',
+    '_contentinfo_coverage': '{_contentinfo}/MD_CoverageDescription',
     '_dataqual': 'dataQualityInfo/DQ_DataQuality',
     '_dataqual_lineage': '{_dataqual}/lineage/LI_Lineage',
     '_dataqual_report': '{_dataqual}/report',
@@ -54,6 +57,7 @@ _iso_tag_roots = {
     '_distinfo_resp_contact': '{_distinfo_resp}/contactInfo/CI_Contact',
     '_distinfo_rsrc': '{_distinfo}/transferOptions/MD_DigitalTransferOptions/onLine/CI_OnlineResource',
     '_idinfo': 'identificationInfo/MD_DataIdentification',
+    '_idinfo_aggregate': '{_idinfo}/aggregationInfo/MD_AggregateInformation',
     '_idinfo_citation': '{_idinfo}/citation/CI_Citation',
     '_idinfo_citresp': '{_idinfo_citation}/citedResponsibleParty/CI_ResponsibleParty',
     '_idinfo_extent': '{_idinfo}/extent/EX_Extent',
@@ -69,6 +73,18 @@ _iso_tag_roots = {
 }
 
 _iso_tag_formats = {
+    # Property-specific xpath roots: the base from which each element repeats
+    '_attr_details_file_root': '{_contentinfo_catalog}/featureCatalogueCitation',
+    '_bbox_root': '{_idinfo_extent}/geographicElement',
+    '_contacts_root': '{_idinfo_resp}',
+    '_dates_root': '{_idinfo_extent}/temporalElement/EX_TemporalExtent/extent',
+    '_digital_form_content_root': '{_contentinfo_coverage}',
+    '_distribution_format_root': '{_distinfo}/distributionFormat',
+    '_transfer_options_root': '{_distinfo}/transferOptions',
+    '_keywords_root': '{_idinfo}/descriptiveKeywords',
+    '_larger_works_root': '{_idinfo_aggregate}/aggregateDataSetName/CI_Citation',
+    '_process_steps_root': '{_dataqual_lineage}/processStep',
+
     # Then process public dependent tags
     'title': '{_idinfo_citation}/title/CharacterString',
     'abstract': '{_idinfo}/abstract/CharacterString',
@@ -102,7 +118,7 @@ _iso_tag_formats = {
     '_access_desc': '{_distinfo_rsrc}/description/CharacterString',
     '_access_instrs': '{_distinfo_rsrc}/protocol/CharacterString',
     '_network_resource': '{_distinfo_rsrc}/linkage/URL',
-    '_digital_form_content': 'contentInfo/MD_CoverageDescription/attributeDescription/RecordType',
+    '_digital_form_content': '{_contentinfo_coverage}/attributeDescription/RecordType',
     DIGITAL_FORMS: '{_distinfo}/distributionFormat/MD_Format',
     PROCESS_STEPS: '{_dataqual_lineage}/processStep/LI_ProcessStep',
     LARGER_WORKS: '{_idinfo}/aggregationInfo/MD_AggregateInformation/aggregateDataSetName/CI_Citation',
@@ -173,7 +189,6 @@ class IsoParser(MetadataParser):
             definition=format_xpath(ad_format, ad_path='definition/CharacterString'),
             definition_src=format_xpath(ad_source_format, ad_path='CI_Citation/organisationName/CharacterString')
         )
-        self._attr_details_file_ref = 'contentInfo/MD_FeatureCatalogueDescription/featureCatalogueCitation'
 
         bb_format = iso_data_map[BOUNDING_BOX] + '/{bbox_path}'
         self._bounding_box_xpaths = format_xpaths(
@@ -194,7 +209,6 @@ class IsoParser(MetadataParser):
                 ct_format, ct_path='contactInfo/CI_Contact/address/CI_Address/electronicMailAddress/CharacterString'
             )
         )
-        self._contact_root = get_xpath_root(ct_format)
 
         dt_format = iso_data_map[DATES] + '/{type_path}'
         self._dates_xpaths = {
@@ -203,7 +217,6 @@ class IsoParser(MetadataParser):
             DATE_TYPE_RANGE_END: format_xpath(dt_format, type_path='TimePeriod/end/TimeInstant/timePosition'),
             DATE_TYPE_SINGLE: format_xpath(dt_format, type_path='TimeInstant/timePosition')  # Same as multiple
         }
-        self._dates_root = get_xpath_root(dt_format)
 
         df_format = iso_data_map[DIGITAL_FORMS] + '/{df_path}'
         self._digital_forms_xpaths = format_xpaths(
@@ -217,16 +230,12 @@ class IsoParser(MetadataParser):
             access_instrs='',  # Placeholder for later assignment
             network_resource=''  # Placeholder for later assignment
         )
-        self._digital_form_content_root = 'contentInfo/MD_CoverageDescription'
-        self._distribution_format_root = iso_data_map['_distinfo'] + '/distributionFormat'
-        self._transfer_options_root = iso_data_map['_distinfo'] + '/transferOptions'
 
         self._keywords_xpaths = {
             'keyword_root': 'MD_Keywords/keyword',
             'keyword_type': 'MD_Keywords/type/MD_KeywordTypeCode',
             'keyword': 'MD_Keywords/keyword/CharacterString'
         }
-        self._keywords_root = iso_data_map['_idinfo'] + '/descriptiveKeywords'
 
         lw_format = iso_data_map[LARGER_WORKS] + '/{lw_path}'
         lw_cited = format_xpath(lw_format, lw_path='citedResponsibleParty/CI_ResponsibleParty/{lw_path}')
@@ -242,7 +251,6 @@ class IsoParser(MetadataParser):
             place=format_xpath(lw_contact, lw_path='address/CI_Address/city/CharacterString'),
             info=format_xpath(lw_cited, lw_path='organisationName/CharacterString')
         )
-        self._larger_works_root = get_xpath_root(lw_format)
 
         ps_format = iso_data_map[PROCESS_STEPS] + '/{ps_path}'
         self._process_steps_xpaths = format_xpaths(
@@ -251,7 +259,6 @@ class IsoParser(MetadataParser):
             date=format_xpath(ps_format, ps_path='dateTime/DateTime'),
             sources=format_xpath(ps_format, ps_path='source/LI_Source/sourceCitation/CI_Citation/alternateTitle')
         )
-        self._process_steps_root = iso_data_map['_dataqual'] + '/lineage/LI_Lineage/processStep'
 
         # Assign XPATHS and parser_utils.ParserProperties to fgdc_data_map
 
@@ -286,8 +293,7 @@ class IsoParser(MetadataParser):
             else:
                 iso_data_map[prop] = xpath
 
-        # The data map must be sorted or the paths may overwrite each other during update
-        self._data_map = OrderedDict(sorted(iso_data_map.items(), key=lambda t: t[0]))
+        self._data_map = iso_data_map
 
     def _parse_attribute_details(self, prop=ATTRIBUTES):
         """ Concatenates a list of Attribute Details data structures parsed from a remote file """
@@ -299,7 +305,7 @@ class IsoParser(MetadataParser):
 
         attrib_details = []
 
-        file_element = get_element(self._xml_tree, self._attr_details_file_ref)
+        file_element = get_element(self._xml_tree, self._data_map['_attr_details_file_root'])
         file_location = None
 
         if file_element is not None:
@@ -377,12 +383,15 @@ class IsoParser(MetadataParser):
     def _parse_bounding_box(self, prop=BOUNDING_BOX):
         """ Creates and returns a Bounding Box data structure parsed from the metadata """
 
-        return parse_complex(self._xml_tree, None, self._bounding_box_xpaths, prop)
+        xpath_root = self._data_map['_bbox_root']
+        xpath_map = self._bounding_box_xpaths
+
+        return parse_complex(self._xml_tree, xpath_root, xpath_map, prop)
 
     def _parse_contacts(self, prop=CONTACTS):
         """ Creates and returns a list of one Contact structure parsed from the metadata """
 
-        xpath_root = self._contact_root
+        xpath_root = self._data_map['_contacts_root']
         xpath_map = self._contact_xpaths
 
         return parse_complex_list(self._xml_tree, xpath_root, xpath_map, prop)
@@ -395,10 +404,10 @@ class IsoParser(MetadataParser):
     def _parse_digital_forms(self, prop=DIGITAL_FORMS):
         """ Concatenates a list of Digital Form data structures parsed from the metadata """
 
-        xpath_root = self._distribution_format_root
+        xpath_root = self._data_map['_distribution_format_root']
         xpath_map = self._digital_forms_xpaths
 
-        transopt_root = self._transfer_options_root
+        transopt_root = self._data_map['_transfer_options_root']
         acdesc_xpath = get_xpath_branch(transopt_root, self._data_map['_access_desc'])
         acinstr_xpath = get_xpath_branch(transopt_root, self._data_map['_access_instrs'])
         netrsrc_xpath = get_xpath_branch(transopt_root, self._data_map['_network_resource'])
@@ -450,7 +459,7 @@ class IsoParser(MetadataParser):
         keywords = []
 
         if prop in [KEYWORDS_PLACE, KEYWORDS_THEME]:
-            xpath_root = self._keywords_root
+            xpath_root = self._data_map['_keywords_root']
 
             xtype = self._keywords_xpaths['keyword_type']
             xpath = self._keywords_xpaths['keyword']
@@ -477,7 +486,7 @@ class IsoParser(MetadataParser):
     def _parse_process_steps(self, prop=PROCESS_STEPS):
         """ Creates and returns a list of Process Steps data structures parsed from the metadata """
 
-        xpath_root = self._process_steps_root
+        xpath_root = self._data_map['_process_steps_root']
         xpath_map = self._process_steps_xpaths
 
         return parse_complex_list(self._xml_tree, xpath_root, xpath_map, prop)
@@ -489,20 +498,21 @@ class IsoParser(MetadataParser):
 
         tree_to_update = update_props['tree_to_update']
         prop = update_props['prop']
+        xpath = self._data_map['_attr_details_file_root']
 
         if not getattr(self, prop):
             # Property cleared: remove the featureCatalogueCitation element altogether
 
             self._attr_details_file_url = None
-            attributes = [remove_element(tree_to_update, self._attr_details_file_ref)]
+            attributes = [remove_element(tree_to_update, xpath)]
 
         if self._attr_details_file_url:
             # Clear all the irrelevant feature attribute data, and write just the reference
 
-            attrib_element = get_element(tree_to_update, self._attr_details_file_ref)
+            attrib_element = get_element(tree_to_update, xpath)
 
             if attrib_element is None:
-                attrib_element = insert_element(tree_to_update, 0, self._attr_details_file_ref)
+                attrib_element = insert_element(tree_to_update, 0, xpath)
             else:
                 clear_element(attrib_element)
 
@@ -529,7 +539,7 @@ class IsoParser(MetadataParser):
         :see: parser_utils._complex_definitions[CONTACTS]
         """
 
-        xpath_root = self._contact_root
+        xpath_root = self._data_map['_contacts_root']
         xpath_map = self._contact_xpaths
 
         return update_complex_list(xpath_root=xpath_root, xpath_map=xpath_map, **update_props)
@@ -540,7 +550,7 @@ class IsoParser(MetadataParser):
         :see: parser_utils._complex_definitions[DATES]
         """
 
-        xpath_root = self._dates_root
+        xpath_root = self._data_map['_dates_root']
 
         if self.dates:
             date_type = self.dates[DATE_TYPE]
@@ -574,14 +584,14 @@ class IsoParser(MetadataParser):
 
         tree_to_update = update_props['tree_to_update']
         xpaths = self._data_map['_digital_form_content']
-        xroot = self._digital_form_content_root
+        xroot = self._data_map['_digital_form_content_root']
 
         coverage_desc = update_property(tree_to_update, xroot, xpaths, DIGITAL_FORMS, digital_form_content)
 
         # Update all Digital Form properties: distributionFormat*
 
         dist_format_props = ('name', 'decompression', 'version', 'specification')
-        dist_format_xroot = self._distribution_format_root
+        dist_format_xroot = self._data_map['_distribution_format_root']
         dist_format_xmap = {prop: self._digital_forms_xpaths[prop] for prop in dist_format_props}
 
         dist_formats = []
@@ -597,7 +607,7 @@ class IsoParser(MetadataParser):
         # Update all Network Resources: transferOptions+
 
         trans_option_props = ('access_desc', 'access_instrs', 'network_resource')
-        trans_option_xroot = self._transfer_options_root
+        trans_option_xroot = self._data_map['_transfer_options_root']
         trans_option_xmap = {prop: self._data_map['_' + prop] for prop in trans_option_props}
 
         trans_options = []
@@ -625,7 +635,7 @@ class IsoParser(MetadataParser):
         keywords = []
 
         if prop in [KEYWORDS_PLACE, KEYWORDS_THEME]:
-            xpath_root = self._keywords_root
+            xpath_root = self._data_map['_keywords_root']
 
             xtype = self._keywords_xpaths['keyword_type']
             xroot = self._keywords_xpaths['keyword_root']
@@ -654,7 +664,7 @@ class IsoParser(MetadataParser):
         :see: parser_utils._complex_definitions[LARGER_WORKS]
         """
 
-        xpath_root = self._larger_works_root
+        xpath_root = self._data_map['_larger_works_root']
         xpath_map = self._larger_works_xpaths
 
         return update_complex(xpath_root=xpath_root, xpath_map=xpath_map, **update_props)
@@ -665,7 +675,7 @@ class IsoParser(MetadataParser):
         :see: parser_utils._complex_definitions[PROCESS_STEPS]
         """
 
-        xpath_root = self._process_steps_root
+        xpath_root = self._data_map['_process_steps_root']
         xpath_map = self._process_steps_xpaths
 
         return update_complex_list(xpath_root=xpath_root, xpath_map=xpath_map, **update_props)
