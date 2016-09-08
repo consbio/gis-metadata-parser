@@ -29,7 +29,7 @@ setup(
     install_requires=[
         'parserutils', 'six'
     ],
-    url='https://github.com/consbio/gis-metadata-parser',
+    url='https://github.com/consbio/gis_metadata_parser',
     license='BSD',
     cmdclass={'test': RunTests}
 )

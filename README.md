@@ -1,4 +1,4 @@
-# gis-metadata-parser
+# gis_metadata_parser
 Parser for GIS metadata standards including FGDC and ISO-19115.
 
 

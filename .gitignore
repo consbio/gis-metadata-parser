@@ -3,5 +3,5 @@
 .pydevproject
 build/
 dist/
-gis-metadata-parser.egg-info/
+gis_metadata_parser.egg-info/
 gis_metadata_parser.egg-info/
