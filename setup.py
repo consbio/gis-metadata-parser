@@ -19,10 +19,10 @@ class RunTests(Command):
 
 
 setup(
-    name='gis-metadata-parser',
+    name='gis_metadata',
     description='Parser for GIS metadata standards including FGDC and ISO-19115',
     keywords='fgdc,iso,ISO-19115,metadata,xml,parser',
-    version='0.2.1',
+    version='0.2.2',
     packages=[
         'gis_metadata', 'gis_metadata.tests'
     ],
