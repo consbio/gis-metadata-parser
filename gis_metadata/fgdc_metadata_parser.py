@@ -1,28 +1,29 @@
 """ A module to contain utility FGDC metadata parsing helpers """
 
+from six import iteritems
 
-from gis_metadata.xml.element_utils import get_element_name
+from parserutils.elements import get_element_name
 
-from parser_utils import remove_element
-from parser_utils import DATE_TYPE, DATE_TYPE_SINGLE, DATE_TYPE_MULTIPLE
-from parser_utils import DATE_TYPE_RANGE, DATE_TYPE_RANGE_BEGIN, DATE_TYPE_RANGE_END
-from parser_utils import ATTRIBUTES
-from parser_utils import BOUNDING_BOX
-from parser_utils import CONTACTS
-from parser_utils import DATES
-from parser_utils import DIGITAL_FORMS
-from parser_utils import KEYWORDS_PLACE
-from parser_utils import KEYWORDS_THEME
-from parser_utils import LARGER_WORKS
-from parser_utils import PROCESS_STEPS
-from parser_utils import ParserException, ParserProperty
+from gis_metadata.parser_utils import remove_element
+from gis_metadata.parser_utils import DATE_TYPE, DATE_TYPE_SINGLE, DATE_TYPE_MULTIPLE
+from gis_metadata.parser_utils import DATE_TYPE_RANGE, DATE_TYPE_RANGE_BEGIN, DATE_TYPE_RANGE_END
+from gis_metadata.parser_utils import ATTRIBUTES
+from gis_metadata.parser_utils import BOUNDING_BOX
+from gis_metadata.parser_utils import CONTACTS
+from gis_metadata.parser_utils import DATES
+from gis_metadata.parser_utils import DIGITAL_FORMS
+from gis_metadata.parser_utils import KEYWORDS_PLACE
+from gis_metadata.parser_utils import KEYWORDS_THEME
+from gis_metadata.parser_utils import LARGER_WORKS
+from gis_metadata.parser_utils import PROCESS_STEPS
+from gis_metadata.parser_utils import ParserException, ParserProperty
 
-from parser_utils import format_xpath, format_xpaths
-from parser_utils import get_complex_definitions, get_xpath_root
-from parser_utils import parse_complex, parse_complex_list, parse_dates
-from parser_utils import update_complex, update_complex_list
+from gis_metadata.parser_utils import format_xpath, format_xpaths
+from gis_metadata.parser_utils import get_complex_definitions, get_xpath_root
+from gis_metadata.parser_utils import parse_complex, parse_complex_list, parse_dates
+from gis_metadata.parser_utils import update_complex, update_complex_list
 
-from metadata_parser import MetadataParser
+from gis_metadata.metadata_parser import MetadataParser
 
 
 FGDC_ROOT = 'metadata'
@@ -189,7 +190,7 @@ class FgdcParser(MetadataParser):
 
         fgdc_data_formats = dict(_fgdc_tag_formats)
 
-        for prop, xpath in fgdc_data_formats.iteritems():
+        for prop, xpath in iteritems(fgdc_data_formats):
             if prop == ATTRIBUTES:
                 fgdc_data_map[prop] = ParserProperty(self._parse_attribute_details, self._update_attribute_details)
 

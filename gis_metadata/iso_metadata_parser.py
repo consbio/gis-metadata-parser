@@ -1,33 +1,38 @@
 """ A module to contain utility ISO-19115 metadata parsing helpers """
 
+import six
+
 from collections import OrderedDict
+from six import iteritems, string_types
 
-from gis_metadata.xml.element_utils import set_element_attributes
-from gis_metadata.xml.element_utils import clear_element, insert_element, remove_element
-from gis_metadata.xml.element_utils import get_element, get_elements, get_remote_element
-from gis_metadata.xml.element_utils import get_element_attributes, get_element_name, get_element_text, get_elements_text
-from gis_metadata.xml.element_utils import XPATH_DELIM
+from parserutils.collections import reduce_value, wrap_value
+from parserutils.elements import set_element_attributes
+from parserutils.elements import clear_element, insert_element, remove_element
+from parserutils.elements import get_element, get_elements, get_remote_element
+from parserutils.elements import get_element_attributes, get_element_name, get_element_text, get_elements_text
+from parserutils.elements import XPATH_DELIM
 
-from parser_utils import DATE_TYPE, DATE_TYPE_SINGLE, DATE_TYPE_MULTIPLE
-from parser_utils import DATE_TYPE_RANGE, DATE_TYPE_RANGE_BEGIN, DATE_TYPE_RANGE_END
-from parser_utils import ATTRIBUTES
-from parser_utils import CONTACTS
-from parser_utils import BOUNDING_BOX
-from parser_utils import DATES
-from parser_utils import DIGITAL_FORMS
-from parser_utils import KEYWORDS_PLACE
-from parser_utils import KEYWORDS_THEME
-from parser_utils import LARGER_WORKS
-from parser_utils import PROCESS_STEPS
-from parser_utils import ParserException, ParserProperty
+from gis_metadata.parser_utils import DATE_TYPE, DATE_TYPE_SINGLE, DATE_TYPE_MULTIPLE
+from gis_metadata.parser_utils import DATE_TYPE_RANGE, DATE_TYPE_RANGE_BEGIN, DATE_TYPE_RANGE_END
+from gis_metadata.parser_utils import ATTRIBUTES
+from gis_metadata.parser_utils import CONTACTS
+from gis_metadata.parser_utils import BOUNDING_BOX
+from gis_metadata.parser_utils import DATES
+from gis_metadata.parser_utils import DIGITAL_FORMS
+from gis_metadata.parser_utils import KEYWORDS_PLACE
+from gis_metadata.parser_utils import KEYWORDS_THEME
+from gis_metadata.parser_utils import LARGER_WORKS
+from gis_metadata.parser_utils import PROCESS_STEPS
+from gis_metadata.parser_utils import ParserException, ParserProperty
 
-from parser_utils import format_xpath, format_xpaths
-from parser_utils import get_complex_definitions, get_xpath_branch, get_xpath_root
-from parser_utils import parse_complex, parse_complex_list, parse_dates
-from parser_utils import reduce_value, wrap_value
-from parser_utils import update_complex, update_complex_list, update_property
+from gis_metadata.parser_utils import format_xpath, format_xpaths
+from gis_metadata.parser_utils import get_complex_definitions, get_xpath_branch, get_xpath_root
+from gis_metadata.parser_utils import parse_complex, parse_complex_list, parse_dates
+from gis_metadata.parser_utils import update_complex, update_complex_list, update_property
 
-from metadata_parser import MetadataParser
+from gis_metadata.metadata_parser import MetadataParser
+
+xrange = getattr(six.moves, 'xrange')
 
 
 ISO_ROOTS = ('MD_Metadata', 'MI_Metadata')
@@ -250,7 +255,7 @@ class IsoParser(MetadataParser):
 
         # Assign XPATHS and parser_utils.ParserProperties to fgdc_data_map
 
-        for prop, xpath in dict(iso_data_map).iteritems():
+        for prop, xpath in iteritems(dict(iso_data_map)):
             if prop == ATTRIBUTES:
                 iso_data_map[prop] = ParserProperty(self._parse_attribute_details, self._update_attribute_details)
 
@@ -281,7 +286,8 @@ class IsoParser(MetadataParser):
             else:
                 iso_data_map[prop] = xpath
 
-        self._data_map = iso_data_map
+        # The data map must be sorted or the paths may overwrite each other during update
+        self._data_map = OrderedDict(sorted(iso_data_map.items(), key=lambda t: t[0]))
 
     def _parse_attribute_details(self, prop=ATTRIBUTES):
         """ Concatenates a list of Attribute Details data structures parsed from a remote file """
@@ -560,7 +566,7 @@ class IsoParser(MetadataParser):
         digital_form_content = original_form_content
 
         for digital_form in digital_forms:
-            next_form_content = self._parse_form_content(digital_form['content'] or '')
+            next_form_content = self._parse_form_content(digital_form.get('content') or '')
             if next_form_content != original_form_content:
                 digital_form_content = next_form_content
 
@@ -682,11 +688,10 @@ class IsoParser(MetadataParser):
         #
         # This prevents multiple primitive tags from being inserted under an element
 
-        for prop, xpath in self._data_map.iteritems():
+        for prop, xpath in iteritems(self._data_map):
             if not prop.startswith('_'):
                 xroot = self._trim_xpath(xpath)
                 values = getattr(self, prop, '')
-
                 update_property(tree_to_update, xroot, xpath, prop, values)
 
         return tree_to_update
@@ -694,7 +699,7 @@ class IsoParser(MetadataParser):
     def _trim_xpath(self, xpath, default_value=None):
         """ Removes primitive type tags from an XPATH """
 
-        if isinstance(xpath, basestring):
+        if isinstance(xpath, string_types):
             xtags = xpath.split(XPATH_DELIM)
 
             if xtags[-1] in _iso_tag_primitives:

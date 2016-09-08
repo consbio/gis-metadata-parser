@@ -1,17 +1,18 @@
 """ A module to contain utility metadata parsing helpers """
 
 from copy import deepcopy
+from six import iteritems
 
-from gis_metadata.xml.element_utils import DEFAULT_ENCODING
-from gis_metadata.xml.element_utils import create_element_tree, element_exists, element_to_string, strip_namespaces
-from gis_metadata.xml.element_utils import get_element_name, get_element_tree, get_elements_text
-from gis_metadata.xml.element_utils import insert_element, remove_element, write_element
+from parserutils.elements import DEFAULT_ENCODING
+from parserutils.elements import create_element_tree, element_exists, element_to_string, strip_namespaces
+from parserutils.elements import get_element_name, get_element_tree, get_elements_text
+from parserutils.elements import insert_element, remove_element, write_element
 
-from parser_utils import DATE_TYPE, DATE_VALUES
-from parser_utils import DATE_TYPE_RANGE, DATE_TYPE_RANGE_BEGIN, DATE_TYPE_RANGE_END
-from parser_utils import filter_property, get_required_keys, get_xml_constants
-from parser_utils import update_property, validate_any, validate_keyset
-from parser_utils import ParserException
+from gis_metadata.parser_utils import DATE_TYPE, DATE_VALUES
+from gis_metadata.parser_utils import DATE_TYPE_RANGE, DATE_TYPE_RANGE_BEGIN, DATE_TYPE_RANGE_END
+from gis_metadata.parser_utils import filter_property, get_required_keys, get_xml_constants
+from gis_metadata.parser_utils import update_property, validate_any, validate_keyset
+from gis_metadata.parser_utils import ParserException
 
 
 # Place holders for lazy, one-time FGDC & ISO imports
@@ -115,12 +116,12 @@ def _import_parsers():
     global IsoParser
 
     if FGDC_ROOT is None or FgdcParser is None:
-        from fgdc_metadata_parser import FGDC_ROOT
-        from fgdc_metadata_parser import FgdcParser
+        from gis_metadata.fgdc_metadata_parser import FGDC_ROOT
+        from gis_metadata.fgdc_metadata_parser import FgdcParser
 
     if ISO_ROOTS is None or IsoParser is None:
-        from iso_metadata_parser import ISO_ROOTS
-        from iso_metadata_parser import IsoParser
+        from gis_metadata.iso_metadata_parser import ISO_ROOTS
+        from gis_metadata.iso_metadata_parser import IsoParser
 
 
 class MetadataParser(object):
@@ -198,7 +199,7 @@ class MetadataParser(object):
 
         # Parse attribute values and assign them: key = parse(val)
 
-        for prop, xpath in self._data_map.iteritems():
+        for prop, xpath in iteritems(self._data_map):
             if not xpath:
                 parsed = ''
             elif hasattr(xpath, '__call__'):
@@ -228,7 +229,7 @@ class MetadataParser(object):
 
         template = create_element_tree(root)
 
-        for path, val in self._get_template_paths().iteritems():
+        for path, val in iteritems(self._get_template_paths()):
             if path and val:
                 insert_element(template, 0, path, val)
 
@@ -242,7 +243,7 @@ class MetadataParser(object):
 
         if not hasattr(self, '_template_paths'):
             self._template_paths = {
-                self._data_map[key]: val for key, val in get_xml_constants().iteritems()
+                self._data_map[key]: val for key, val in iteritems(get_xml_constants())
             }
 
         return self._template_paths
@@ -330,7 +331,7 @@ class MetadataParser(object):
 
         tree_to_update = self._xml_tree if not use_template else self._get_template()
 
-        for prop, xpath in self._data_map.iteritems():
+        for prop, xpath in iteritems(self._data_map):
             if not prop.startswith('_'):  # Update only non-private properties
                 update_property(tree_to_update, None, xpath, prop, getattr(self, prop, ''))
 

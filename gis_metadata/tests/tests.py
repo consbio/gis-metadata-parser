@@ -1,21 +1,22 @@
 import unittest
 
 from os.path import os
+from six import iteritems
 
-from gis_metadata.metadata.fgdc_metadata_parser import FgdcParser, FGDC_ROOT
-from gis_metadata.metadata.iso_metadata_parser import IsoParser, ISO_ROOTS
-from gis_metadata.metadata.metadata_parser import get_metadata_parser
+from gis_metadata.fgdc_metadata_parser import FgdcParser, FGDC_ROOT
+from gis_metadata.iso_metadata_parser import IsoParser, ISO_ROOTS
+from gis_metadata.metadata_parser import get_metadata_parser
 
-from gis_metadata.metadata.parser_utils import get_complex_definitions, get_required_keys, get_xml_constants
-from gis_metadata.metadata.parser_utils import reduce_value, wrap_value
-from gis_metadata.metadata.parser_utils import DATE_TYPE, DATE_VALUES
-from gis_metadata.metadata.parser_utils import DATE_TYPE_SINGLE, DATE_TYPE_RANGE, DATE_TYPE_MULTIPLE
-from gis_metadata.metadata.parser_utils import ATTRIBUTES, CONTACTS, DIGITAL_FORMS, PROCESS_STEPS
-from gis_metadata.metadata.parser_utils import BOUNDING_BOX, DATES, LARGER_WORKS
-from gis_metadata.metadata.parser_utils import KEYWORDS_PLACE, KEYWORDS_THEME
-from gis_metadata.metadata.parser_utils import ParserException
+from gis_metadata.parser_utils import get_complex_definitions, get_required_keys, get_xml_constants
+from gis_metadata.parser_utils import reduce_value, wrap_value
+from gis_metadata.parser_utils import DATE_TYPE, DATE_VALUES
+from gis_metadata.parser_utils import DATE_TYPE_SINGLE, DATE_TYPE_RANGE, DATE_TYPE_MULTIPLE
+from gis_metadata.parser_utils import ATTRIBUTES, CONTACTS, DIGITAL_FORMS, PROCESS_STEPS
+from gis_metadata.parser_utils import BOUNDING_BOX, DATES, LARGER_WORKS
+from gis_metadata.parser_utils import KEYWORDS_PLACE, KEYWORDS_THEME
+from gis_metadata.parser_utils import ParserException
 
-from gis_metadata.xml.element_utils import element_to_dict
+from parserutils.elements import element_to_dict
 
 
 class MetadataParserTestCase(unittest.TestCase):
@@ -66,7 +67,7 @@ class MetadataParserTestCase(unittest.TestCase):
                 )
         else:
             target = target or {}
-            for key, val in reparsed.iteritems():
+            for key, val in iteritems(reparsed):
                 if key not in exclude:
                     self.assert_equal_for(
                         parser_type.__name__, '{0}.{1}'.format(sub_prop, key), val, target.get(key, '')
@@ -113,7 +114,7 @@ class MetadataParserTestCase(unittest.TestCase):
             os.remove(out_file_path)
 
         # Reverse each value and read the file in again
-        for prop, val in get_xml_constants().iteritems():
+        for prop, val in iteritems(get_xml_constants()):
             setattr(parser, prop, val[::-1])
 
         parser.write()
@@ -192,7 +193,7 @@ class MetadataParserTemplateTests(MetadataParserTestCase):
 
         parser_type = type(parser.validate()).__name__
 
-        for prop, val in get_xml_constants().iteritems():
+        for prop, val in iteritems(get_xml_constants()):
             if prop not in exclude:
                 parsed_val = getattr(parser, prop)
 
@@ -386,7 +387,7 @@ class MetadataParserTests(MetadataParserTestCase):
 
                 # Process steps must have a single string value for all but sources
                 complex_struct.update({
-                    k: ', '.join(wrap_value(v)) for k, v in complex_struct.iteritems() if k != 'sources'
+                    k: ', '.join(wrap_value(v)) for k, v in iteritems(complex_struct) if k != 'sources'
                 })
 
                 complex_list.append(complex_struct)

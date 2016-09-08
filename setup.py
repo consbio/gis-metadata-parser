@@ -24,13 +24,12 @@ setup(
     name='gis-metadata-parser',
     description='Parser for GIS metadata standards including FGDC and ISO-19115',
     keywords='fgdc,iso,ISO-19115,metadata,xml,parser',
-    version='0.1.1',
+    version='0.2.0',
     packages=[
-        'gis_metadata', 'gis_metadata.metadata', 'gis_metadata.xml',
-        'gis_metadata.metadata.tests', 'gis_metadata.xml.tests'
+        'gis_metadata', 'gis_metadata.tests'
     ],
     install_requires=[
-        'defusedxml'
+        'parserutils', 'six'
     ],
     url='https://github.com/consbio/gis-metadata-parser',
     license='BSD',
