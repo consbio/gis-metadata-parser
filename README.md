@@ -3,7 +3,7 @@ Parser for GIS metadata standards including FGDC and ISO-19115.
 
 
 #Installation#
-Install with `pip install git+https://github.com/consbio/gis-metadata-parser.git`.
+Install with `pip install gis_metadata_parser`.
 
 #Usage#
 
