@@ -528,7 +528,7 @@ class IsoParser(MetadataParser):
         :see: parser_utils._complex_definitions[BOUNDING_BOX]
         """
 
-        xpath_root = self._data_map['_idinfo_extent']
+        xpath_root = self._data_map['_bbox_root']
         xpath_map = self._bounding_box_xpaths
 
         return update_complex(xpath_root=xpath_root, xpath_map=xpath_map, **update_props)
@@ -550,10 +550,14 @@ class IsoParser(MetadataParser):
         :see: parser_utils._complex_definitions[DATES]
         """
 
+        tree_to_update = update_props['tree_to_update']
         xpath_root = self._data_map['_dates_root']
 
         if self.dates:
             date_type = self.dates[DATE_TYPE]
+
+            # First remove all date info from common root
+            remove_element(tree_to_update, xpath_root)
 
             if date_type == DATE_TYPE_MULTIPLE:
                 xpath_root += '/TimeInstant'
