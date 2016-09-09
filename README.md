@@ -1,6 +1,7 @@
 # gis_metadata_parser
 Parser for GIS metadata standards including FGDC and ISO-19115.
 
+[![Build Status](https://travis-ci.org/consbio/gis-metadata-parser.png?branch=master)](https://travis-ci.org/consbio/gis-metadata-parser) [![Coverage Status](https://coveralls.io/repos/github/consbio/gis-metadata-parser/badge.svg?branch=master)](https://coveralls.io/github/consbio/gis-metadata-parser?branch=master)
 
 #Installation#
 Install with `pip install gis-metadata-parser`.
