@@ -7,9 +7,10 @@ python:
 install:
   - "pip install six"
   - "pip install parserutils"
-  - "pip install coveralls>=1.1"
+  - "pip install coveralls"
 
-script: "python setup.py test"
+script:
+  coverage run --source=parserutils setup.py test
 
 after_success:
-  - coveralls || echo "!! intermittent coveralls failure"
+  coveralls
