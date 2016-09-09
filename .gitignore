@@ -2,6 +2,7 @@
 .coverage
 .project
 .pydevproject
+__pycache__/
 build/
 dist/
 gis-metadata-parser.egg-info/
