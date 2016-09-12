@@ -291,6 +291,9 @@
                     <organisationName>
                         <CharacterString>Conservation Biology Institute</CharacterString>
                     </organisationName>
+                    <positionName>
+                        <CharacterString>President</CharacterString>
+                    </positionName>
                     <contactInfo>
                         <CI_Contact>
                             <phone>
