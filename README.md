@@ -9,10 +9,10 @@ Install with `pip install gis-metadata-parser`.
 #Usage#
 
 Parsers can be instantiated from files, XML strings or URLs. They can be converted from one standard to another as well.
-```
-from gis_metadata.metadata.fgdc_metadata_parser import FgdcParser
-from gis_metadata.metadata.iso_metadata_parser import IsoParser
-from gis_metadata.metadata.metadata_parser import get_metadata_parser
+```python
+from gis_metadata.fgdc_metadata_parser import FgdcParser
+from gis_metadata.iso_metadata_parser import IsoParser
+from gis_metadata.metadata_parser import get_metadata_parser
 
 # From file objects
 fgdc_from_file = FgdcParser(file(r'/path/to/metadata.xml'))
@@ -43,7 +43,7 @@ iso_from_string = get_metadata_parser(
 # Convert from one standard to another
 fgdc_converted = iso_from_file.convert_to(FgdcParser)
 iso_converted = fgdc_from_file.convert_to(IsoParser)
-```
+```python
 
 Finally, the properties of the parser can be updated, validated, applied and output:
 ```
@@ -63,7 +63,7 @@ fgdc_from_file.digital_forms
 fgdc_from_file.larger_works
 fgdc_from_file.process_steps
 
-# :see: gis_metadata.metadata.parser_utils._required_keys for list of all properties
+# :see: gis_metadata.parser_utils._required_keys for list of all properties
 
 # Update properties
 fgdc_from_file.title = 'New Title'
