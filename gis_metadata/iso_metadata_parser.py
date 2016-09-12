@@ -42,35 +42,40 @@ KEYWORD_TYPE_THEME = 'theme'
 
 _iso_definitions = get_complex_definitions()
 
-_iso_tag_roots = {
+_iso_tag_roots = OrderedDict((
     # First process private dependency tags (order enforced by key sorting)
-    '_contentinfo': 'contentInfo',
-    '_contentinfo_catalog': '{_contentinfo}/MD_FeatureCatalogueDescription',
-    '_contentinfo_coverage': '{_contentinfo}/MD_CoverageDescription',
-    '_dataqual': 'dataQualityInfo/DQ_DataQuality',
-    '_dataqual_lineage': '{_dataqual}/lineage/LI_Lineage',
-    '_dataqual_report': '{_dataqual}/report',
-    '_distinfo': 'distributionInfo/MD_Distribution',
-    '_distinfo_dist': '{_distinfo}/distributor/MD_Distributor',
-    '_distinfo_proc': '{_distinfo_dist}/distributionOrderProcess/MD_StandardOrderProcess',
-    '_distinfo_resp': '{_distinfo_dist}/distributorContact/CI_ResponsibleParty',
-    '_distinfo_resp_contact': '{_distinfo_resp}/contactInfo/CI_Contact',
-    '_distinfo_rsrc': '{_distinfo}/transferOptions/MD_DigitalTransferOptions/onLine/CI_OnlineResource',
-    '_idinfo': 'identificationInfo/MD_DataIdentification',
-    '_idinfo_aggregate': '{_idinfo}/aggregationInfo/MD_AggregateInformation',
-    '_idinfo_citation': '{_idinfo}/citation/CI_Citation',
-    '_idinfo_citresp': '{_idinfo_citation}/citedResponsibleParty/CI_ResponsibleParty',
-    '_idinfo_extent': '{_idinfo}/extent/EX_Extent',
-    '_idinfo_keywords': '{_idinfo}/descriptiveKeywords/MD_Keywords',
-    '_idinfo_resp': '{_idinfo}/pointOfContact/CI_ResponsibleParty',
-    '_idinfo_resp_contact': '{_idinfo_resp}/contactInfo/CI_Contact',
+    ('_contentinfo', 'contentInfo'),
+    ('_contentinfo_catalog', '{_contentinfo}/MD_FeatureCatalogueDescription'),
+    ('_contentinfo_coverage', '{_contentinfo}/MD_CoverageDescription'),
+    ('_dataqual', 'dataQualityInfo/DQ_DataQuality'),
+    ('_dataqual_lineage', '{_dataqual}/lineage/LI_Lineage'),
+    ('_dataqual_report', '{_dataqual}/report'),
+    ('_distinfo', 'distributionInfo/MD_Distribution'),
+    ('_distinfo_dist', '{_distinfo}/distributor/MD_Distributor'),
+    ('_distinfo_proc', '{_distinfo_dist}/distributionOrderProcess/MD_StandardOrderProcess'),
+    ('_distinfo_resp', '{_distinfo_dist}/distributorContact/CI_ResponsibleParty'),
+    ('_distinfo_resp_contact', '{_distinfo_resp}/contactInfo/CI_Contact'),
+    ('_distinfo_rsrc', '{_distinfo}/transferOptions/MD_DigitalTransferOptions/onLine/CI_OnlineResource'),
+    ('_idinfo', 'identificationInfo/MD_DataIdentification'),
+    ('_idinfo_aggregate', '{_idinfo}/aggregationInfo/MD_AggregateInformation'),
+    ('_idinfo_aggregate_citation', '{_idinfo_aggregate}/aggregateDataSetName/CI_Citation'),
+    ('_idinfo_aggregate_contact', '{_idinfo_aggregate_citation}/citedResponsibleParty/CI_ResponsibleParty'),
+    ('_idinfo_citation', '{_idinfo}/citation/CI_Citation'),
+    ('_idinfo_citresp', '{_idinfo_citation}/citedResponsibleParty/CI_ResponsibleParty'),
+    ('_idinfo_extent', '{_idinfo}/extent/EX_Extent'),
+    ('_idinfo_keywords', '{_idinfo}/descriptiveKeywords/MD_Keywords'),
+    ('_idinfo_resp', '{_idinfo}/pointOfContact/CI_ResponsibleParty'),
+    ('_idinfo_resp_contact', '{_idinfo_resp}/contactInfo/CI_Contact'),
 
     # Supported in separate file ISO-19110
-    '_attribs_root': 'FC_FeatureCatalogue',
-    '_attribs_base': 'featureType/FC_FeatureType',
-    '_attribs_ref': '{_attribs_base}/definitionReference/FC_DefinitionReference',
-    '_attribs_src': '{_attribs_ref}/definitionSource/FC_DefinitionSource/source'
-}
+    ('_attribs_root', 'FC_FeatureCatalogue'),
+    ('_attribs_base', '{_attribs_root}/featureType/FC_FeatureType'),
+    ('_attribs_ref', '{_attribs_base}/definitionReference/FC_DefinitionReference')
+))
+
+# Two passes required because of self references within roots dict
+_iso_tag_roots.update(format_xpaths(_iso_tag_roots, **_iso_tag_roots))
+_iso_tag_roots.update(format_xpaths(_iso_tag_roots, **_iso_tag_roots))
 
 _iso_tag_formats = {
     # Property-specific xpath roots: the base from which each element repeats
@@ -82,7 +87,7 @@ _iso_tag_formats = {
     '_distribution_format_root': '{_distinfo}/distributionFormat',
     '_transfer_options_root': '{_distinfo}/transferOptions',
     '_keywords_root': '{_idinfo}/descriptiveKeywords',
-    '_larger_works_root': '{_idinfo_aggregate}/aggregateDataSetName/CI_Citation',
+    '_larger_works_root': '{_idinfo_aggregate_citation}',
     '_process_steps_root': '{_dataqual_lineage}/processStep',
 
     # Then process public dependent tags
@@ -95,7 +100,7 @@ _iso_tag_formats = {
     'publish_date': '{_idinfo_citation}/date/CI_Date/date/Date',
     'publish_date_type': '{_idinfo_citation}/date/CI_Date/dateType/CI_DateTypeCode',
     'data_credits': '{_idinfo}/credit/CharacterString',
-    CONTACTS: '{_idinfo_resp}',
+    CONTACTS: '{_idinfo_resp}/{{ct_path}}',
     'dist_contact_org': '{_distinfo_resp}/organisationName/CharacterString',
     'dist_contact_person': '{_distinfo_resp}/individualName/CharacterString',
     'dist_address_type': '',  # Not available in ISO-19115
@@ -111,24 +116,32 @@ _iso_tag_formats = {
     'processing_instrs': '{_distinfo_proc}/orderingInstructions/CharacterString',
     'resource_desc': '{_idinfo_citation}/identifier/MD_Identifier/code/CharacterString',
     'tech_prerequisites': '{_idinfo}/environmentDescription/CharacterString',
-    ATTRIBUTES: '{_attribs_base}/carrierOfCharacteristics/FC_FeatureAttribute',
+    ATTRIBUTES: '{_attribs_base}/carrierOfCharacteristics/FC_FeatureAttribute/{{ad_path}}',
+    '_attribs_alias': '{_attribs_base}/{{ad_path}}',
+    '_attribs_src': '{_attribs_ref}/definitionSource/FC_DefinitionSource/source/{{ad_path}}',
     'attribute_accuracy': '{_dataqual_report}/DQ_QuantitativeAttributeAccuracy/measureDescription/CharacterString',
-    BOUNDING_BOX: '{_idinfo_extent}/geographicElement/EX_GeographicBoundingBox',
+    BOUNDING_BOX: '{_idinfo_extent}/geographicElement/EX_GeographicBoundingBox/{{bbox_path}}',
     'dataset_completeness': '{_dataqual_report}/DQ_CompletenessOmission/measureDescription/CharacterString',
     '_access_desc': '{_distinfo_rsrc}/description/CharacterString',
     '_access_instrs': '{_distinfo_rsrc}/protocol/CharacterString',
     '_network_resource': '{_distinfo_rsrc}/linkage/URL',
     '_digital_form_content': '{_contentinfo_coverage}/attributeDescription/RecordType',
-    DIGITAL_FORMS: '{_distinfo}/distributionFormat/MD_Format',
+    DIGITAL_FORMS: '{_distinfo}/distributionFormat/MD_Format/{{df_path}}',
     PROCESS_STEPS: '{_dataqual_lineage}/processStep/LI_ProcessStep',
-    LARGER_WORKS: '{_idinfo}/aggregationInfo/MD_AggregateInformation/aggregateDataSetName/CI_Citation',
-    'larger_works_collective': '{_idinfo_citation}/collectiveTitle/CharacterString',
+    LARGER_WORKS: '{_idinfo_aggregate_citation}/{{lw_path}}',
+    '_lw_citation': '{_idinfo_aggregate_contact}/{{lw_path}}',
+    '_lw_collective': '{_idinfo_citation}/collectiveTitle/CharacterString',
+    '_lw_contact': '{_idinfo_aggregate_contact}/contactInfo/CI_Contact/{{lw_path}}',
+    '_lw_linkage': '{_idinfo_aggregate_contact}/contactInfo/CI_Contact/onlineResource/CI_OnlineResource/{{lw_path}}',
     'other_citation_info': '{_idinfo_citation}/otherCitationDetails/CharacterString',
     'use_constraints': '{_idinfo}/resourceConstraints/MD_Constraints/useLimitation/CharacterString',
-    DATES: '{_idinfo_extent}/temporalElement/EX_TemporalExtent/extent',
+    DATES: '{_idinfo_extent}/temporalElement/EX_TemporalExtent/extent/{{type_path}}',
     KEYWORDS_PLACE: '{_idinfo_keywords}/keyword/CharacterString',
     KEYWORDS_THEME: '{_idinfo_keywords}/keyword/CharacterString'
 }
+
+# Apply XPATH root formats to the basic data map formats
+_iso_tag_formats.update(format_xpaths(_iso_tag_formats, **_iso_tag_roots))
 
 _iso_tag_primitives = {
     'Binary', 'Boolean', 'CharacterString',
@@ -162,35 +175,23 @@ class IsoParser(MetadataParser):
             raise ParserException('Invalid XML root for ISO-19115 standard: {root}', root=iso_root)
 
         iso_data_map = {'root': iso_root}
-
-        # Dynamically update all dependent XPATH formats in two passes
-
-        # Create an ordered Dictionary of root tags, sorted by key
-        iso_tag_roots = OrderedDict(sorted(_iso_tag_roots.items(), key=lambda t: t[0]))
-
-        # Two passes required because of self references within roots dict
-        iso_tag_roots.update(format_xpaths(iso_tag_roots, **iso_tag_roots))
-        iso_tag_roots.update(format_xpaths(iso_tag_roots, **iso_tag_roots))
-
-        # Add root tags to data map, and then format and add all tags
-        iso_data_map.update(iso_tag_roots)
-        iso_data_map.update(format_xpaths(_iso_tag_formats, **iso_tag_roots))
+        iso_data_map.update(_iso_tag_roots)
+        iso_data_map.update(_iso_tag_formats)
 
         # Capture and format complex XPATHs
 
-        ad_path = '/{ad_path}'
-        ad_format = iso_data_map[ATTRIBUTES] + ad_path
-        ad_alias_format = iso_data_map['_attribs_base'] + ad_path
-        ad_source_format = iso_data_map['_attribs_src'] + ad_path
+        ad_format = iso_data_map[ATTRIBUTES]
         self._attr_details_xpaths = format_xpaths(
             _iso_definitions[ATTRIBUTES],
             label=format_xpath(ad_format, ad_path='memberName/LocalName'),
-            aliases=format_xpath(ad_alias_format, ad_path='aliases/LocalName'),
+            aliases=format_xpath(iso_data_map['_attribs_alias'], ad_path='aliases/LocalName'),
             definition=format_xpath(ad_format, ad_path='definition/CharacterString'),
-            definition_src=format_xpath(ad_source_format, ad_path='CI_Citation/organisationName/CharacterString')
+            definition_src=format_xpath(
+                iso_data_map['_attribs_src'], ad_path='CI_Citation/organisationName/CharacterString'
+            )
         )
 
-        bb_format = iso_data_map[BOUNDING_BOX] + '/{bbox_path}'
+        bb_format = iso_data_map[BOUNDING_BOX]
         self._bounding_box_xpaths = format_xpaths(
             _iso_definitions[BOUNDING_BOX],
             east=format_xpath(bb_format, bbox_path='eastBoundLongitude/Decimal'),
@@ -199,7 +200,7 @@ class IsoParser(MetadataParser):
             north=format_xpath(bb_format, bbox_path='northBoundLatitude/Decimal')
         )
 
-        ct_format = iso_data_map[CONTACTS] + '/{ct_path}'
+        ct_format = iso_data_map[CONTACTS]
         self._contact_xpaths = format_xpaths(
             _iso_definitions[CONTACTS],
             name=format_xpath(ct_format, ct_path='individualName/CharacterString'),
@@ -210,7 +211,7 @@ class IsoParser(MetadataParser):
             )
         )
 
-        dt_format = iso_data_map[DATES] + '/{type_path}'
+        dt_format = iso_data_map[DATES]
         self._dates_xpaths = {
             DATE_TYPE_MULTIPLE: format_xpath(dt_format, type_path='TimeInstant/timePosition'),
             DATE_TYPE_RANGE_BEGIN: format_xpath(dt_format, type_path='TimePeriod/begin/TimeInstant/timePosition'),
@@ -218,7 +219,7 @@ class IsoParser(MetadataParser):
             DATE_TYPE_SINGLE: format_xpath(dt_format, type_path='TimeInstant/timePosition')  # Same as multiple
         }
 
-        df_format = iso_data_map[DIGITAL_FORMS] + '/{df_path}'
+        df_format = iso_data_map[DIGITAL_FORMS]
         self._digital_forms_xpaths = format_xpaths(
             _iso_definitions[DIGITAL_FORMS],
             name=format_xpath(df_format, df_path='name/CharacterString'),
@@ -237,19 +238,17 @@ class IsoParser(MetadataParser):
             'keyword': 'MD_Keywords/keyword/CharacterString'
         }
 
-        lw_format = iso_data_map[LARGER_WORKS] + '/{lw_path}'
-        lw_cited = format_xpath(lw_format, lw_path='citedResponsibleParty/CI_ResponsibleParty/{lw_path}')
-        lw_contact = format_xpath(lw_cited, lw_path='contactInfo/CI_Contact/{lw_path}')
+        lw_format = iso_data_map[LARGER_WORKS]
         self._larger_works_xpaths = format_xpaths(
             _iso_definitions[LARGER_WORKS],
             title=format_xpath(lw_format, lw_path='title/CharacterString'),
             edition=format_xpath(lw_format, lw_path='edition/CharacterString'),
-            origin=format_xpath(lw_cited, lw_path='individualName/CharacterString'),
-            online_linkage=format_xpath(lw_contact, lw_path='onlineResource/CI_OnlineResource/linkage/URL'),
+            origin=format_xpath(iso_data_map['_lw_citation'], lw_path='individualName/CharacterString'),
+            online_linkage=format_xpath(iso_data_map['_lw_linkage'], lw_path='linkage/URL'),
             other_citation=format_xpath(lw_format, lw_path='otherCitationDetails/CharacterString'),
             date=format_xpath(lw_format, lw_path='editionDate/Date'),
-            place=format_xpath(lw_contact, lw_path='address/CI_Address/city/CharacterString'),
-            info=format_xpath(lw_cited, lw_path='organisationName/CharacterString')
+            place=format_xpath(iso_data_map['_lw_contact'], lw_path='address/CI_Address/city/CharacterString'),
+            info=format_xpath(iso_data_map['_lw_citation'], lw_path='organisationName/CharacterString')
         )
 
         ps_format = iso_data_map[PROCESS_STEPS] + '/{ps_path}'
