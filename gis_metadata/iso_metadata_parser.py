@@ -68,7 +68,7 @@ _iso_tag_roots = OrderedDict((
 
     # Supported in separate file ISO-19110
     ('_attr_root', 'FC_FeatureCatalogue'),
-    ('_attr_base', '{_attr_root}/featureType/FC_FeatureType'),
+    ('_attr_base', 'featureType/FC_FeatureType'),
     ('_attr_ref', '{_attr_base}/definitionReference/FC_DefinitionReference'),
     ('_attr_file', '{_contentinfo}/MD_FeatureCatalogueDescription/featureCatalogueCitation'),
     ('_attr_contact', '{_attr_file}/CI_Citation/citedResponsibleParty/CI_ResponsibleParty/contactInfo/CI_Contact'),
