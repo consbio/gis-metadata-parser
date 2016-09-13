@@ -12,13 +12,27 @@ from gis_metadata.fgdc_metadata_parser import FgdcParser, FGDC_ROOT
 from gis_metadata.iso_metadata_parser import IsoParser, ISO_ROOTS, _iso_tag_formats
 from gis_metadata.metadata_parser import MetadataParser, get_metadata_parser, get_parsed_content
 
-from gis_metadata.parser_utils import get_complex_definitions, get_required_keys, get_xml_constants
+from gis_metadata.parser_utils import get_complex_definitions, get_required_keys
 from gis_metadata.parser_utils import DATE_TYPE, DATE_VALUES
 from gis_metadata.parser_utils import DATE_TYPE_SINGLE, DATE_TYPE_RANGE, DATE_TYPE_MISSING, DATE_TYPE_MULTIPLE
 from gis_metadata.parser_utils import ATTRIBUTES, CONTACTS, DIGITAL_FORMS, PROCESS_STEPS
 from gis_metadata.parser_utils import BOUNDING_BOX, DATES, LARGER_WORKS
 from gis_metadata.parser_utils import KEYWORDS_PLACE, KEYWORDS_THEME
 from gis_metadata.parser_utils import ParserException, ParserProperty
+
+
+TEST_TEMPLATE_CONSTANTS = {
+    'dist_contact_org': 'ORG',
+    'dist_contact_person': 'PERSON',
+    'dist_address_type': 'PHYSICAL ADDRESS',
+    'dist_address': 'ADDRESS LOCATION',
+    'dist_city': 'CITY',
+    'dist_state': 'STATE',
+    'dist_postal': '12345',
+    'dist_country': 'USA',
+    'dist_phone': '123-456-7890',
+    'dist_email': 'EMAIL@DOMAIN.COM',
+}
 
 
 class MetadataParserTestCase(unittest.TestCase):
@@ -118,7 +132,7 @@ class MetadataParserTestCase(unittest.TestCase):
         parser = parser_type(out_file_or_path=out_file_path)
 
         # Reverse each value and read the file in again
-        for prop, val in iteritems(get_xml_constants()):
+        for prop, val in iteritems(TEST_TEMPLATE_CONSTANTS):
             setattr(parser, prop, val[::-1])
 
         parser.write()
@@ -191,7 +205,7 @@ class MetadataParserTemplateTests(MetadataParserTestCase):
 
         parser_type = type(parser.validate()).__name__
 
-        for prop, val in iteritems(get_xml_constants()):
+        for prop, val in iteritems(TEST_TEMPLATE_CONSTANTS):
             if prop not in exclude:
                 parsed_val = getattr(parser, prop)
 
@@ -202,10 +216,10 @@ class MetadataParserTemplateTests(MetadataParserTestCase):
                 ))
 
     def test_fgdc_template_values(self):
-        self.assert_valid_template(FgdcParser())
+        self.assert_valid_template(FgdcParser(**TEST_TEMPLATE_CONSTANTS))
 
     def test_iso_template_values(self):
-        self.assert_valid_template(IsoParser(), exclude=('dist_address_type'))
+        self.assert_valid_template(IsoParser(**TEST_TEMPLATE_CONSTANTS), exclude=('dist_address_type'))
 
     def test_template_conversion(self):
         fgdc_template = FgdcParser()

@@ -10,7 +10,7 @@ from parserutils.elements import insert_element, remove_element, write_element
 
 from gis_metadata.parser_utils import DATE_TYPE, DATE_VALUES
 from gis_metadata.parser_utils import DATE_TYPE_RANGE, DATE_TYPE_RANGE_BEGIN, DATE_TYPE_RANGE_END
-from gis_metadata.parser_utils import filter_property, get_required_keys, get_xml_constants
+from gis_metadata.parser_utils import filter_property, get_required_keys
 from gis_metadata.parser_utils import update_property, validate_any, validate_keyset
 from gis_metadata.parser_utils import ParserException
 
@@ -43,7 +43,7 @@ def convert_parser_to(parser, parser_or_type):
     return new_parser
 
 
-def get_metadata_parser(metadata_container):
+def get_metadata_parser(metadata_container, **metadata_defaults):
     """
     :return: an appropriate instance of MetadataParser depending on what is passed in. If metadata_container
     is a type, an instance of it must contain an update method that returns parsable content.
@@ -53,16 +53,16 @@ def get_metadata_parser(metadata_container):
     """
 
     if isinstance(metadata_container, type):
-        metadata_container = metadata_container().update()
+        metadata_container = metadata_container().update(**metadata_defaults)
 
     xml_root, xml_tree = get_parsed_content(metadata_container)
 
     # The get_parsed_content method ensures only these roots will be returned
 
     if xml_root == FGDC_ROOT:
-        return FgdcParser(xml_tree)
+        return FgdcParser(xml_tree, **metadata_defaults)
     elif xml_root in ISO_ROOTS:
-        return IsoParser(xml_tree)
+        return IsoParser(xml_tree, **metadata_defaults)
 
 
 def get_parsed_content(metadata_content):
@@ -174,7 +174,7 @@ class MetadataParser(object):
 
     """
 
-    def __init__(self, metadata_to_parse=None, out_file_or_path=None):
+    def __init__(self, metadata_to_parse=None, out_file_or_path=None, **metadata_defaults):
         """
         Initialize new parser with valid content as defined by get_parsed_content
         :see: get_parsed_content(metdata_content) for more on what constitutes valid content
@@ -187,7 +187,7 @@ class MetadataParser(object):
         self._xml_tree = None
 
         if metadata_to_parse is None:
-            self._xml_tree = self._get_template()
+            self._xml_tree = self._get_template(**metadata_defaults)
             self._xml_root = self._data_map['root']
         else:
             self._xml_root, self._xml_tree = get_parsed_content(metadata_to_parse)
@@ -227,11 +227,9 @@ class MetadataParser(object):
 
         if self._data_map is None:
             self._data_map = {'root': None}
-
             self._data_map.update({}.fromkeys(get_required_keys()))
-            self._data_map.update({}.fromkeys(get_xml_constants()))
 
-    def _get_template(self, root=None):
+    def _get_template(self, root=None, **metadata_defaults):
         """ Iterate over items retrieved from _get_template_paths to populate template """
 
         if root is None:
@@ -242,13 +240,13 @@ class MetadataParser(object):
 
         template = create_element_tree(root)
 
-        for path, val in iteritems(self._get_template_paths()):
+        for path, val in iteritems(self._get_template_paths(**metadata_defaults)):
             if path and val:
                 insert_element(template, 0, path, val)
 
         return template
 
-    def _get_template_paths(self):
+    def _get_template_paths(self, **metadata_defaults):
         """
         Default template XPATHs: MAY be overridden in children.
         :return: a dict containing at least the distribution contact info: {xpath: value}
@@ -256,7 +254,7 @@ class MetadataParser(object):
 
         if not hasattr(self, '_template_paths'):
             self._template_paths = {
-                self._data_map[key]: val for key, val in iteritems(get_xml_constants())
+                self._data_map[key]: val for key, val in iteritems(metadata_defaults)
             }
 
         return self._template_paths
@@ -334,7 +332,7 @@ class MetadataParser(object):
 
         write_element(self.update(use_template), out_file_or_path, encoding)
 
-    def update(self, use_template=False):
+    def update(self, use_template=False, **metadata_defaults):
         """
         Validates instance properties and updates either a template or the original XML tree with them.
         :param use_template: if True, updates a new template XML tree; otherwise the original XML tree
@@ -342,7 +340,7 @@ class MetadataParser(object):
 
         self.validate()
 
-        tree_to_update = self._xml_tree if not use_template else self._get_template()
+        tree_to_update = self._xml_tree if not use_template else self._get_template(**metadata_defaults)
 
         for prop, xpath in iteritems(self._data_map):
             if not prop.startswith('_'):  # Update only non-private properties

@@ -686,12 +686,12 @@ class IsoParser(MetadataParser):
 
         return update_property(xpath_root=self._data_map['_dataqual_report'], **update_props)
 
-    def update(self, use_template=False):
+    def update(self, use_template=False, **metadata_defaults):
         """ OVERRIDDEN: Prevents writing multiple CharacterStrings per XPATH property """
 
         self.validate()
 
-        tree_to_update = self._xml_tree if not use_template else self._get_template()
+        tree_to_update = self._xml_tree if not use_template else self._get_template(**metadata_defaults)
 
         # Iterate over keys, and extract non-primitive root for all XPATHs
         #    xroot = identificationInfo/MD_DataIdentification/abstract/

@@ -113,21 +113,6 @@ _complex_definitions = {
     }
 }
 
-# A map of default XML values by property name
-
-_xml_constants = {
-    'dist_contact_org': 'Data Basin',
-    'dist_contact_person': 'Data Basin Administrator',
-    'dist_address_type': 'physical address',
-    'dist_address': '136 SW Washington Ave, Suite 202',
-    'dist_city': 'Corvallis',
-    'dist_state': 'OR',
-    'dist_postal': '97333',
-    'dist_country': 'USA',
-    'dist_phone': '541-757-0687',
-    'dist_email': 'databasin_admin@consbio.org',
-}
-
 
 def format_xpath(xpath, *args, **kwargs):
     """ :return: an XPATH formatted with the ordered or keyword values """
@@ -161,15 +146,6 @@ def get_required_keys():
     """
 
     return deepcopy(_required_keys)
-
-
-def get_xml_constants():
-    """
-    Get a deep copy of the XML constants Dictionary, which contains a map of
-    default XML values by property name (used to pre-populate XML templates)
-    """
-
-    return deepcopy(_xml_constants)
 
 
 def get_xpath_root(xpath):
