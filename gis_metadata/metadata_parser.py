@@ -19,6 +19,7 @@ from gis_metadata.parser_utils import ParserException
 
 FgdcParser, FGDC_ROOT = None, None
 IsoParser, ISO_ROOTS = None, None
+VALID_ROOTS = None
 
 
 def convert_parser_to(parser, parser_or_type):
@@ -51,23 +52,17 @@ def get_metadata_parser(metadata_container):
     :see: get_parsed_content(metdata_content) for more on types of content that can be parsed
     """
 
-    _import_parsers()  # Prevents circular dependencies between modules
-
     if isinstance(metadata_container, type):
         metadata_container = metadata_container().update()
 
-    xml_tree = get_parsed_content(metadata_container)
-    xml_root = get_element_name(xml_tree)
+    xml_root, xml_tree = get_parsed_content(metadata_container)
+
+    # The get_parsed_content method ensures only these roots will be returned
 
     if xml_root == FGDC_ROOT:
         return FgdcParser(xml_tree)
     elif xml_root in ISO_ROOTS:
         return IsoParser(xml_tree)
-    else:
-        raise ParserException(
-            'Could not instantiate a MetadataParser. Invalid root element: {xml_root}',
-            xml_root=xml_root
-        )
 
 
 def get_parsed_content(metadata_content):
@@ -83,8 +78,10 @@ def get_parsed_content(metadata_content):
         - children: a List of converted child elements
 
     :throws ParserException: If the content passed in is null or otherwise invalid
-    :return: an XML Tree parsed by and compatible with element_utils
+    :return: the XML root along with an XML Tree parsed by and compatible with element_utils
     """
+
+    _import_parsers()  # Prevents circular dependencies between modules
 
     xml_tree = None
 
@@ -94,8 +91,11 @@ def get_parsed_content(metadata_content):
         elif isinstance(metadata_content, dict):
             xml_tree = get_element_tree(metadata_content)
         else:
-            # Strip name spaces from file or XML content
-            xml_tree = get_element_tree(strip_namespaces(metadata_content))
+            try:
+                # Strip name spaces from file or XML content
+                xml_tree = get_element_tree(strip_namespaces(metadata_content))
+            except:
+                xml_tree = None  # Several exceptions possible, outcome is the same
 
     if xml_tree is None:
         raise ParserException(
@@ -103,7 +103,11 @@ def get_parsed_content(metadata_content):
             parser_type=type(metadata_content)
         )
 
-    return xml_tree
+    xml_root = get_element_name(xml_tree)
+    if xml_root in VALID_ROOTS:
+        return xml_root, xml_tree
+
+    raise ParserException('Invalid root element for MetadataParser: {xml_root}', xml_root=xml_root)
 
 
 def _import_parsers():
@@ -115,6 +119,8 @@ def _import_parsers():
     global ISO_ROOTS
     global IsoParser
 
+    global VALID_ROOTS
+
     if FGDC_ROOT is None or FgdcParser is None:
         from gis_metadata.fgdc_metadata_parser import FGDC_ROOT
         from gis_metadata.fgdc_metadata_parser import FgdcParser
@@ -122,6 +128,9 @@ def _import_parsers():
     if ISO_ROOTS is None or IsoParser is None:
         from gis_metadata.iso_metadata_parser import ISO_ROOTS
         from gis_metadata.iso_metadata_parser import IsoParser
+
+    if VALID_ROOTS is None:
+        VALID_ROOTS = {FGDC_ROOT}.union(ISO_ROOTS)
 
 
 class MetadataParser(object):
@@ -179,8 +188,9 @@ class MetadataParser(object):
 
         if metadata_to_parse is None:
             self._xml_tree = self._get_template()
+            self._xml_root = self._data_map['root']
         else:
-            self._xml_tree = get_parsed_content(metadata_to_parse)
+            self._xml_root, self._xml_tree = get_parsed_content(metadata_to_parse)
 
         self._init_metadata()
 
@@ -216,7 +226,10 @@ class MetadataParser(object):
         """ Default data map initialization: MUST be overridden in children """
 
         if self._data_map is None:
-            self._data_map = {}.fromkeys(get_required_keys())
+            self._data_map = {'root': None}
+
+            self._data_map.update({}.fromkeys(get_required_keys()))
+            self._data_map.update({}.fromkeys(get_xml_constants()))
 
     def _get_template(self, root=None):
         """ Iterate over items retrieved from _get_template_paths to populate template """

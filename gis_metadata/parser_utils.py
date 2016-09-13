@@ -287,8 +287,6 @@ def parse_dates(tree_to_parse, date_xpath_map, date_type=None, date_xpaths=None,
             date_xpaths = [dt_range_beg_xpath, dt_range_end_xpath]
         elif date_type == DATE_TYPE_SINGLE:
             date_xpaths = [dt_single_xpath]
-        else:
-            return {}
 
         date_xpaths = filter_empty(date_xpaths, [])
 
@@ -609,9 +607,7 @@ def validate_keyset(props):
 
 
 class ParserException(Exception):
-    """
-    A class to encapsulate all parsing exceptions
-    """
+    """ A class to encapsulate all parsing exceptions """
 
     def __init__(self, msg_format, *args, **kwargs):
         """

@@ -45,7 +45,6 @@ _iso_definitions = get_complex_definitions()
 _iso_tag_roots = OrderedDict((
     # First process private dependency tags (order enforced by key sorting)
     ('_contentinfo', 'contentInfo'),
-    ('_contentinfo_catalog', '{_contentinfo}/MD_FeatureCatalogueDescription'),
     ('_contentinfo_coverage', '{_contentinfo}/MD_CoverageDescription'),
     ('_dataqual', 'dataQualityInfo/DQ_DataQuality'),
     ('_dataqual_lineage', '{_dataqual}/lineage/LI_Lineage'),
@@ -68,9 +67,11 @@ _iso_tag_roots = OrderedDict((
     ('_idinfo_resp_contact', '{_idinfo_resp}/contactInfo/CI_Contact'),
 
     # Supported in separate file ISO-19110
-    ('_attribs_root', 'FC_FeatureCatalogue'),
-    ('_attribs_base', '{_attribs_root}/featureType/FC_FeatureType'),
-    ('_attribs_ref', '{_attribs_base}/definitionReference/FC_DefinitionReference')
+    ('_attr_root', 'FC_FeatureCatalogue'),
+    ('_attr_base', '{_attr_root}/featureType/FC_FeatureType'),
+    ('_attr_ref', '{_attr_base}/definitionReference/FC_DefinitionReference'),
+    ('_attr_file', '{_contentinfo}/MD_FeatureCatalogueDescription/featureCatalogueCitation'),
+    ('_attr_contact', '{_attr_file}/CI_Citation/citedResponsibleParty/CI_ResponsibleParty/contactInfo/CI_Contact'),
 ))
 
 # Two passes required because of self references within roots dict
@@ -79,7 +80,6 @@ _iso_tag_roots.update(format_xpaths(_iso_tag_roots, **_iso_tag_roots))
 
 _iso_tag_formats = {
     # Property-specific xpath roots: the base from which each element repeats
-    '_attr_details_file_root': '{_contentinfo_catalog}/featureCatalogueCitation',
     '_bbox_root': '{_idinfo_extent}/geographicElement',
     '_contacts_root': '{_idinfo_resp}',
     '_dates_root': '{_idinfo_extent}/temporalElement/EX_TemporalExtent/extent',
@@ -116,9 +116,10 @@ _iso_tag_formats = {
     'processing_instrs': '{_distinfo_proc}/orderingInstructions/CharacterString',
     'resource_desc': '{_idinfo_citation}/identifier/MD_Identifier/code/CharacterString',
     'tech_prerequisites': '{_idinfo}/environmentDescription/CharacterString',
-    ATTRIBUTES: '{_attribs_base}/carrierOfCharacteristics/FC_FeatureAttribute/{{ad_path}}',
-    '_attribs_alias': '{_attribs_base}/{{ad_path}}',
-    '_attribs_src': '{_attribs_ref}/definitionSource/FC_DefinitionSource/source/{{ad_path}}',
+    ATTRIBUTES: '{_attr_base}/carrierOfCharacteristics/FC_FeatureAttribute/{{ad_path}}',
+    '_attr_alias': '{_attr_base}/{{ad_path}}',
+    '_attr_src': '{_attr_ref}/definitionSource/FC_DefinitionSource/source/{{ad_path}}',
+    '_attr_url': '{_attr_contact}/onlineResource/CI_OnlineResource/linkage/URL',
     'attribute_accuracy': '{_dataqual_report}/DQ_QuantitativeAttributeAccuracy/measureDescription/CharacterString',
     BOUNDING_BOX: '{_idinfo_extent}/geographicElement/EX_GeographicBoundingBox/{{bbox_path}}',
     'dataset_completeness': '{_dataqual_report}/DQ_CompletenessOmission/measureDescription/CharacterString',
@@ -184,10 +185,10 @@ class IsoParser(MetadataParser):
         self._attr_details_xpaths = format_xpaths(
             _iso_definitions[ATTRIBUTES],
             label=format_xpath(ad_format, ad_path='memberName/LocalName'),
-            aliases=format_xpath(iso_data_map['_attribs_alias'], ad_path='aliases/LocalName'),
+            aliases=format_xpath(iso_data_map['_attr_alias'], ad_path='aliases/LocalName'),
             definition=format_xpath(ad_format, ad_path='definition/CharacterString'),
             definition_src=format_xpath(
-                iso_data_map['_attribs_src'], ad_path='CI_Citation/organisationName/CharacterString'
+                iso_data_map['_attr_src'], ad_path='CI_Citation/organisationName/CharacterString'
             )
         )
 
@@ -304,7 +305,7 @@ class IsoParser(MetadataParser):
 
         attrib_details = []
 
-        file_element = get_element(self._xml_tree, self._data_map['_attr_details_file_root'])
+        file_element = get_element(self._xml_tree, self._data_map['_attr_file'])
         file_location = None
 
         if file_element is not None:
@@ -313,12 +314,7 @@ class IsoParser(MetadataParser):
 
             if not file_location:
                 # Then try the deeper location for the ISO attributes URL
-                file_xpath = XPATH_DELIM.join([
-                    'CI_Citation/citedResponsibleParty/CI_ResponsibleParty',
-                    'contactInfo/CI_Contact/onlineResource/CI_OnlineResource/linkage/URL'
-                ])
-
-                file_location = get_element_text(file_element, file_xpath)
+                file_location = get_element_text(self._xml_tree, self._data_map['_attr_url'])
 
         if not file_location:
             self._attr_details_file_url = None
@@ -345,7 +341,7 @@ class IsoParser(MetadataParser):
                 def_src_xpath = def_src_xpath.replace('organisationName', 'individualName')
 
                 if not get_element_text(remote_xtree, def_src_xpath):
-                    def_src_xpath = self._data_map['_attribs_ref'] + '/sourceIdentifier/CharacterString'
+                    def_src_xpath = self._data_map['_attr_ref'] + '/sourceIdentifier/CharacterString'
 
             xpath_map['definition_source'] = def_src_xpath
 
@@ -497,7 +493,7 @@ class IsoParser(MetadataParser):
 
         tree_to_update = update_props['tree_to_update']
         prop = update_props['prop']
-        xpath = self._data_map['_attr_details_file_root']
+        xpath = self._data_map['_attr_file']
 
         if not getattr(self, prop):
             # Property cleared: remove the featureCatalogueCitation element altogether

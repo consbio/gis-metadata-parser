@@ -92,7 +92,7 @@ class FgdcParser(MetadataParser):
         else:
             fgdc_root = FGDC_ROOT
 
-        if fgdc_root != fgdc_root:
+        if fgdc_root != FGDC_ROOT:
             raise ParserException('Invalid XML root for ISO-19115 standard: {root}', root=fgdc_root)
 
         fgdc_data_map = {'root': FGDC_ROOT}

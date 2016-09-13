@@ -5,12 +5,12 @@ from six import iteritems
 
 from gis_metadata.fgdc_metadata_parser import FgdcParser, FGDC_ROOT
 from gis_metadata.iso_metadata_parser import IsoParser, ISO_ROOTS
-from gis_metadata.metadata_parser import get_metadata_parser
+from gis_metadata.metadata_parser import MetadataParser, get_metadata_parser, get_parsed_content
 
 from gis_metadata.parser_utils import get_complex_definitions, get_required_keys, get_xml_constants
 from gis_metadata.parser_utils import reduce_value, wrap_value
 from gis_metadata.parser_utils import DATE_TYPE, DATE_VALUES
-from gis_metadata.parser_utils import DATE_TYPE_SINGLE, DATE_TYPE_RANGE, DATE_TYPE_MULTIPLE
+from gis_metadata.parser_utils import DATE_TYPE_SINGLE, DATE_TYPE_RANGE, DATE_TYPE_MISSING, DATE_TYPE_MULTIPLE
 from gis_metadata.parser_utils import ATTRIBUTES, CONTACTS, DIGITAL_FORMS, PROCESS_STEPS
 from gis_metadata.parser_utils import BOUNDING_BOX, DATES, LARGER_WORKS
 from gis_metadata.parser_utils import KEYWORDS_PLACE, KEYWORDS_THEME
@@ -110,9 +110,6 @@ class MetadataParserTestCase(unittest.TestCase):
 
         parser = parser_type(out_file_or_path=out_file_path)
 
-        if os.path.exists(out_file_path):
-            os.remove(out_file_path)
-
         # Reverse each value and read the file in again
         for prop, val in iteritems(get_xml_constants()):
             setattr(parser, prop, val[::-1])
@@ -125,9 +122,6 @@ class MetadataParserTestCase(unittest.TestCase):
     def assert_parser_after_write(self, parser_type, in_file, out_file_path, use_template=False):
 
         parser = parser_type(in_file, out_file_path)
-
-        if os.path.exists(out_file_path):
-            os.remove(out_file_path)
 
         complex_defs = get_complex_definitions()
 
@@ -216,6 +210,27 @@ class MetadataParserTemplateTests(MetadataParserTestCase):
         self.assert_parser_conversion(fgdc_template, iso_template, 'template')
         self.assert_parser_conversion(iso_template, fgdc_template, 'template')
 
+    def test_template_conversion_bad_roots(self):
+
+        for bad_root in (None, '', '<badRoot/>', '<badRoot>invalid</badRoot>'):
+            with self.assertRaises(ParserException):
+                get_parsed_content(bad_root)
+            with self.assertRaises(ParserException):
+                get_metadata_parser(bad_root)
+
+            if bad_root is not None:
+                with self.assertRaises(ParserException):
+                    IsoParser(bad_root)
+                with self.assertRaises(ParserException):
+                    FgdcParser(bad_root)
+
+        with self.assertRaises(ParserException):
+            IsoParser(FGDC_ROOT.join(('<', '></', '>')))
+
+        for iso_root in ISO_ROOTS:
+            with self.assertRaises(ParserException):
+                FgdcParser(iso_root.join(('<', '></', '>')))
+
     def test_template_conversion_from_dict(self):
 
         self.assert_parser_conversion(
@@ -244,6 +259,19 @@ class MetadataParserTemplateTests(MetadataParserTestCase):
                 fgdc_template, get_metadata_parser(iso_root.join(('<', '></', '>'))), 'str-based template'
             )
 
+    def test_template_conversion_from_type(self):
+
+        self.assert_parser_conversion(
+            IsoParser(), get_metadata_parser(FgdcParser), 'type-based template'
+        )
+
+        fgdc_template = FgdcParser()
+        fgdc_template.dist_address_type = ''  # Address type not supported for ISO
+
+        self.assert_parser_conversion(
+            fgdc_template, get_metadata_parser(IsoParser), 'type-based template'
+        )
+
     def test_write_template(self):
 
         self.assert_template_after_write(FgdcParser, self.test_fgdc_file_path)
@@ -257,6 +285,32 @@ class MetadataParserTests(MetadataParserTestCase):
 
     def setUp(self):
         super(MetadataParserTests, self).setUp()
+
+    def test_generic_parser(self):
+        parser = MetadataParser()
+
+        data_map_1 = parser._data_map
+        parser._init_data_map()
+        data_map_2 = parser._data_map
+
+        self.assertIs(data_map_1, data_map_2, 'Data map was reinitialized after instantiation')
+
+        with self.assertRaises(ParserException):
+            parser.write()
+
+    def test_specific_parsers(self):
+
+        for parser_type in (FgdcParser, IsoParser):
+            parser = parser_type()
+
+            data_map_1 = parser._data_map
+            parser._init_data_map()
+            data_map_2 = parser._data_map
+
+            self.assertIs(data_map_1, data_map_2, 'Data map was reinitialized after instantiation')
+
+            with self.assertRaises(ParserException):
+                parser.write()
 
     def test_parser_conversion(self):
         fgdc_parser = FgdcParser(self.fgdc_metadata)
@@ -439,6 +493,22 @@ class MetadataParserTests(MetadataParserTestCase):
             for prop in complex_props:
                 for invalid in invalid_values:
                     self.assert_validates_for(parser, prop, invalid)
+
+    def test_validate_dates(self):
+        invalid_values = (
+            (DATE_TYPE_MISSING, ['present']),
+            (DATE_TYPE_MULTIPLE, ['single']),
+            (DATE_TYPE_MULTIPLE, ['first', 'last']),
+            (DATE_TYPE_RANGE, []),
+            (DATE_TYPE_RANGE, ['just one']),
+            (DATE_TYPE_SINGLE, []),
+            (DATE_TYPE_SINGLE, ['one', 'two']),
+            ('unknown', ['unknown'])
+        )
+
+        for parser in (FgdcParser(self.fgdc_metadata), IsoParser(self.iso_metadata)):
+            for val in invalid_values:
+                self.assert_validates_for(parser, DATES, {DATE_TYPE: val[0], DATE_VALUES: val[1]})
 
     def test_validate_simple_values(self):
         complex_props = set(get_complex_definitions().keys())
