@@ -92,6 +92,7 @@ http://conserveonline.org/workspaces/ecoregional.shapefile/
         <ptcontac>
             <cntinfo>
                 <cntemail>david.patrick@tnc.org</cntemail>
+                <cntpos>Director of Conservation</cntpos>
                 <cntorgp>
                     <cntper>David Patrick</cntper>
                     <cntorg>The Nature Conservancy</cntorg>
@@ -101,9 +102,10 @@ http://conserveonline.org/workspaces/ecoregional.shapefile/
         <ptcontac>
             <cntinfo>
                 <cntemail>tboucher@tnc.org</cntemail>
+                <cntpos>Conservation Geographer</cntpos>
                 <cntperp>
                     <cntper>Timothy Boucher (tboucher@tnc.org)</cntper>
-                    <cntorg> The Nature Conservancy (http://nature.org)</cntorg>
+                    <cntorg>The Nature Conservancy (http://nature.org)</cntorg>
                 </cntperp>
             </cntinfo>
         </ptcontac>

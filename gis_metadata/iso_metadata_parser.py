@@ -70,8 +70,8 @@ _iso_tag_roots = OrderedDict((
     ('_attr_root', 'FC_FeatureCatalogue'),
     ('_attr_base', 'featureType/FC_FeatureType'),
     ('_attr_ref', '{_attr_base}/definitionReference/FC_DefinitionReference'),
-    ('_attr_file', '{_contentinfo}/MD_FeatureCatalogueDescription/featureCatalogueCitation'),
-    ('_attr_contact', '{_attr_file}/CI_Citation/citedResponsibleParty/CI_ResponsibleParty/contactInfo/CI_Contact'),
+    ('_attr_citation', '{_contentinfo}/MD_FeatureCatalogueDescription/featureCatalogueCitation'),
+    ('_attr_contact', '{_attr_citation}/CI_Citation/citedResponsibleParty/CI_ResponsibleParty/contactInfo/CI_Contact')
 ))
 
 # Two passes required because of self references within roots dict
@@ -142,6 +142,7 @@ _iso_tag_formats = {
 }
 
 # Apply XPATH root formats to the basic data map formats
+_iso_tag_formats.update(_iso_tag_roots)
 _iso_tag_formats.update(format_xpaths(_iso_tag_formats, **_iso_tag_roots))
 
 _iso_tag_primitives = {
@@ -305,7 +306,7 @@ class IsoParser(MetadataParser):
 
         attrib_details = []
 
-        file_element = get_element(self._xml_tree, self._data_map['_attr_file'])
+        file_element = get_element(self._xml_tree, self._data_map['_attr_citation'])
         file_location = None
 
         if file_element is not None:
@@ -332,8 +333,9 @@ class IsoParser(MetadataParser):
 
             try:
                 remote_xtree = get_remote_element(file_location)
-            except IOError:
-                return attrib_details
+            except:
+                self._attr_details_file_url = None
+                return attrib_details  # Nothing to parse
 
             def_src_xpath = xpath_map['definition_source']
 
@@ -493,7 +495,7 @@ class IsoParser(MetadataParser):
 
         tree_to_update = update_props['tree_to_update']
         prop = update_props['prop']
-        xpath = self._data_map['_attr_file']
+        xpath = self._data_map['_attr_citation']
 
         if not getattr(self, prop):
             # Property cleared: remove the featureCatalogueCitation element altogether

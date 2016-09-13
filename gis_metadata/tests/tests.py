@@ -3,20 +3,22 @@ import unittest
 from os.path import os
 from six import iteritems
 
+from parserutils.collections import reduce_value, wrap_value
+from parserutils.elements import element_exists, element_to_dict, element_to_string
+from parserutils.elements import get_element_text, get_elements, get_remote_element
+from parserutils.elements import clear_element, remove_element_attributes, set_element_attributes
+
 from gis_metadata.fgdc_metadata_parser import FgdcParser, FGDC_ROOT
-from gis_metadata.iso_metadata_parser import IsoParser, ISO_ROOTS
+from gis_metadata.iso_metadata_parser import IsoParser, ISO_ROOTS, _iso_tag_formats
 from gis_metadata.metadata_parser import MetadataParser, get_metadata_parser, get_parsed_content
 
 from gis_metadata.parser_utils import get_complex_definitions, get_required_keys, get_xml_constants
-from gis_metadata.parser_utils import reduce_value, wrap_value
 from gis_metadata.parser_utils import DATE_TYPE, DATE_VALUES
 from gis_metadata.parser_utils import DATE_TYPE_SINGLE, DATE_TYPE_RANGE, DATE_TYPE_MISSING, DATE_TYPE_MULTIPLE
 from gis_metadata.parser_utils import ATTRIBUTES, CONTACTS, DIGITAL_FORMS, PROCESS_STEPS
 from gis_metadata.parser_utils import BOUNDING_BOX, DATES, LARGER_WORKS
 from gis_metadata.parser_utils import KEYWORDS_PLACE, KEYWORDS_THEME
-from gis_metadata.parser_utils import ParserException
-
-from parserutils.elements import element_to_dict
+from gis_metadata.parser_utils import ParserException, ParserProperty
 
 
 class MetadataParserTestCase(unittest.TestCase):
@@ -24,12 +26,17 @@ class MetadataParserTestCase(unittest.TestCase):
     valid_complex_values = ('one', ['before', 'after'], ['first', 'next', 'last'])
 
     def setUp(self):
-        self.data_dir = os.path.join(os.path.dirname(__file__), 'data')
+        sep = os.path.sep
+        dir_name = os.path.dirname(os.path.abspath(__file__))
+
+        self.data_dir = sep.join((dir_name, 'data'))
+        self.fgdc_file = sep.join((self.data_dir, 'fgdc_metadata.xml'))
+        self.iso_file = sep.join((self.data_dir, 'iso_metadata.xml'))
 
         # Initialize metadata files
 
-        self.fgdc_metadata = open('/'.join((self.data_dir, 'fgdc_metadata.xml')))
-        self.iso_metadata = open('/'.join((self.data_dir, 'iso_metadata.xml')))
+        self.fgdc_metadata = open(self.fgdc_file)
+        self.iso_metadata = open(self.iso_file)
 
         self.metadata_files = (self.fgdc_metadata, self.iso_metadata)
 
@@ -180,9 +187,6 @@ class MetadataParserTestCase(unittest.TestCase):
 
 class MetadataParserTemplateTests(MetadataParserTestCase):
 
-    def setUp(self):
-        super(MetadataParserTemplateTests, self).setUp()
-
     def assert_valid_template(self, parser, exclude=()):
 
         parser_type = type(parser.validate()).__name__
@@ -277,17 +281,19 @@ class MetadataParserTemplateTests(MetadataParserTestCase):
         self.assert_template_after_write(FgdcParser, self.test_fgdc_file_path)
         self.assert_template_after_write(IsoParser, self.test_iso_file_path)
 
-    def tearDown(self):
-        super(MetadataParserTemplateTests, self).tearDown()
-
 
 class MetadataParserTests(MetadataParserTestCase):
 
-    def setUp(self):
-        super(MetadataParserTests, self).setUp()
-
     def test_generic_parser(self):
+        """ Covers code that enforces certain behaviors for custom parsers """
+
         parser = MetadataParser()
+
+        with self.assertRaises(ParserException):
+            ParserProperty(None, None)  # Un-callable property parser
+
+        with self.assertRaises(ParserException):
+            ParserProperty(list, None)  # Un-callable property updater
 
         data_map_1 = parser._data_map
         parser._init_data_map()
@@ -299,6 +305,7 @@ class MetadataParserTests(MetadataParserTestCase):
             parser.write()
 
     def test_specific_parsers(self):
+        """ Ensures code enforces certain behaviors for existing parsers """
 
         for parser_type in (FgdcParser, IsoParser):
             parser = parser_type()
@@ -311,6 +318,77 @@ class MetadataParserTests(MetadataParserTestCase):
 
             with self.assertRaises(ParserException):
                 parser.write()
+
+            with self.assertRaises(ParserException):
+                parser._data_map.clear()
+                parser.validate()
+
+    def test_fgdc_parser(self):
+        """ Tests behavior unique to the FGDC parser """
+
+        contacts_def = get_complex_definitions()[CONTACTS]
+
+        # Remove the contact organization completely
+        fgdc_element = get_remote_element(self.fgdc_file)
+        for contact_element in get_elements(fgdc_element, 'idinfo/ptcontac'):
+            if element_exists(contact_element, 'cntinfo/cntorgp'):
+                clear_element(contact_element)
+
+        # Assert that the contact organization has been read in
+        fgdc_parser = FgdcParser(element_to_string(fgdc_element))
+        for key in contacts_def:
+            self.assertIsNotNone(fgdc_parser.contacts[key], 'Failed to read contact.{0}'.format(key))
+
+        # Remove the contact person completely
+        fgdc_element = get_remote_element(self.fgdc_file)
+        for contact_element in get_elements(fgdc_element, 'idinfo/ptcontac'):
+            if element_exists(contact_element, 'cntinfo/cntperp'):
+                clear_element(contact_element)
+
+        # Assert that the contact organization has been read in
+        fgdc_parser = FgdcParser(element_to_string(fgdc_element))
+        for key in contacts_def:
+            self.assertIsNotNone(fgdc_parser.contacts[key], 'Failed to read updated contact.{0}'.format(key))
+
+    def test_iso_parser(self):
+        """ Tests behavior unique to the ISO parser """
+
+        # Remove the attribute details href attribute
+        iso_element = get_remote_element(self.iso_file)
+        for citation_element in get_elements(iso_element, _iso_tag_formats['_attr_citation']):
+            removed = remove_element_attributes(citation_element, 'href')
+
+        # Assert that the href attribute was removed and a different one was read in
+        iso_parser = IsoParser(element_to_string(iso_element))
+        attribute_href = iso_parser._attr_details_file_url
+
+        self.assertIsNotNone(removed, 'ISO file URL was not removed')
+        self.assertIsNotNone(attribute_href, 'ISO href attribute was not read in')
+        self.assertNotEqual(attribute_href, removed, 'ISO href attribute is the same as the one removed')
+
+        # Remove the attribute details linkage attribute
+        iso_element = get_remote_element(self.iso_file)
+        for linkage_element in get_elements(iso_element, _iso_tag_formats['_attr_url']):
+            removed = get_element_text(linkage_element)
+            clear_element(linkage_element)
+
+        # Assert that the linkage URL was removed and a different one was read in
+        iso_parser = IsoParser(element_to_string(iso_element))
+        linkage_url = iso_parser._attr_details_file_url
+
+        self.assertIsNotNone(removed, 'ISO linkage URL was not removed')
+        self.assertIsNotNone(linkage_url, 'ISO linkage URL was not read in')
+        self.assertNotEqual(linkage_url, removed, 'ISO file URL is the same as the one removed')
+
+        # Change the href attribute so that it is invalid
+        for citation_element in get_elements(iso_element, _iso_tag_formats['_attr_citation']):
+            removed = set_element_attributes(citation_element, href='neither url nor file')
+
+        # Assert that the href attribute was removed and a different one was read in
+        iso_parser = IsoParser(element_to_string(iso_element))
+        attributes = iso_parser.attributes
+        self.assertIsNone(iso_parser._attr_details_file_url, 'Invalid URL stored with parser')
+        self.assertEqual(attributes, [], 'Invalid parsed attributes: {0}'.format(attributes))
 
     def test_parser_conversion(self):
         fgdc_parser = FgdcParser(self.fgdc_metadata)
@@ -530,10 +608,3 @@ class MetadataParserTests(MetadataParserTestCase):
 
         self.assert_parser_after_write(FgdcParser, self.fgdc_metadata, self.test_fgdc_file_path, True)
         self.assert_parser_after_write(IsoParser, self.iso_metadata, self.test_iso_file_path, True)
-
-    def tearDown(self):
-        super(MetadataParserTests, self).tearDown()
-
-
-if __name__ == '__main__':
-    unittest.main()

@@ -353,6 +353,8 @@ class MetadataParser(object):
     def validate(self):
         """ Default validation for updated properties: MAY be overridden in children """
 
+        validate_keyset(self._data_map.keys())
+
         for prop in self._data_map:
             validate_any(prop, getattr(self, prop))
 
