@@ -4,24 +4,24 @@ from six import iteritems
 
 from parserutils.elements import get_element_name
 
-from gis_metadata.parser_utils import remove_element
-from gis_metadata.parser_utils import DATE_TYPE, DATE_TYPE_SINGLE, DATE_TYPE_MULTIPLE
-from gis_metadata.parser_utils import DATE_TYPE_RANGE, DATE_TYPE_RANGE_BEGIN, DATE_TYPE_RANGE_END
-from gis_metadata.parser_utils import ATTRIBUTES
-from gis_metadata.parser_utils import BOUNDING_BOX
-from gis_metadata.parser_utils import CONTACTS
-from gis_metadata.parser_utils import DATES
-from gis_metadata.parser_utils import DIGITAL_FORMS
-from gis_metadata.parser_utils import KEYWORDS_PLACE
-from gis_metadata.parser_utils import KEYWORDS_THEME
-from gis_metadata.parser_utils import LARGER_WORKS
-from gis_metadata.parser_utils import PROCESS_STEPS
-from gis_metadata.parser_utils import ParserException, ParserProperty
+from gis_metadata.utils import remove_element
+from gis_metadata.utils import DATE_TYPE, DATE_TYPE_SINGLE, DATE_TYPE_MULTIPLE
+from gis_metadata.utils import DATE_TYPE_RANGE, DATE_TYPE_RANGE_BEGIN, DATE_TYPE_RANGE_END
+from gis_metadata.utils import ATTRIBUTES
+from gis_metadata.utils import BOUNDING_BOX
+from gis_metadata.utils import CONTACTS
+from gis_metadata.utils import DATES
+from gis_metadata.utils import DIGITAL_FORMS
+from gis_metadata.utils import KEYWORDS_PLACE
+from gis_metadata.utils import KEYWORDS_THEME
+from gis_metadata.utils import LARGER_WORKS
+from gis_metadata.utils import PROCESS_STEPS
+from gis_metadata.utils import ParserError, ParserProperty
 
-from gis_metadata.parser_utils import format_xpath, format_xpaths
-from gis_metadata.parser_utils import get_complex_definitions, get_xpath_root
-from gis_metadata.parser_utils import parse_complex, parse_complex_list, parse_dates
-from gis_metadata.parser_utils import update_complex, update_complex_list
+from gis_metadata.utils import format_xpath, format_xpaths
+from gis_metadata.utils import get_complex_definitions, get_xpath_root
+from gis_metadata.utils import parse_complex, parse_complex_list, parse_dates
+from gis_metadata.utils import update_complex, update_complex_list
 
 from gis_metadata.metadata_parser import MetadataParser
 
@@ -93,7 +93,7 @@ class FgdcParser(MetadataParser):
             fgdc_root = FGDC_ROOT
 
         if fgdc_root != FGDC_ROOT:
-            raise ParserException('Invalid XML root for ISO-19115 standard: {root}', root=fgdc_root)
+            raise ParserError('Invalid XML root for ISO-19115 standard: {root}', root=fgdc_root)
 
         fgdc_data_map = {'root': FGDC_ROOT}
 
@@ -186,7 +186,7 @@ class FgdcParser(MetadataParser):
         )
         self._process_steps_root = get_xpath_root(ps_format)
 
-        # Assign XPATHS and parser_utils.ParserProperties to fgdc_data_map
+        # Assign XPATHS and gis_metadata.utils.ParserProperties to fgdc_data_map
 
         fgdc_data_formats = dict(_fgdc_tag_formats)
 
@@ -273,7 +273,7 @@ class FgdcParser(MetadataParser):
     def _update_attribute_details(self, **update_props):
         """
         Update operation for FGDC Attribute Details metadata
-        :see: parser_utils._complex_definitions[ATTRIBUTES]
+        :see: gis_metadata.utils._complex_definitions[ATTRIBUTES]
         """
 
         xpath_root = self._attr_details_root
@@ -284,7 +284,7 @@ class FgdcParser(MetadataParser):
     def _update_bounding_box(self, **update_props):
         """
         Update operation for FGDC Bounding Box metadata
-        :see: parser_utils._complex_definitions[BOUNDING_BOX]
+        :see: gis_metadata.utils._complex_definitions[BOUNDING_BOX]
         """
 
         xpath_root = self._bounding_box_root
@@ -295,7 +295,7 @@ class FgdcParser(MetadataParser):
     def _update_contacts(self, **update_props):
         """
         Update operation for FGDC Process Steps metadata
-        :see: parser_utils._complex_definitions[CONTACTS]
+        :see: gis_metadata.utils._complex_definitions[CONTACTS]
         """
 
         xpath_root = self._contact_root
@@ -306,7 +306,7 @@ class FgdcParser(MetadataParser):
     def _update_dates(self, **update_props):
         """
         Update operation for FGDC Dates metadata
-        :see: parser_utils._complex_definitions[DATES]
+        :see: gis_metadata.utils._complex_definitions[DATES]
         """
 
         xpath_root = self._dates_root
@@ -326,7 +326,7 @@ class FgdcParser(MetadataParser):
     def _update_digital_forms(self, **update_props):
         """
         Update operation for FGDC Digital Forms metadata
-        :see: parser_utils._complex_definitions[DIGITAL_FORMS]
+        :see: gis_metadata.utils._complex_definitions[DIGITAL_FORMS]
         """
 
         xpath_root = self._digital_forms_root
@@ -337,7 +337,7 @@ class FgdcParser(MetadataParser):
     def _update_larger_works(self, **update_props):
         """
         Update operation for FGDC Larger Works metadata
-        :see: parser_utils._complex_definitions[LARGER_WORKS]
+        :see: gis_metadata.utils._complex_definitions[LARGER_WORKS]
         """
 
         xpath_root = self._larger_works_root
@@ -348,7 +348,7 @@ class FgdcParser(MetadataParser):
     def _update_process_steps(self, **update_props):
         """
         Update operation for FGDC Process Steps metadata
-        :see: parser_utils._complex_definitions[PROCESS_STEPS]
+        :see: gis_metadata.utils._complex_definitions[PROCESS_STEPS]
         """
 
         xpath_root = self._process_steps_root

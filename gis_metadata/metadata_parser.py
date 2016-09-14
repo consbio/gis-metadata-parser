@@ -8,11 +8,11 @@ from parserutils.elements import get_element_name, get_element_tree, get_element
 from parserutils.elements import insert_element, remove_element, write_element
 from parserutils.strings import DEFAULT_ENCODING
 
-from gis_metadata.parser_utils import DATE_TYPE, DATE_VALUES
-from gis_metadata.parser_utils import DATE_TYPE_RANGE, DATE_TYPE_RANGE_BEGIN, DATE_TYPE_RANGE_END
-from gis_metadata.parser_utils import filter_property, get_required_keys
-from gis_metadata.parser_utils import update_property, validate_any, validate_keyset
-from gis_metadata.parser_utils import ParserException
+from gis_metadata.utils import DATE_TYPE, DATE_VALUES
+from gis_metadata.utils import DATE_TYPE_RANGE, DATE_TYPE_RANGE_BEGIN, DATE_TYPE_RANGE_END
+from gis_metadata.utils import get_default_for, get_required_keys
+from gis_metadata.utils import update_property, validate_any, validate_keyset
+from gis_metadata.utils import ParserError
 
 
 # Place holders for lazy, one-time FGDC & ISO imports
@@ -48,7 +48,7 @@ def get_metadata_parser(metadata_container, **metadata_defaults):
     :return: an appropriate instance of MetadataParser depending on what is passed in. If metadata_container
     is a type, an instance of it must contain an update method that returns parsable content.
     :param metadata_container: a parser, parser type, or parsable content
-    :throws ParserException: if the content does not correspond to a supported metadata standard
+    :throws ParserError: if the content does not correspond to a supported metadata standard
     :see: get_parsed_content(metdata_content) for more on types of content that can be parsed
     """
 
@@ -77,7 +77,7 @@ def get_parsed_content(metadata_content):
         - attributes: a Dictionary containing element attributes
         - children: a List of converted child elements
 
-    :throws ParserException: If the content passed in is null or otherwise invalid
+    :throws ParserError: If the content passed in is null or otherwise invalid
     :return: the XML root along with an XML Tree parsed by and compatible with element_utils
     """
 
@@ -98,7 +98,7 @@ def get_parsed_content(metadata_content):
                 xml_tree = None  # Several exceptions possible, outcome is the same
 
     if xml_tree is None:
-        raise ParserException(
+        raise ParserError(
             'Cannot instantiate a {parser_type} parser with invalid content to parse',
             parser_type=type(metadata_content)
         )
@@ -107,11 +107,11 @@ def get_parsed_content(metadata_content):
     if xml_root in VALID_ROOTS:
         return xml_root, xml_tree
 
-    raise ParserException('Invalid root element for MetadataParser: {xml_root}', xml_root=xml_root)
+    raise ParserError('Invalid root element for MetadataParser: {xml_root}', xml_root=xml_root)
 
 
 def _import_parsers():
-    """ Lazy imports to prevent circular dependencies between this module and parser_utils """
+    """ Lazy imports to prevent circular dependencies between this module and utils """
 
     global FGDC_ROOT
     global FgdcParser
@@ -146,8 +146,8 @@ class MetadataParser(object):
 
     II. If the new field contains complex XML content:
 
-        A. Add the new complex definition to parser_utils
-            :see: parser_utils._complex_definitions for examples of complex XML content
+        A. Add the new complex definition to utils
+            :see: gis_metadata.utils._complex_definitions for examples of complex XML content
 
         B. Define the necessary property parsing and updating methods in the child parsers
 
@@ -165,7 +165,7 @@ class MetadataParser(object):
             The _data_map dictionary will contain identifying property names as keys, and either
             XPATHs or ParserProperties as values.
 
-    III. If the new content is required across standards, update parser_utils._required_keys as needed
+    III. If the new content is required across standards, update utils._required_keys as needed
 
         Requiring new content does not mean a value is required from the incoming metadata. Rather,
         it means all MetadataParser children must provide an XPATH for parsing the value, even if
@@ -217,7 +217,7 @@ class MetadataParser(object):
             else:
                 parsed = get_elements_text(self._xml_tree, xpath)
 
-            setattr(self, prop, filter_property(prop, parsed))
+            setattr(self, prop, get_default_for(prop, parsed))
 
             if not self.has_data:
                 self.has_data = bool(parsed)
@@ -274,17 +274,17 @@ class MetadataParser(object):
 
         xpath = self._data_map[prop]
 
-        return filter_property(prop, self._get_elements_text(getattr(xpath, 'xpath', xpath)))
+        return get_default_for(prop, self._get_elements_text(getattr(xpath, 'xpath', xpath)))
 
     def _update_dates_property(self, xpath_root, xpaths, **update_props):
         """
         Default update operation for Dates metadata
-        :see: parser_utils._complex_definitions[DATES]
+        :see: gis_metadata.utils._complex_definitions[DATES]
         """
 
         tree_to_update = update_props['tree_to_update']
         prop = update_props['prop']
-        values = filter_property(prop, update_props['values']).get(DATE_VALUES, '')
+        values = get_default_for(prop, update_props['values']).get(DATE_VALUES, '')
 
         if not self.dates:
             date_xpaths = xpath_root
@@ -328,7 +328,7 @@ class MetadataParser(object):
             out_file_or_path = self.out_file_or_path
 
         if not out_file_or_path:
-            raise ParserException('Output file path has not been provided')
+            raise ParserError('Output file path has not been provided')
 
         write_element(self.update(use_template), out_file_or_path, encoding)
 

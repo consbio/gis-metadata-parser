@@ -8,6 +8,8 @@ from parserutils.elements import get_element, get_elements, get_elements_text
 from parserutils.elements import element_exists, insert_element, remove_element, remove_elements
 from parserutils.elements import XPATH_DELIM
 
+from gis_metadata.exceptions import ParserError
+
 
 # Generic identifying property name constants
 
@@ -168,7 +170,7 @@ def get_xpath_branch(xroot, xpath):
     return xpath
 
 
-def filter_property(prop, value):
+def get_default_for(prop, value):
     """ Ensures complex property types have the correct default values """
 
     val = reduce_value(value)  # Filtering of value happens here
@@ -561,7 +563,7 @@ def _validation_error(prop, prop_type, prop_value, expected):
         attrib = 'type'
         assigned = prop_type
 
-    raise ParserException(
+    raise ParserError(
         'Invalid property {attrib} for {prop}:\n\t{attrib}: {assigned}\n\texpected: {expected}',
         attrib=attrib, prop=prop, assigned=assigned, expected=expected
     )
@@ -576,21 +578,10 @@ def validate_keyset(props):
     props = set(props)
 
     if len(_required_keys.intersection(props)) < len(_required_keys):
-        raise ParserException(
+        raise ParserError(
             'Missing property names: {props}',
             props=', '.join(_required_keys - props)
         )
-
-
-class ParserException(Exception):
-    """ A class to encapsulate all parsing exceptions """
-
-    def __init__(self, msg_format, *args, **kwargs):
-        """
-        Call Exception with a message formatted with named arguments from
-        a Dictionary with values by key, or a list of named parameters.
-        """
-        Exception.__init__(self, msg_format.format(*args, **kwargs))
 
 
 class ParserProperty(object):
@@ -606,7 +597,7 @@ class ParserProperty(object):
         if hasattr(prop_parser, '__call__'):
             self._parser = prop_parser
         else:
-            raise ParserException(
+            raise ParserError(
                 'Invalid property getter:\n\tpassed in: {param}\n\texpected: {expected}',
                 param=type(prop_parser), expected='<type "callable">'
             )
@@ -614,7 +605,7 @@ class ParserProperty(object):
         if hasattr(prop_updater, '__call__'):
             self._updater = prop_updater
         else:
-            raise ParserException(
+            raise ParserError(
                 'Invalid property setter:\n\tpassed in: {param}\n\texpected: {expected}',
                 param=type(prop_updater), expected='<type "callable">'
             )

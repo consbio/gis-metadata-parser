@@ -43,10 +43,10 @@ iso_from_string = get_metadata_parser(
 # Convert from one standard to another
 fgdc_converted = iso_from_file.convert_to(FgdcParser)
 iso_converted = fgdc_from_file.convert_to(IsoParser)
-```python
+```
 
 Finally, the properties of the parser can be updated, validated, applied and output:
-```
+```python
 fgdc_from_file = FgdcParser(file(r'/path/to/metadata.xml'))
 
 # Example simple properties
@@ -63,7 +63,7 @@ fgdc_from_file.digital_forms
 fgdc_from_file.larger_works
 fgdc_from_file.process_steps
 
-# :see: gis_metadata.parser_utils._required_keys for list of all properties
+# :see: gis_metadata.utils._required_keys for list of all properties
 
 # Update properties
 fgdc_from_file.title = 'New Title'
@@ -74,6 +74,5 @@ fgdc_from_file.validate()                                      # Ensure updated 
 fgdc_from_file.serialize()                                     # Output updated XML as a string
 fgdc_from_file.write()                                         # Output updated XML to existing file
 fgdc_from_file.write(out_file_or_path='/path/to/updated.xml')  # Output updated XML to new file
-
 ```
 

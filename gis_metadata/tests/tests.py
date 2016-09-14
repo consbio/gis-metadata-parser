@@ -12,13 +12,14 @@ from gis_metadata.fgdc_metadata_parser import FgdcParser, FGDC_ROOT
 from gis_metadata.iso_metadata_parser import IsoParser, ISO_ROOTS, _iso_tag_formats
 from gis_metadata.metadata_parser import MetadataParser, get_metadata_parser, get_parsed_content
 
-from gis_metadata.parser_utils import get_complex_definitions, get_required_keys
-from gis_metadata.parser_utils import DATE_TYPE, DATE_VALUES
-from gis_metadata.parser_utils import DATE_TYPE_SINGLE, DATE_TYPE_RANGE, DATE_TYPE_MISSING, DATE_TYPE_MULTIPLE
-from gis_metadata.parser_utils import ATTRIBUTES, CONTACTS, DIGITAL_FORMS, PROCESS_STEPS
-from gis_metadata.parser_utils import BOUNDING_BOX, DATES, LARGER_WORKS
-from gis_metadata.parser_utils import KEYWORDS_PLACE, KEYWORDS_THEME
-from gis_metadata.parser_utils import ParserException, ParserProperty
+from gis_metadata.exceptions import ParserError
+from gis_metadata.utils import get_complex_definitions, get_required_keys
+from gis_metadata.utils import DATE_TYPE, DATE_VALUES
+from gis_metadata.utils import DATE_TYPE_SINGLE, DATE_TYPE_RANGE, DATE_TYPE_MISSING, DATE_TYPE_MULTIPLE
+from gis_metadata.utils import ATTRIBUTES, CONTACTS, DIGITAL_FORMS, PROCESS_STEPS
+from gis_metadata.utils import BOUNDING_BOX, DATES, LARGER_WORKS
+from gis_metadata.utils import KEYWORDS_PLACE, KEYWORDS_THEME
+from gis_metadata.utils import ParserProperty
 
 
 TEST_TEMPLATE_CONSTANTS = {
@@ -181,8 +182,8 @@ class MetadataParserTestCase(unittest.TestCase):
             parser.validate()
         except Exception as e:
             # Not using self.assertRaises to customize the failure message
-            self.assertEqual(type(e), ParserException, (
-                'Property "{0}.{1}" does not raise ParserException for value: "{2}" ({3})'.format(
+            self.assertEqual(type(e), ParserError, (
+                'Property "{0}.{1}" does not raise ParserError for value: "{2}" ({3})'.format(
                     type(parser).__name__, prop, invalid, type(invalid).__name__
                 )
             ))
@@ -231,22 +232,22 @@ class MetadataParserTemplateTests(MetadataParserTestCase):
     def test_template_conversion_bad_roots(self):
 
         for bad_root in (None, '', '<badRoot/>', '<badRoot>invalid</badRoot>'):
-            with self.assertRaises(ParserException):
+            with self.assertRaises(ParserError):
                 get_parsed_content(bad_root)
-            with self.assertRaises(ParserException):
+            with self.assertRaises(ParserError):
                 get_metadata_parser(bad_root)
 
             if bad_root is not None:
-                with self.assertRaises(ParserException):
+                with self.assertRaises(ParserError):
                     IsoParser(bad_root)
-                with self.assertRaises(ParserException):
+                with self.assertRaises(ParserError):
                     FgdcParser(bad_root)
 
-        with self.assertRaises(ParserException):
+        with self.assertRaises(ParserError):
             IsoParser(FGDC_ROOT.join(('<', '></', '>')))
 
         for iso_root in ISO_ROOTS:
-            with self.assertRaises(ParserException):
+            with self.assertRaises(ParserError):
                 FgdcParser(iso_root.join(('<', '></', '>')))
 
     def test_template_conversion_from_dict(self):
@@ -303,10 +304,10 @@ class MetadataParserTests(MetadataParserTestCase):
 
         parser = MetadataParser()
 
-        with self.assertRaises(ParserException):
+        with self.assertRaises(ParserError):
             ParserProperty(None, None)  # Un-callable property parser
 
-        with self.assertRaises(ParserException):
+        with self.assertRaises(ParserError):
             ParserProperty(list, None)  # Un-callable property updater
 
         data_map_1 = parser._data_map
@@ -315,7 +316,7 @@ class MetadataParserTests(MetadataParserTestCase):
 
         self.assertIs(data_map_1, data_map_2, 'Data map was reinitialized after instantiation')
 
-        with self.assertRaises(ParserException):
+        with self.assertRaises(ParserError):
             parser.write()
 
     def test_specific_parsers(self):
@@ -330,10 +331,10 @@ class MetadataParserTests(MetadataParserTestCase):
 
             self.assertIs(data_map_1, data_map_2, 'Data map was reinitialized after instantiation')
 
-            with self.assertRaises(ParserException):
+            with self.assertRaises(ParserError):
                 parser.write()
 
-            with self.assertRaises(ParserException):
+            with self.assertRaises(ParserError):
                 parser._data_map.clear()
                 parser.validate()
 
