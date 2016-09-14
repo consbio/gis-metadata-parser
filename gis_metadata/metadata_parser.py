@@ -3,10 +3,10 @@
 from copy import deepcopy
 from six import iteritems
 
-from parserutils.elements import DEFAULT_ENCODING
 from parserutils.elements import create_element_tree, element_exists, element_to_string, strip_namespaces
 from parserutils.elements import get_element_name, get_element_tree, get_elements_text
 from parserutils.elements import insert_element, remove_element, write_element
+from parserutils.strings import DEFAULT_ENCODING
 
 from gis_metadata.parser_utils import DATE_TYPE, DATE_VALUES
 from gis_metadata.parser_utils import DATE_TYPE_RANGE, DATE_TYPE_RANGE_BEGIN, DATE_TYPE_RANGE_END
