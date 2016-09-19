@@ -1,0 +1,573 @@
+<!-- ISO-19139 Metadata DTD Approximation (gis-metadata-parser app)     -->
+<!-- This is a derived Document Type Declaration for the ISO standard   -->
+<!-- It is not officially supported, but represents a lot of research   -->
+<!-- into common usage of the standard in examples put out by various   -->
+<!-- organizations. It's primary purpose is to describe this parser's   -->
+<!-- behavior when it comes to reading and writing to an ISO document   -->
+
+<!-- Tags:                                                              -->
+<!--     Tags are a maximum of 8-characters long, to coincide with the  -->
+<!--     Reference Concrete Syntax.  In some systems, this will obviate -->
+<!--     the need for an explicit SGML declaration.                     -->
+
+<!-- Entity sets:                                                       -->
+<!--     Scalar values (meaning the values of elements that are not     -->
+<!--     compound) are here declared #PCDATA to allow parsers to        -->
+<!--     recognize and support entities representing special characters -->
+<!--     such as the degree symbol, less, and greater.                  -->
+
+<!-- Element ordering:                                                  -->
+<!--     Generally the order of elements is now significant. XML makes  -->
+<!--     it difficult to write a DTD that allows elements to be in any  -->
+<!--     order.                                                         -->
+
+<!-- Authors:                                                           -->
+<!--     Daniel Harvey                                                  -->
+
+<!-- Revisions:                                                         -->
+<!--                                                                    -->
+
+<!-- Links:                                                             -->
+<!--	Name Space:                                                     -->
+<!--		Default: http://www.isotc211.org/2005/                      -->
+<!--		gml: http://www.opengis.net/gml                             -->
+<!--		xlink: http://www.w3.org/1999/xlink                         -->
+<!--		xmlns: http://www.isotc211.org/2005/gmd                     -->
+<!--        xsi: http://www.w3.org/2001/XMLSchema-instance              -->
+
+<!--======================================================================-->
+
+<!-- Maybe this is the right entity reference for XML -->
+
+<!ENTITY % HTMLlat1 PUBLIC
+	"-//W3C//ENTITIES Full Latin 1//EN//HTML"
+	>
+
+<!-- %HTMLlat1; -->
+
+<!--======================================================================-->
+
+<!-- Root Level Elements: MD_Metadata or MI_Metadata -->
+<!ELEMENT gmd:MD_Metadata (gmd:fileIdentifier, gmd:language, gmd:characterSet, gmd:parentIdentifier?, gmd:hierarchyLevel, gmd:hierarchyLevelName?, gmd:contact+, gmd:dateStamp, gmd:metadataStandardName, gmd:metadataStandardVersion?, gmd:dataSetURI?, gmd:locale*, gmd:identificationInfo+, gmd:contentInfo?, gmd:spatialRepresentationInfo?, gmd:referenceSystemInfo?, gmd:distributionInfo?, gmd:dataQualityInfo?, gmd:metadataConstraints?, gmd:metadataMaintenance?)>
+<!ELEMENT gmi:MI_Metadata (gmd:fileIdentifier, gmd:language, gmd:characterSet, gmd:parentIdentifier?, gmd:hierarchyLevel, gmd:hierarchyLevelName?, gmd:contact+, gmd:dateStamp, gmd:metadataStandardName, gmd:metadataStandardVersion?, gmd:dataSetURI?, gmd:locale*, gmd:identificationInfo+, gmd:contentInfo?, gmd:spatialRepresentationInfo?, gmd:referenceSystemInfo?, gmd:distributionInfo?, gmd:dataQualityInfo?, gmd:metadataConstraints?, gmd:metadataMaintenance?, gmi:acquisitionInformation)>
+
+<!-- MD_Metadata.fileIdentifier -->
+<!ELEMENT gmd:fileIdentifier (gco:CharacterString)>
+
+<!-- MD_Metadata.parentIdentifier -->
+<!ELEMENT gmd:parentIdentifier (gco:CharacterString)>
+
+<!-- MD_Metadata.hierarchyLevel -->
+<!ELEMENT gmd:hierarchyLevel (gmd:MD_ScopeCode)>
+
+<!-- MD_Metadata.hierarchyLevelName -->
+<!ELEMENT gmd:hierarchyLevelName (gco:CharacterString)>
+
+<!-- MD_Metadata.metadataMaintenance -->
+<!ELEMENT gmd:metadataMaintenance (gmd:MD_MaintenanceInformation)>
+
+<!-- MD_Metadata.metadataStandardName -->
+<!ELEMENT gmd:metadataStandardName (gco:CharacterString)>
+
+<!-- MD_Metadata.metadataStandardVersion -->
+<!ELEMENT gmd:metadataStandardVersion (gco:CharacterString)>
+
+<!-- MD_Metadata.dataSetURI -->
+<!ELEMENT gmd:dataSetURI (gco:CharacterString)>
+
+<!-- MD_Metadata.locale -->
+<!ELEMENT gmd:locale (gmd:PT_Locale)>
+<!ELEMENT gmd:PT_Locale (gmd:languageCode, gmd:country, gmd:characterEncoding)>
+<!ELEMENT gmd:characterEncoding (gmd:MD_CharacterSetCode|gco:CharacterString)>
+
+<!-- MD_Metadata.spatialRepresentationInfo -->
+<!ELEMENT gmd:spatialRepresentationInfo (gmd:MD_VectorSpatialRepresentation)>
+<!ELEMENT gmd:MD_VectorSpatialRepresentation (gmd:topologyLevel, gmd:geometricObjects)>
+<!ELEMENT gmd:topologyLevel (gmd:MD_TopologyLevelCode)>
+<!ELEMENT gmd:MD_TopologyLevelCode (#PCDATA)>
+<!ATTLIST gmd:MD_TopologyLevelCode codeListValue CDATA>
+<!ATTLIST gmd:MD_TopologyLevelCode codeList CDATA>
+<!ATTLIST gmd:MD_TopologyLevelCode codeSpace CDATA>
+<!ELEMENT gmd:geometricObjects (gmd:MD_GeometricObjects)>
+<!ELEMENT gmd:MD_GeometricObjects (gmd:geometricObjectType, gmd:geometricObjectCount)>
+<!ELEMENT gmd:geometricObjectType (gmd:MD_GeometricObjectTypeCode)>
+<!ELEMENT gmd:MD_GeometricObjectTypeCode (#PCDATA)>
+<!ATTLIST gmd:MD_GeometricObjectTypeCode codeListValue CDATA>
+<!ATTLIST gmd:MD_GeometricObjectTypeCode codeList CDATA>
+<!ATTLIST gmd:MD_GeometricObjectTypeCode codeSpace CDATA>
+<!ELEMENT gmd:geometricObjectCount (gco:Integer)>
+
+
+<!-- MD_Metadata.referenceSystemInfo -->
+<!ELEMENT gmd:referenceSystemInfo (gmd:MD_ReferenceSystem)>
+<!ELEMENT gmd:MD_ReferenceSystem (gmd:referenceSystemIdentifier)>
+<!ELEMENT gmd:referenceSystemIdentifier (gmd:RS_Identifier)>
+<!ELEMENT gmd:RS_Identifier (gmd:code, gmd:codeSpace?)>
+
+<!-- MD_Metadata.identificationInfo -->
+<!ELEMENT gmd:identificationInfo (gmd:MD_DataIdentification | srv:SV_ServiceIdentification)>
+<!ELEMENT gmd:MD_DataIdentification (gmd:citation, gmd:abstract, gmd:purpose, gmd:credit+, gmd:status, gmd:pointOfContact, gmd:resourceMaintenance+, gmd:graphicOverview?, gmd:descriptiveKeywords+, gmd:resourceSpecificUsage*, gmd:resourceConstraints*, gmd:aggregationInfo?, gmd:spatialRepresentationType, gmd:spatialResolution*, gmd:language+, gmd:characterSet?, gmd:topicCategory, gmd:environmentDescription?, gmd:extent+, gmd:supplementalInformation?)>
+<!ELEMENT gmd:purpose (gco:CharacterString)>
+<!ELEMENT gmd:credit (gco:CharacterString)>
+<!ELEMENT gmd:pointOfContact (gmd:CI_ResponsibleParty+)>
+<!ELEMENT gmd:resourceMaintenance (gmd:MD_MaintenanceInformation)>
+<!ELEMENT gmd:MD_MaintenanceInformation (gmd:maintenanceAndUpdateFrequency, gmd:dateOfNextUpdate, gmd:userDefinedMaintenanceFrequency, gmd:updateScope, gmd:updateScopeDescription, gmd:maintenanceNote, gmd:contact)>
+<!ELEMENT gmd:userDefinedMaintenanceFrequency (gts:TM_PeriodDuration)>
+<!ELEMENT gmd:maintenanceNote (gco:CharacterString)>
+<!ELEMENT gmd:graphicOverview (gmd:MD_BrowseGraphic)>
+<!ELEMENT gmd:MD_BrowseGraphic (gmd:fileName, gmd:fileDescription, gmd:fileType)>
+<!ELEMENT gmd:fileName (gco:CharacterString)>
+<!ELEMENT gmd:fileDescription (gco:CharacterString)>
+<!ELEMENT gmd:fileType (gco:CharacterString)>
+<!ELEMENT gmd:resourceSpecificUsage (gmd:MD_Usage)>
+<!ELEMENT gmd:MD_Usage (gmd:specificUsage, gmd:usageDateTime, gmd:userDeterminedLimitations, gmd:userContactInfo)>
+<!ELEMENT gmd:specificUsage (gco:CharacterString)>
+<!ELEMENT gmd:usageDateTime (gco:DateTime)>
+<!ELEMENT gmd:userDeterminedLimitations (gco:CharacterString)>
+<!ELEMENT gmd:userContactInfo (gmd:CI_ResponsibleParty)>
+<!ELEMENT gmd:resourceConstraints (gmd:MD_Constraints | gmd:MD_LegalConstraints | MD_SecurityConstraints)>
+<!ELEMENT gmd:aggregationInfo (gmd:MD_AggregateInformation)>
+<!ELEMENT gmd:MD_AggregateInformation (gmd:aggregateDataSetName, gmd:aggregateDataSetIdentifier?, gmd:associationType, gmd:initiativeType)>
+<!ELEMENT gmd:aggregateDataSetName (gmd:CI_Citation)>
+<!ELEMENT gmd:aggregateDataSetIdentifier (gmd:MD_Identifier)>
+<!ELEMENT gmd:MD_Identifier (gmd:code)>
+<!ELEMENT gmd:associationType (gmd:DS_AssociationTypeCode)>
+<!ELEMENT gmd:DS_AssociationTypeCode (#PCDATA)>
+<!ATTLIST gmd:DS_AssociationTypeCode codeListValue CDATA>
+<!ATTLIST gmd:DS_AssociationTypeCode codeList CDATA>
+<!ATTLIST gmd:DS_AssociationTypeCode codeSpace CDATA>
+<!ELEMENT gmd:initiativeType (gmd:DS_InitiativeTypeCode)>
+<!ELEMENT gmd:DS_InitiativeTypeCode (#PCDATA)>
+<!ATTLIST gmd:DS_InitiativeTypeCode codeListValue CDATA>
+<!ATTLIST gmd:DS_InitiativeTypeCode codeList CDATA>
+<!ATTLIST gmd:DS_InitiativeTypeCode codeSpace CDATA>
+<!ELEMENT gmd:spatialRepresentationType (gmd:MD_SpatialRepresentationTypeCode)>
+<!ELEMENT gmd:MD_SpatialRepresentationTypeCode (#PCDATA)>
+<!ATTLIST gmd:MD_SpatialRepresentationTypeCode codeListValue CDATA>
+<!ATTLIST gmd:MD_SpatialRepresentationTypeCode codeList CDATA>
+<!ATTLIST gmd:MD_SpatialRepresentationTypeCode codeSpace CDATA>
+<!ELEMENT gmd:spatialResolution (gmd:MD_Resolution)>
+<!ELEMENT gmd:MD_Resolution (gmd:equivalentScale | gmd:distance)>
+<!ELEMENT gmd:topicCategory (gmd:MD_TopicCategoryCode)>
+<!ELEMENT gmd:MD_TopicCategoryCode (#PCDATA)>
+<!ELEMENT gmd:environmentDescription (gco:CharacterString)>
+<!ELEMENT gmd:extent (gmd:EX_Extent)>
+<!ELEMENT gmd:supplementalInformation (gco:CharacterString)>
+<!ELEMENT srv:SV_ServiceIdentification (gmd:citation, gmd:abstract, gmd:status?, gmd:descriptiveKeywords*, srv:serviceType, srv:serviceTypeVersion?, srv:couplingType, srv:containsOperations+, srv:extent?)>
+<!ATTLIST srv:SV_ServiceIdentification id CDATA>
+<!ELEMENT srv:serviceType (gco:LocalName)>
+<!ELEMENT srv:serviceTypeVersion (gco:CharacterString)>
+<!ELEMENT srv:extent (gmd:EX_Extent)>
+<!ELEMENT srv:couplingType (srv:SV_CouplingType)>
+<!ELEMENT srv:SV_CouplingType (#PCDATA)>
+<!ATTLIST srv:SV_CouplingType codeListValue CDATA>
+<!ATTLIST srv:SV_CouplingType codeList CDATA>
+<!ATTLIST srv:SV_CouplingType codeSpace CDATA>
+<!ELEMENT srv:containsOperations (srv:SV_OperationMetadata)>
+<!ELEMENT srv:SV_OperationMetadata (srv:operationName, srv:DCP, srv:parameters?, srv:connectPoint)>
+<!ELEMENT srv:operationName (gco:CharacterString)>
+<!ELEMENT srv:DCP (srv:DCPList?)>
+<!ELEMENT srv:DCPList (#PCDATA)>
+<!ATTLIST srv:DCPList codeListValue CDATA>
+<!ATTLIST srv:DCPList codeList CDATA>
+<!ATTLIST srv:DCPList codeSpace CDATA>
+<!ELEMENT srv:parameters (gmd:SV_Parameter+)>
+<!ELEMENT srv:SV_Parameter (srv:name, srv:description?, srv:optionality, srv:repeatability, srv:valueType)>
+<!ELEMENT srv:name (gco:aName, gco:attributeType)>
+<!ELEMENT srv:description (gco:CharacterString)>
+<!ELEMENT srv:optionality (gco:CharacterString)>
+<!ELEMENT srv:repeatability (gco:Boolean)>
+<!ELEMENT srv:valueType (gco:TypeName)>
+<!ELEMENT srv:connectPoint (gmd:CI_OnlineResource)>
+
+<!-- MD_Metadata.contentInfo -->
+<!ELEMENT gmd:contentInfo ((gmd:MD_FeatureCatalogueDescription | gmd:MD_CoverageDescription | gmd:MD_ImageDescription)?)>
+<!ELEMENT gmd:MD_FeatureCatalogueDescription (gmd:complianceCode, gmd:language, gmd:includedWithDataset, gmd:featureTypes+, gmd:featureCatalogueCitation)>
+<!ELEMENT gmd:complianceCode (gco:Boolean)>
+<!ELEMENT gmd:includedWithDataset (gco:Boolean)>
+<!ELEMENT gmd:featureTypes (gco:LocalName)>
+<!ELEMENT gmd:featureCatalogueCitation (gmd:CI_Citation)>
+<!ELEMENT gmd:MD_ImageDescription (gmd:attributeDescription, gmd:contentType, gmd:dimension*)>
+<!ELEMENT gmd:MD_CoverageDescription (gmd:attributeDescription, gmd:contentType, gmd:dimension*)>
+<!ELEMENT gmd:attributeDescription (gco:RecordType)>
+<!ELEMENT gmd:contentType (gmd:MD_CoverageContentTypeCode )>
+<!ELEMENT gmd:MD_CoverageContentTypeCode (#PCDATA)>
+<!ATTLIST gmd:MD_CoverageContentTypeCode codeList CDATA>
+<!ATTLIST gmd:MD_CoverageContentTypeCode codeListValue CDATA>
+<!ELEMENT gmd:dimension (gmd:MD_RangeDimension)>
+<!ELEMENT gmd:MD_RangeDimension (gmd:sequenceIdentifier?, gmd:descriptor?)>
+<!ELEMENT gmd:sequenceIdentifier (gco:MemberName?)>
+<!ELEMENT gmd:descriptor (gco:CharacterString)>
+
+<!-- MD_Metadata.contentInfo.MD_FeatureCatalogueDescription references ISO 19110 -->
+
+<!ELEMENT gfc:FC_FeatureCatalogue (gmx:name, gmx:scope, gmx:fieldOfApplication?, gmx:versionNumber, gmx:versionDate, gmx:language, gmx:characterSet, gfc:producer, gfc:featureType+, gfc:inheritanceRelation?)>
+<!-- FC_FeatureCatalogue.producer -->
+<!ELEMENT gfc:producer (gmd:CI_ResponsibleParty)>
+<!ATTLIST gfc:producer xlink:arcrole CDATA>
+<!ATTLIST gfc:producer xlink:title CDATA>
+<!-- FC_FeatureCatalogue.featureType -->
+<!ELEMENT gfc:featureType (FC_FeatureAssociation | gfc:FC_FeatureType)>
+<!ATTLIST gfc:featureType xlink:href CDATA>
+<!ELEMENT gfc:FC_FeatureAssociation (gfc:typeName, gfc:isAbstract, gfc:featureCatalogue, gfc:roleName+)>
+<!ATTLIST gfc:FC_FeatureAssociation id CDATA>
+<!ELEMENT gfc:roleName (gfc:FC_AssociationRole)>
+<!ELEMENT gfc:FC_AssociationRole (gfc:featureType, gfc:memberName, gfc:cardinality, gfc:type, gfc:isOrdered, gfc:isNavigable, gfc:relation, gfc:rolePlayer)>
+<!ELEMENT gfc:type (gco:FC_RoleType)>
+<!ATTLIST gfc:type codeList CDATA>
+<!ATTLIST gfc:type codeListValue CDATA>
+<!ELEMENT gfc:isOrdered (gco:Boolean)>
+<!ELEMENT gfc:isNavigable (gco:Boolean)>
+<!ELEMENT gfc:relation (gco:FC_FeatureAssociation)>
+<!ELEMENT gfc:rolePlayer (gco:FC_FeatureType)>
+<!ELEMENT gfc:FC_FeatureType (gfc:typeName, gfc:definition, gfc:isAbstract, gfc:aliases?, gfc:inheritsFrom?, gfc:inheritsTo?, gfc:featureCatalogue, gfc:constrainedBy?, gfc:definitionReference, gfc:carrierOfCharacteristics+)>
+<!ATTLIST gfc:FC_FeatureType id CDATA>
+<!ELEMENT gfc:inheritsFrom (gco:FC_InheritanceRelation)>
+<!ELEMENT gfc:inheritsTo (gco:FC_InheritanceRelation)>
+<!ELEMENT gfc:carrierOfCharacteristics (gfc:FC_FeatureAttribute | gfc:FC_FeatureOperation)>
+<!ELEMENT gfc:FC_FeatureAttribute (gco:code?, gfc:featureCatalogue?, gfc:featureType?, gfc:constrainedBy?, gfc:memberName, gfc:listedValue*, gfc:definition, gfc:cardinality, gfc:definitionReference, gfc:valueMeasurementUnit, gfc:valueType, gfc:roleName)>
+<!ELEMENT gfc:FC_FeatureOperation (gfc:featureCatalogue?, gfc:featureType?, gfc:constrainedBy?, gfc:memberName, gfc:definition, gfc:formalDefinition, gfc:cardinality, gfc:definitionReference, gfc:signature)>
+<!ELEMENT gfc:featureCatalogue (gco:FC_FeatureCatalogue)>
+<!ATTLIST gfc:featureCatalogue xlink:href CDATA>
+<!ELEMENT gfc:featureType (gco:FC_FeatureType)>
+<!ATTLIST gfc:featureType xlink:href CDATA>
+<!ELEMENT gfc:constrainedBy (gfc:FC_Constraint)>
+<!ELEMENT gfc:FC_Constraint (gfc:description)>
+<!ELEMENT gfc:listedValue (gfc:FC_ListedValue)>
+<!ELEMENT gfc:FC_ListedValue (gfc:label, gfc:definition, gfc:definitionReference)>
+<!ELEMENT gfc:definitionReference (gfc:FC_DefinitionReference)>
+<!ELEMENT gfc:FC_DefinitionReference (gfc:sourceIdentifier, gfc:definitionSource)>
+<!ELEMENT gfc:sourceIdentifier (gco:CharacterString)>
+<!ELEMENT gfc:definitionSource (gfc:FC_DefinitionSource)>
+<!ELEMENT gfc:FC_DefinitionSource (gfc:source)>
+<!ELEMENT gfc:source (gmd:CI_Citation)>
+<!-- FC_FeatureCatalogue.inheritanceRelation -->
+<!ELEMENT gfc:inheritanceRelation (gco:FC_InheritanceRelation)>
+<!ELEMENT gfc:FC_InheritanceRelation (gmx:name, gfc:description, gfc:uniqueInstance, gfc:subtype, gfc:supertype)>
+<!ELEMENT gfc:inheritanceRelation (gco:FC_InheritanceRelation)>
+<!ELEMENT gfc:description (gco:CharacterString)>
+<!ELEMENT gfc:uniqueInstance (gco:Boolean)>
+<!ELEMENT gfc:subtype (gfc:FC_FeatureType)>
+<!ATTLIST gfc:subtype xlink:href CDATA>
+<!ELEMENT gfc:supertype (gfc:FC_FeatureType)>
+<!ATTLIST gfc:supertype xlink:href CDATA>
+<!-- Used Throughout FC_FeatureCatalogue -->
+<!ELEMENT gfc:aliases (gco:LocalName)>
+<!ELEMENT gfc:cardinality (gco:Multiplicity)>
+<!ATTLIST gfc:cardinality nilReason CDATA>
+<!ELEMENT gfc:definition (gco:CharacterString)>
+<!ELEMENT gfc:formalDefinition (gco:CharacterString)>
+<!ELEMENT gfc:isAbstract (gco:Boolean)>
+<!ELEMENT gfc:label (gco:CharacterString)>
+<!ELEMENT gfc:memberName (gco:LocalName)>
+<!ELEMENT gfc:signature (gco:CharacterString)>
+<!ELEMENT gfc:typeName (gco:LocalName)>
+<!ELEMENT gfc:valueMeasurementUnit (gml:BaseUnit | gco:UnitOfMeasure)>
+<!ELEMENT gfc:valueType (gco:TypeName)>
+
+<!-- MD_Metadata.distributionInfo -->
+<!ELEMENT gmd:distributionInfo (gmd:MD_Distribution)>
+<!ELEMENT gmd:MD_Distribution (gmd:distributionFormat*, gmd:distributor, gmd:transferOptions+)>
+<!ELEMENT gmd:distributionFormat (gmd:MD_Format)>
+<!ELEMENT gmd:distributor (gmd:MD_Distributor)>
+<!ELEMENT gmd:MD_Distributor (gmd:distributorContact, gmd:distributionOrderProcess?, gmd:distributorFormat?, gmd:distributorTransferOptions+)>
+<!ELEMENT gmd:distributorContact (gmd:CI_ResponsibleParty)>
+<!ELEMENT gmd:distributionOrderProcess (gmd:MD_StandardOrderProcess)>
+<!ELEMENT gmd:MD_StandardOrderProcess (gmd:fees, gmd:orderingInstructions, gmd:turnaround)>
+<!ELEMENT gmd:fees (gco:CharacterString)>
+<!ELEMENT gmd:orderingInstructions (gco:CharacterString)>
+<!ELEMENT gmd:turnaround (gco:CharacterString)>
+<!ELEMENT gmd:distributorFormat (gmd:MD_Format)>
+<!ELEMENT gmd:MD_Format (gmd:name, gmd:version, gmd:amendmentNumber?, gmd:specification?, gmd:fileDecompressionTechnique?, gmd:formatDistributor*)>
+<!ELEMENT gmd:amendmentNumber (gco:CharacterString)>
+<!ELEMENT gmd:version (gco:CharacterString)>
+<!ELEMENT gmd:specification (gco:CharacterString)>
+<!ELEMENT gmd:fileDecompressionTechnique (gco:CharacterString)>
+<!ELEMENT gmd:formatDistributor (gmd:MD_Distributor)>
+<!ELEMENT gmd:distributorTransferOptions (gmd:MD_DigitalTransferOptions)>
+<!ELEMENT gmd:MD_DigitalTransferOptions (gmd:transferSize?, gmd:unitsOfDistribution?, gmd:onLine*, gmd:offLine?)>
+<!ELEMENT gmd:transferSize (gco:Real)>
+<!ELEMENT gmd:unitsOfDistribution (gco:CharacterString)>
+<!ELEMENT gmd:offLine (gmd:MD_Medium)>
+<!ELEMENT gmd:MD_Medium (gmd:name, gmd:density*, gmd:densityUnits?, gmd:volumes?, gmd:mediumFormat*, gmd:mediumNote?)>
+<!ELEMENT gmd:density (gco:Real)>
+<!ELEMENT gmd:densityUnits (gco:CharacterString)>
+<!ELEMENT gmd:volumes (gco:Integer)>
+<!ELEMENT gmd:mediumFormat (gco:MD_MediumFormatCode)>
+<!ELEMENT gmd:MD_MediumFormatCode (#PCDATA)>
+<!ATTLIST gmd:MD_MediumFormatCode codeListValue CDATA>
+<!ATTLIST gmd:MD_MediumFormatCode codeList CDATA>
+<!ATTLIST gmd:MD_MediumFormatCode codeSpace CDATA>
+<!ELEMENT gmd:characterSet (gmd:MD_CharacterSetCode)>
+
+<!ELEMENT gmd:mediumNote (gco:CharacterString)>
+<!ELEMENT gmd:transferOptions (gmd:MD_DigitalTransferOptions)>
+<!ELEMENT gmd:MD_DigitalTransferOptions (gmd:onLine)>
+<!ELEMENT gmd:onLine (gmd:CI_OnlineResource)>
+
+<!-- MD_Metadata.dataQualityInfo -->
+<!ELEMENT gmd:dataQualityInfo (gmd:DQ_DataQuality)>
+<!ELEMENT gmd:DQ_DataQuality (gmd:scope, gmd:report*, gmd:lineage)>
+<!ELEMENT gmd:scope (gmd:DQ_Scope)>
+<!ELEMENT gmd:DQ_Scope (gmd:level)>
+<!ELEMENT gmd:level (gmd:MD_ScopeCode)>
+<!ELEMENT gmd:report (gmd:DQ_ConceptualConsistency | gmd:DQ_CompletenessOmission | gmd:DQ_QuantitativeAttributeAccuracy)>
+<!ELEMENT gmd:DQ_ConceptualConsistency (gmd:measureDescription, gmd:result?)>
+<!ELEMENT gmd:DQ_CompletenessOmission (gmd:measureDescription, gmd:result?)>
+<!ELEMENT gmd:DQ_QuantitativeAttributeAccuracy (gmd:measureDescription, gmd:result?)>
+<!ELEMENT gmd:measureDescription (gco:CharacterString)>
+<!ELEMENT gmd:result (gco:CharacterString)>
+<!ATTLIST gmd:result gco:nilReason CDATA>
+<!ELEMENT gmd:lineage (gmd:LI_Lineage)>
+<!ELEMENT gmd:LI_Lineage (gmd:processStep*, gmd:source*, gmd:statement?)>
+<!ELEMENT gmd:processStep (gmd:LI_ProcessStep)>
+<!ELEMENT gmd:LI_ProcessStep (gmd:description, gmd:rationale?, gmd:dateTime?, gmd:processor*, gmd:source*)>
+<!ELEMENT gmd:rationale (gco:CharacterString)>
+<!ELEMENT gmd:processor (gmd:CI_ResponsibleParty)>
+<!ELEMENT gmd:source (gmd:LI_Source)>
+<!ELEMENT gmd:LI_Source (gmd:description, gmd:scaleDenominator?, gmd:sourceCitation?, gmd:sourceExtent?)>
+<!ELEMENT gmd:sourceCitation (gmd:CI_Citation)>
+<!ELEMENT gmd:sourceExtent (gmd:EX_Extent)>
+<!ELEMENT gmd:statement (gco:CharacterString)>
+
+<!-- MD_Metadata.metadataConstraints -->
+<!ELEMENT gmd:metadataConstraints (gmd:MD_SecurityConstraints)>
+
+<!-- MI_Metadata.acquisitionInformation -->
+<!ELEMENT gmi:acquisitionInformation (gmi:instrument)>
+<!ELEMENT gmi:instrument (gmi:MI_Instrument)>
+<!ELEMENT gmi:MI_Instrument (gmi:citation, gmi:identifier, gmi:type)>
+<!ELEMENT gmi:citation (#PCDATA)>
+<!ELEMENT gmi:identifier (#PCDATA)>
+<!ELEMENT gmi:identifier (gco:CharacterString)>
+
+
+<!-- Used Throughout File -->
+
+<!ELEMENT gmd:abstract (gco:CharacterString)>
+
+<!ELEMENT gmd:characterSet (gmd:MD_CharacterSetCode)>
+<!ELEMENT gmd:MD_CharacterSetCode (#PCDATA)>
+<!ATTLIST gmd:MD_CharacterSetCode codeListValue CDATA>
+<!ATTLIST gmd:MD_CharacterSetCode codeList CDATA>
+<!ATTLIST gmd:MD_CharacterSetCode codeSpace CDATA>
+
+<!ELEMENT gmd:code (gco:CharacterString)>
+<!ELEMENT gmd:codeSpace (gco:CharacterString)>
+
+<!ELEMENT gmd:MD_Constraints (gmd:useLimitation+)>
+<!ELEMENT gmd:useLimitation (gco:CharacterString)>
+<!ELEMENT gmd:MD_LegalConstraints (gmd:accessConstraints, gmd:useConstraints?, gmd:otherConstraints)>
+<!ELEMENT gmd:accessConstraints (gmd:MD_RestrictionCode)>
+<!ELEMENT gmd:useConstraints (gmd:MD_RestrictionCode)>
+<!ELEMENT gmd:MD_RestrictionCode (#PCDATA)>
+<!ATTLIST gmd:MD_RestrictionCode codeListValue CDATA>
+<!ATTLIST gmd:MD_RestrictionCode codeList CDATA>
+<!ATTLIST gmd:MD_RestrictionCode codeSpace CDATA>
+<!ELEMENT gmd:otherConstraints (gco:CharacterString)>
+<!ELEMENT gmd:MD_SecurityConstraints (gmd:classification, gmd:classificationSystem?, gmd:handlingDescription?)>
+<!ELEMENT gmd:classification (gmd:MD_ClassificationCode)>
+<!ELEMENT gmd:MD_ClassificationCode (#PCDATA)>
+<!ATTLIST gmd:MD_ClassificationCode codeListValue CDATA>
+<!ATTLIST gmd:MD_ClassificationCode codeList CDATA>
+<!ATTLIST gmd:MD_ClassificationCode codeSpace CDATA>
+<!ELEMENT gmd:classificationSystem (gco:CharacterString)>
+<!ELEMENT gmd:handlingDescription (gco:CharacterString)>
+
+<!ELEMENT gmd:descriptiveKeywords (gmd:MD_Keywords)>
+<!ELEMENT gmd:MD_Keywords (gmd:keyword+, gmd:type, gmd:thesaurusName?)>
+<!ELEMENT gmd:keyword (gco:CharacterString)>
+<!ELEMENT gmd:type (gmd:MD_KeywordTypeCode)>
+<!ELEMENT gmd:MD_KeywordTypeCode (#PCDATA)>
+<!ATTLIST gmd:MD_KeywordTypeCode codeListValue CDATA>
+<!ATTLIST gmd:MD_KeywordTypeCode codeList CDATA>
+<!ATTLIST gmd:MD_KeywordTypeCode codeSpace CDATA>
+<!ELEMENT gmd:thesaurusName (gmd:CI_Citation?)>
+<!ATTLIST gmd:thesaurusName xlink:href CDATA>
+<!ATTLIST gmd:thesaurusName xlink:title CDATA>
+
+<!ELEMENT gmd:citation (gmd:CI_Citation)>
+<!ELEMENT gmd:CI_Citation (gmd:title, gmd:alternateTitle*, gmd:collectiveTitle?, gmd:date+, gmd:edition*, gmd:editionDate?, gmd:identifier*, gmd:citedResponsibleParty*, gmd:otherCitationDetails?, gmd:presentationForm*, gmd:series?, ISBN?, ISSN?)>
+<!ELEMENT gmd:title (gco:CharacterString)>
+<!ELEMENT gmd:alternateTitle (gco:CharacterString)>
+<!ELEMENT gmd:collectiveTitle (gco:CharacterString)>
+<!ELEMENT gmd:edition (gco:CharacterString)>
+<!ELEMENT gmd:editionDate (gco:Date)>
+<!ELEMENT gmd:identifier (gmd:MD_Identifier)>
+<!ELEMENT gmd:citedResponsibleParty (gmd:CI_ResponsibleParty)>
+<!ELEMENT gmd:otherCitationDetails (gco:CharacterString)>
+<!ELEMENT gmd:presentationForm (gmd:CI_PresentationFormCode)>
+<!ELEMENT gmd:CI_PresentationFormCode (#PCDATA)>
+<!ATTLIST gmd:CI_PresentationFormCode codeListValue CDATA>
+<!ATTLIST gmd:CI_PresentationFormCode codeList CDATA>
+<!ATTLIST gmd:CI_PresentationFormCode codeSpace CDATA>
+<!ELEMENT gmd:series (gmd:CI_Series)>
+<!ELEMENT gmd:CI_Series (gmd:name)>
+
+<!ELEMENT gmd:contact (gmd:CI_ResponsibleParty)>
+<!ELEMENT gmd:CI_ResponsibleParty (gmd:individualName?, gmd:organisationName, gmd:positionName?, gmd:contactInfo?, gmd:role)>
+<!ELEMENT gmd:individualName (gco:CharacterString)>
+<!ELEMENT gmd:organisationName (gco:CharacterString)>
+<!ELEMENT gmd:positionName (gco:CharacterString)>
+<!ELEMENT gmd:contactInfo (gmd:CI_Contact)>
+<!ELEMENT gmd:CI_Contact (address?, contactInstructions?, hoursOfService?, onlineResource?, phone?)>
+<!ELEMENT gmd:address (gmd:CI_Address)>
+<!ELEMENT gmd:CI_Address (gmd:deliveryPoint?, gmd:city?, gmd:administrativeArea?, gmd:postalCode?, gmd:country?, gmd:electronicMailAddress)>
+<!ELEMENT gmd:deliveryPoint (gco:CharacterString)>
+<!ELEMENT gmd:city (gco:CharacterString)>
+<!ELEMENT gmd:administrativeArea (gco:CharacterString)>
+<!ELEMENT gmd:postalCode (gco:CharacterString)>
+<!ELEMENT gmd:country (gmd:Country|gco:CharacterString)>
+<!ELEMENT gmd:Country (#PCDATA)>
+<!ATTLIST gmd:Country codeListValue CDATA>
+<!ATTLIST gmd:Country codeList CDATA>
+<!ATTLIST gmd:Country codeSpace CDATA>
+<!ELEMENT gmd:electronicMailAddress (gco:CharacterString)>
+<!ELEMENT gmd:contactInstructions (gco:CharacterString)>
+<!ELEMENT gmd:hoursOfService (gco:CharacterString)>
+<!ELEMENT gmd:onlineResource (gmd:CI_OnlineResource)>
+<!ELEMENT gmd:CI_OnlineResource (gmd:linkage, gmd:protocol?, gmd:applicationProfile?, gmd:name?, gmd:description?, gmd:function?)>
+<!ELEMENT gmd:linkage (gmd:URL)>
+<!ATTLIST gmd:linkage gco:nilReason CDATA>
+<!ELEMENT gmd:protocol (gco:CharacterString)>
+<!ELEMENT gmd:applicationProfile (gco:CharacterString)>
+<!ELEMENT gmd:function (gco:CI_OnLineFunctionCode)>
+<!ELEMENT gmd:CI_OnLineFunctionCode (#PCDATA)>
+<!ATTLIST gmd:CI_OnLineFunctionCode codeListValue CDATA>
+<!ATTLIST gmd:CI_OnLineFunctionCode codeList CDATA>
+<!ATTLIST gmd:CI_OnLineFunctionCode codeSpace CDATA>
+<!ELEMENT gmd:phone (gmd:CI_Telephone)>
+<!ELEMENT gmd:CI_Telephone (gmd:voice, gmd:facsimile?)>
+<!ELEMENT gmd:voice (gco:CharacterString)>
+<!ELEMENT gmd:facsimile (gco:CharacterString)>
+
+<!ELEMENT gmd:date (gmd:CI_Date)>
+<!ATTLIST gmd:date gco:nilReason CDATA>
+<!ELEMENT gmd:CI_Date (gmd:date, gmd:dateType)>
+<!ELEMENT gmd:date (gco:Date)>
+<!ELEMENT gmd:dateType (gmd:CI_DateTypeCode)>
+<!ELEMENT gmd:CI_DateTypeCode (#PCDATA)>
+<!ATTLIST gmd:CI_DateTypeCode codeListValue CDATA>
+<!ATTLIST gmd:CI_DateTypeCode codeList CDATA>
+<!ATTLIST gmd:CI_DateTypeCode codeSpace CDATA>
+<!ELEMENT gmd:dateOfNextUpdate (gco:Date)>
+<!ELEMENT gmd:dateStamp (gco:Date | DateTime)>
+<!ELEMENT gmd:dateTime (gco:DateTime)>
+<!ELEMENT gmd:denominator (gco:Integer)>
+
+<!ELEMENT gmd:distance (gco:Distance)>
+<!ELEMENT gmd:equivalentScale (gmd:MD_RepresentativeFraction)>
+<!ELEMENT gmd:scaleDenominator (gmd:MD_RepresentativeFraction)>
+<!ELEMENT gmd:MD_RepresentativeFraction (gmd:denominator)>
+
+<!ELEMENT gmd:EX_Extent (gmd:description?, gmd:temporalElement?, gmd:geographicElement*)>
+<!ELEMENT gmd:geographicElement (gmd:EX_BoundingPolygon | gmd:EX_GeographicBoundingBox)>
+<!ELEMENT gmd:EX_BoundingPolygon (gmd:extentTypeCode?, gmd:polygon+)>
+<!ELEMENT gmd:extentTypeCode (gco:Boolean)>
+<!ELEMENT gmd:polygon (gco:Decimal)>
+<!ELEMENT gmd:EX_GeographicBoundingBox (gmd:extentTypeCode?, gmd:westBoundLongitude, gmd:eastBoundLongitude, gmd:southBoundLatitude, gmd:northBoundLatitude)>
+<!ELEMENT gmd:westBoundLongitude (gco:Decimal)>
+<!ELEMENT gmd:eastBoundLongitude (gco:Decimal)>
+<!ELEMENT gmd:southBoundLatitude (gco:Decimal)>
+<!ELEMENT gmd:gmd:northBoundLatitude (gco:Decimal)>
+<!ELEMENT gmd:temporalElement (gmd:EX_TemporalExtent)>
+<!ELEMENT gmd:EX_TemporalExtent (gmd:extent)>
+<!ELEMENT gmd:extent (gml:TimeInstant | gml:TimePeriod)>
+
+<!ELEMENT gmd:language (gmd:LanguageCode|gco:CharacterString)>
+<!ELEMENT gmd:LanguageCode (#PCDATA)>
+<!ATTLIST gmd:LanguageCode codeListValue CDATA>
+<!ATTLIST gmd:LanguageCode codeList CDATA>
+<!ATTLIST gmd:LanguageCode codeSpace CDATA>
+
+<!ELEMENT gmd:maintenanceAndUpdateFrequency (gmd:MD_MaintenanceFrequencyCode)>
+<!ELEMENT gmd:MD_MaintenanceFrequencyCode (#PCDATA)>
+<!ATTLIST gmd:MD_MaintenanceFrequencyCode codeListValue CDATA>
+<!ATTLIST gmd:MD_MaintenanceFrequencyCode codeList CDATA>
+<!ATTLIST gmd:MD_MaintenanceFrequencyCode codeSpace CDATA>
+
+<!ELEMENT gmd:role (gmd:CI_RoleCode)>
+<!ELEMENT gmd:CI_RoleCode (#PCDATA)>
+<!ATTLIST gmd:CI_RoleCode codeListValue CDATA>
+<!ATTLIST gmd:CI_RoleCode codeList CDATA>
+<!ATTLIST gmd:CI_RoleCode codeSpace CDATA>
+
+<!ELEMENT gmd:status (gmd:MD_ProgressCode)>
+<!ELEMENT gmd:MD_ProgressCode (#PCDATA)>
+<!ATTLIST gmd:MD_ProgressCode codeListValue CDATA>
+<!ATTLIST gmd:MD_ProgressCode codeList CDATA>
+<!ATTLIST gmd:MD_ProgressCode codeSpace CDATA>
+
+<!ELEMENT gmd:updateScope (gmd:MD_ScopeCode)>
+<!ELEMENT gmd:MD_ScopeCode (#PCDATA)>
+<!ATTLIST gmd:MD_ScopeCode codeListValue CDATA>
+<!ATTLIST gmd:MD_ScopeCode codeList CDATA>
+<!ATTLIST gmd:MD_ScopeCode codeSpace CDATA>
+<!ELEMENT gmd:updateScopeDescription (gmd:MD_ScopeDescription)>
+<!ELEMENT gmd:MD_ScopeDescription (gmd:dataset)>
+<!ELEMENT gmd:dataset (gco:CharacterString)>
+
+<!ELEMENT gmd:URL (#PCDATA)>
+
+<!ELEMENT gmd:description (gco:CharacterString)>
+<!ELEMENT gmd:name (gco:CharacterString | gmd:MD_MediumNameCode)>
+<!ELEMENT gmd:MD_MediumNameCode (#PCDATA)>
+<!ATTLIST gmd:MD_MediumNameCode codeListValue CDATA>
+<!ATTLIST gmd:MD_MediumNameCode codeList CDATA>
+<!ATTLIST gmd:MD_MediumNameCode codeSpace CDATA>
+
+<!ELEMENT gml:BaseUnit (gml:identifier, gml:unitsSystem)>
+<!ATTLIST gml:BaseUnit gml:id CDATA>
+<!ELEMENT gml:identifier (gco:CharacterString)>
+<!ATTLIST gml:identifier codeSpace CDATA>
+<!ELEMENT gml:unitsSystem (gco:CharacterString)>
+<!ATTLIST gml:unitsSystem nilReason CDATA>
+<!ELEMENT gml:TimePeriod (gml:begin, gml:end)>
+<!ATTLIST gml:TimePeriod gml:id CDATA>
+<!ELEMENT gml:begin(gml:TimeInstant)>
+<!ELEMENT gml:end (gml:TimeInstant)>
+<!ELEMENT gml:TimeInstant (gml:timePosition)>
+<!ATTLIST gml:TimeInstant gml:id CDATA>
+<!ELEMENT gml:timePosition (#PCDATA)>
+
+<!ELEMENT gmx:name (gco:CharacterString)>
+<!ELEMENT gmx:scope (gco:CharacterString)>
+<!ELEMENT gmx:fieldOfApplication (gco:CharacterString)>
+<!ELEMENT gmx:versionNumber (gco:CharacterString)>
+<!ELEMENT gmx:versionDate (gco:CharacterString)>
+<!ELEMENT gmx:language (gco:CharacterString)>
+<!ELEMENT gmx:characterSet (gmd:MD_CharacterSetCode)>
+
+<!ELEMENT gco:attributeType (gco:TypeName)>
+<!ELEMENT gco:LocalName (#PCDATA)>
+<!ATTLIST gco:LocalName codeListValue CDATA>
+<!ATTLIST gco:LocalName codeList CDATA>
+<!ATTLIST gco:LocalName codeSpace CDATA>
+<!ELEMENT gco:MemberName (gco:aName, gco:attributeType)>
+<!ELEMENT gco:TypeName (gco:aName)>
+<!ELEMENT gco:aName (gco:CharacterString)>
+
+<!ELEMENT gco:Distance (#PCDATA)>
+<!ATTLIST gco:Distance uom CDATA>
+<!ELEMENT gco:Multiplicity (gco:range)>
+<!ELEMENT gco:MultiplicityRange (gco:lower, gco:upper)>
+<!ELEMENT gco:lower (gco:Integer)>
+<!ELEMENT gco:upper (gco:UnlimitedInteger)>
+
+
+<!ELEMENT gco:Binary (#PCDATA)>
+<!ELEMENT gco:Boolean (#PCDATA)>
+<!ELEMENT gco:CharacterString (#PCDATA)>
+<!ELEMENT gco:Date (#PCDATA)>
+<!ELEMENT gco:DateTime (#PCDATA)>
+<!ELEMENT gco:Decimal (#PCDATA)>
+<!ELEMENT gco:Integer (#PCDATA)>
+<!ELEMENT gco:UnlimitedInteger (#PCDATA)>
+<!ELEMENT gco:Record (#PCDATA)>
+<!ELEMENT gco:RecordType (#PCDATA)>
+
+<!ELEMENT gco:Real (#PCDATA)>
+
+<!ELEMENT gts:TM_PeriodDuration (#PCDATA)>
+
+<!-- End of ISO 19139 Metadata DTD -->
