@@ -12,6 +12,9 @@ from parserutils.elements import get_element, get_elements, get_remote_element
 from parserutils.elements import get_element_attributes, get_element_name, get_element_text, get_elements_text
 from parserutils.elements import XPATH_DELIM
 
+from gis_metadata.metadata_parser import MetadataParser
+from gis_metadata.exceptions import ParserError
+
 from gis_metadata.utils import DATE_TYPE, DATE_TYPE_SINGLE, DATE_TYPE_MULTIPLE
 from gis_metadata.utils import DATE_TYPE_RANGE, DATE_TYPE_RANGE_BEGIN, DATE_TYPE_RANGE_END
 from gis_metadata.utils import ATTRIBUTES
@@ -23,14 +26,13 @@ from gis_metadata.utils import KEYWORDS_PLACE
 from gis_metadata.utils import KEYWORDS_THEME
 from gis_metadata.utils import LARGER_WORKS
 from gis_metadata.utils import PROCESS_STEPS
-from gis_metadata.utils import ParserError, ParserProperty
+from gis_metadata.utils import ParserProperty
 
 from gis_metadata.utils import format_xpath, format_xpaths
 from gis_metadata.utils import get_complex_definitions, get_xpath_branch
 from gis_metadata.utils import parse_complex, parse_complex_list, parse_dates
 from gis_metadata.utils import update_complex, update_complex_list, update_property
 
-from gis_metadata.metadata_parser import MetadataParser
 
 xrange = getattr(six.moves, 'xrange')
 
@@ -154,11 +156,7 @@ _iso_tag_primitives = {
 
 
 class IsoParser(MetadataParser):
-    """
-    A class to parse metadata files conforming to the ISO-19115 standard
-    To add more properties for parsing and updating, see the comment
-    in the MetadataParser class header.
-    """
+    """ A class to parse metadata files conforming to the ISO-19115 standard """
 
     def _init_data_map(self):
         """ OVERRIDDEN: Initialize required ISO-19115 data map with XPATHS and specialized functions """
@@ -355,8 +353,8 @@ class IsoParser(MetadataParser):
             for parsed_detail in parsed_details:
                 attrib_detail = dict(parsed_detail)
 
-                attrib_detail['label'] = ''
-                attrib_detail['definition'] = ''
+                attrib_detail['label'] = u''
+                attrib_detail['definition'] = u''
 
                 parsed_defs = wrap_value(parsed_detail['definition'])
                 parsed_lbls = wrap_value(parsed_detail['label'])
@@ -370,8 +368,8 @@ class IsoParser(MetadataParser):
                 else:
                     for idx in xrange(0, limit):
 
-                        attrib_detail['label'] = parsed_lbls[idx] if idx < len_lbls else ''
-                        attrib_detail['definition'] = parsed_defs[idx] if idx < len_defs else ''
+                        attrib_detail['label'] = parsed_lbls[idx] if idx < len_lbls else u''
+                        attrib_detail['definition'] = parsed_defs[idx] if idx < len_defs else u''
 
                         attrib_details.append(dict(attrib_detail))
 
@@ -422,7 +420,7 @@ class IsoParser(MetadataParser):
             if idx < dist_format_len:
                 digital_form = digital_forms[idx]
             else:
-                digital_form = {}.fromkeys(_iso_definitions[prop], '')
+                digital_form = {}.fromkeys(_iso_definitions[prop], u'')
 
             digital_form['content'] = digital_form_content
 
@@ -448,7 +446,7 @@ class IsoParser(MetadataParser):
         else:
             content_value = self._parse_property('_digital_form_content')
 
-        return (wrap_value(content_value) or [''])[0]
+        return (wrap_value(content_value) or [u''])[0]
 
     def _parse_keywords(self, prop):
         """ Parse type-specific keywords from the metadata: Theme or Place """
@@ -577,7 +575,7 @@ class IsoParser(MetadataParser):
         digital_form_content = original_form_content
 
         for digital_form in digital_forms:
-            next_form_content = self._parse_form_content(digital_form.get('content') or '')
+            next_form_content = self._parse_form_content(digital_form.get('content') or u'')
             if next_form_content != original_form_content:
                 digital_form_content = next_form_content
 
@@ -702,7 +700,7 @@ class IsoParser(MetadataParser):
         for prop, xpath in iteritems(self._data_map):
             if not prop.startswith('_'):
                 xroot = self._trim_xpath(xpath)
-                values = getattr(self, prop, '')
+                values = getattr(self, prop, u'')
                 update_property(tree_to_update, xroot, xpath, prop, values)
 
         return tree_to_update

@@ -4,6 +4,9 @@ from six import iteritems
 
 from parserutils.elements import get_element_name
 
+from gis_metadata.metadata_parser import MetadataParser
+from gis_metadata.exceptions import ParserError
+
 from gis_metadata.utils import remove_element
 from gis_metadata.utils import DATE_TYPE, DATE_TYPE_SINGLE, DATE_TYPE_MULTIPLE
 from gis_metadata.utils import DATE_TYPE_RANGE, DATE_TYPE_RANGE_BEGIN, DATE_TYPE_RANGE_END
@@ -16,14 +19,12 @@ from gis_metadata.utils import KEYWORDS_PLACE
 from gis_metadata.utils import KEYWORDS_THEME
 from gis_metadata.utils import LARGER_WORKS
 from gis_metadata.utils import PROCESS_STEPS
-from gis_metadata.utils import ParserError, ParserProperty
+from gis_metadata.utils import ParserProperty
 
 from gis_metadata.utils import format_xpath, format_xpaths
 from gis_metadata.utils import get_complex_definitions, get_xpath_root
 from gis_metadata.utils import parse_complex, parse_complex_list, parse_dates
 from gis_metadata.utils import update_complex, update_complex_list
-
-from gis_metadata.metadata_parser import MetadataParser
 
 
 FGDC_ROOT = 'metadata'
@@ -71,11 +72,7 @@ _fgdc_tag_formats = {
 
 
 class FgdcParser(MetadataParser):
-    """
-    A class to parse metadata files conforming to the FGDC standard
-    To add more properties for parsing and updating, see the comment
-    in the MetadataParser class header.
-    """
+    """ A class to parse metadata files conforming to the FGDC standard """
 
     DEFAULT_CONTACT_TAG = 'cntperp'
 

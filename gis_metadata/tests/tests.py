@@ -92,7 +92,7 @@ class MetadataParserTestCase(unittest.TestCase):
             for key, val in iteritems(reparsed):
                 if key not in exclude:
                     self.assert_equal_for(
-                        parser_type.__name__, '{0}.{1}'.format(sub_prop, key), val, target.get(key, '')
+                        parser_type.__name__, '{0}.{1}'.format(sub_prop, key), val, target.get(key, u'')
                     )
 
     def assert_reparsed_simple_for(self, parser, props, value, target, exclude=()):
@@ -257,7 +257,7 @@ class MetadataParserTemplateTests(MetadataParserTestCase):
         )
 
         fgdc_template = FgdcParser()
-        fgdc_template.dist_address_type = ''  # Address type not supported for ISO
+        fgdc_template.dist_address_type = u''  # Address type not supported for ISO
 
         for iso_root in ISO_ROOTS:
             self.assert_parser_conversion(
@@ -271,7 +271,7 @@ class MetadataParserTemplateTests(MetadataParserTestCase):
         )
 
         fgdc_template = FgdcParser()
-        fgdc_template.dist_address_type = ''  # Address type not supported for ISO
+        fgdc_template.dist_address_type = u''  # Address type not supported for ISO
 
         for iso_root in ISO_ROOTS:
             self.assert_parser_conversion(
@@ -285,7 +285,7 @@ class MetadataParserTemplateTests(MetadataParserTestCase):
         )
 
         fgdc_template = FgdcParser()
-        fgdc_template.dist_address_type = ''  # Address type not supported for ISO
+        fgdc_template.dist_address_type = u''  # Address type not supported for ISO
 
         self.assert_parser_conversion(
             fgdc_template, get_metadata_parser(IsoParser), 'type-based template'
@@ -416,21 +416,21 @@ class MetadataParserTests(MetadataParserTestCase):
         fgdc_parser = FgdcParser(self.fgdc_metadata)
         iso_parser = IsoParser(self.iso_metadata)
 
-        fgdc_parser.dist_address_type = ''  # Address type not supported for ISO
+        fgdc_parser.dist_address_type = u''  # Address type not supported for ISO
 
         self.assert_parser_conversion(
-            iso_parser, get_metadata_parser(element_to_dict(fgdc_parser._xml_tree, True)), 'dict-based'
+            iso_parser, get_metadata_parser(element_to_dict(fgdc_parser._xml_tree, recurse=True)), 'dict-based'
         )
 
         self.assert_parser_conversion(
-            fgdc_parser, get_metadata_parser(element_to_dict(iso_parser._xml_tree, True)), 'dict-based'
+            fgdc_parser, get_metadata_parser(element_to_dict(iso_parser._xml_tree, recurse=True)), 'dict-based'
         )
 
     def test_conversion_from_str(self):
         fgdc_parser = FgdcParser(self.fgdc_metadata)
         iso_parser = IsoParser(self.iso_metadata)
 
-        fgdc_parser.dist_address_type = ''  # Address type not supported for ISO
+        fgdc_parser.dist_address_type = u''  # Address type not supported for ISO
 
         self.assert_parser_conversion(
             iso_parser, get_metadata_parser(fgdc_parser.serialize()), 'str-based'
@@ -448,7 +448,7 @@ class MetadataParserTests(MetadataParserTestCase):
 
             # Test reparsed empty complex lists
             for prop in complex_lists:
-                for empty in (None, [], [{}], [{}.fromkeys(complex_defs[prop], '')]):
+                for empty in (None, [], [{}], [{}.fromkeys(complex_defs[prop], u'')]):
                     self.assert_reparsed_complex_for(parser, prop, empty, [])
 
             # Test reparsed valid complex lists (strings and lists for each property in each struct)
@@ -474,7 +474,7 @@ class MetadataParserTests(MetadataParserTestCase):
 
             # Test reparsed empty complex structures
             for prop in complex_structs:
-                for empty in (None, {}, {}.fromkeys(complex_defs[prop], '')):
+                for empty in (None, {}, {}.fromkeys(complex_defs[prop], u'')):
                     self.assert_reparsed_complex_for(parser, prop, empty, {})
 
             # Test reparsed valid complex structures
@@ -493,7 +493,7 @@ class MetadataParserTests(MetadataParserTestCase):
         for parser in (FgdcParser(self.fgdc_metadata), IsoParser(self.iso_metadata)):
 
             # Test reparsed empty dates
-            for empty in (None, {}, {DATE_TYPE: '', DATE_VALUES: []}):
+            for empty in (None, {}, {DATE_TYPE: u'', DATE_VALUES: []}):
                 self.assert_reparsed_complex_for(parser, DATES, empty, {})
 
             # Test reparsed valid dates
@@ -508,7 +508,7 @@ class MetadataParserTests(MetadataParserTestCase):
         for parser in (FgdcParser(self.fgdc_metadata), IsoParser(self.iso_metadata)):
 
             # Test reparsed empty keywords
-            for keywords in ('', []):
+            for keywords in ('', u'', []):
                 self.assert_reparsed_complex_for(parser, KEYWORDS_PLACE, keywords, [])
                 self.assert_reparsed_complex_for(parser, KEYWORDS_THEME, keywords, [])
 
@@ -523,7 +523,7 @@ class MetadataParserTests(MetadataParserTestCase):
         for parser in (FgdcParser(self.fgdc_metadata), IsoParser(self.iso_metadata)):
 
             # Test reparsed empty process steps
-            for empty in (None, [], [{}], [{}.fromkeys(proc_step_def, '')]):
+            for empty in (None, [], [{}], [{}.fromkeys(proc_step_def, u'')]):
                 self.assert_reparsed_complex_for(parser, PROCESS_STEPS, empty, [])
 
             complex_list = []
@@ -554,7 +554,7 @@ class MetadataParserTests(MetadataParserTestCase):
         fgdc_parser = FgdcParser(self.fgdc_metadata)
         iso_parser = IsoParser(self.iso_metadata)
 
-        simple_empty_vals = ('', [])
+        simple_empty_vals = ('', u'', [])
         simple_valid_vals = ('value', ['item', 'list'])
 
         for parser in (fgdc_parser, iso_parser):
@@ -570,7 +570,7 @@ class MetadataParserTests(MetadataParserTestCase):
     def test_validate_complex_lists(self):
         complex_props = (ATTRIBUTES, CONTACTS, DIGITAL_FORMS, PROCESS_STEPS)
 
-        invalid_values = ('', {'x': 'xxx'}, [{'x': 'xxx'}], set(), tuple())
+        invalid_values = ('', u'', {'x': 'xxx'}, [{'x': 'xxx'}], set(), tuple())
 
         for parser in (FgdcParser().validate(), IsoParser().validate()):
             for prop in complex_props:
@@ -580,7 +580,7 @@ class MetadataParserTests(MetadataParserTestCase):
     def test_validate_complex_structs(self):
         complex_props = (BOUNDING_BOX, DATES, LARGER_WORKS)
 
-        invalid_values = ('', {'x': 'xxx'}, list(), set(), tuple())
+        invalid_values = ('', u'', {'x': 'xxx'}, list(), set(), tuple())
 
         for parser in (FgdcParser().validate(), IsoParser().validate()):
             for prop in complex_props:
