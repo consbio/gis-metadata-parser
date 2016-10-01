@@ -1,0 +1,883 @@
+﻿<!-- ArcGIS Metadata DTD Approximation for the gis-metadata-parser app  -->
+<!-- This is a derived document. I plan to add to it as I discover more -->
+<!-- about how the ArcGIS standard is proven to work. This may differ   -->
+<!-- from available documentation, and depending on version, so this is -->
+<!-- bound to change. The gis-metadata-parser app is written to parse   -->
+<!-- ArcGIS metadata as defined here, hence this of document.           -->
+
+<!-- Tags:                                                              -->
+<!--     Tags are a maximum of 8-characters long, to coincide with the  -->
+<!--     Reference Concrete Syntax.  In some systems, this will obviate -->
+<!--     the need for an explicit SGML declaration.                     -->
+
+<!-- Entity sets:                                                       -->
+<!--     Scalar values (meaning the values of elements that are not     -->
+<!--     compound) are here declared #PCDATA to allow parsers to        -->
+<!--     recognize and support entities representing special characters -->
+<!--     such as the degree symbol, less, and greater.                  -->
+
+<!-- Element ordering:                                                  -->
+<!--     Generally the order of elements is now significant. XML makes  -->
+<!--     it difficult to write a DTD that allows elements to be in any  -->
+<!--     order.                                                         -->
+
+<!-- Authors:                                                           -->
+<!--     Daniel Harvey                                                  -->
+
+<!-- Revisions:                                                         -->
+<!--                                                                    -->
+
+<!--======================================================================-->
+
+
+<!-- Root Level Elements: metadata or Metadata -->
+<!ELEMENT metadata (mdFileID?, mdLang?, mdChar?, mdParentID?, mdHrLv*, mdHrLvName*, mdContact, mdDateSt, mdStanName?, mdStanVer?, dataSetURI?, dataSetFn?, dataIdInfo+, contInfo*, spatRepInfo*, refSysInfo*, distInfo?, dqInfo*, mdConst*, mdMaint?, appSchInfo*, mdExtInfo*, porCatInfo*, toolbox, toolinfo, Binary, Esri, eainfo, spdoinfo)>
+<!ELEMENT Metadata (mdFileID?, mdLang?, mdChar?, mdParentID?, mdHrLv*, mdHrLvName*, mdContact, mdDateSt, mdStanName?, mdStanVer?, dataSetURI?, dataSetFn?, dataIdInfo+, contInfo*, spatRepInfo*, refSysInfo*, distInfo?, dqInfo*, mdConst*, mdMaint?, appSchInfo*, mdExtInfo*, porCatInfo*, toolbox, toolinfo, Binary, Esri, eainfo, spdoinfo)>
+
+<!-- Metadata.mdFileID: User-defined metadata file identifier -->
+<!ELEMENT mdFileID (#PCDATA)>
+
+<!-- Metadata.mdLang: Primary human language used in this document -->
+<!ELEMENT mdLang (countryCode | languageCode)>
+
+<!-- Metadata.mdChar: Metadata encoding -->
+<!ELEMENT mdChar (CharSetCd)>
+
+<!-- Metadata.mdParentID: Parent resource's metadata file identifier -->
+<!ELEMENT mdParentID (#PCDATA)>
+
+<!-- Metadata.mdHrLv: Hierarchy level of the resource described -->
+<!ELEMENT hierarchyLevel (ScopeCd)>
+
+<!-- Metadata.mdHrLvName: Hierarchy level name associated with the scope -->
+<!ELEMENT hierarchyLevelName ((Text)>
+
+<!-- Metadata.mdContact: Metadata contact (responsible party elements) -->
+<!ELEMENT mdContact (rpIndName?, rpOrgName?, rpPosName?, rpCntInfo?, role)>
+
+<!-- Metadata.mdDateSt: Metadata date -->
+<!ELEMENT mdDateSt (Date)>
+
+<!-- Metadata.mdStanName: Metadata standard name -->
+<!ELEMENT metadataStandardName (Text)>
+
+<!-- Metadata.mdStanVer: Metadata standard version -->
+<!ELEMENT metadataStandardVersion (#PCDATA)>
+
+<!-- Metadata.dataSetURI: Resource URI -->
+<!ELEMENT dataSetURI (URL)>
+
+<!-- Metadata.dataSetFn: Resource function -->
+<!ELEMENT dataSetFn (OnFunctCd)>
+
+<!-- Metadata.dataIdInfo: Resource identification information (data identification elements) -->
+<!ELEMENT dataIdInfo (aggrInfo?, dataChar?, dataExt+, dataLang+, dataScale*, spatRpType, dsFormat, envirDesc?, idAbs, idCitation, idCredit+, idPoC, idPurp, idSpecUse, idStatus, graphOver?, resConst*, resMaint+, suppInfo?, discKeys*, otherKeys*, placeKeys+, productKeys*, searchKeys*, stratKeys*, subTopicCatKeys*, tempKeys*, themeKeys+, tpCat, svAccProps?, svCouplRes, svCoupleType, svOper, svOperOn, svType, svTypeVer?)>
+
+<!-- Metadata.contInfo: Remotely sensed image content -->
+<!ELEMENT contInfo (ImgDesc)>
+<!-- Metadata.contInfo.ImgDesc: Image content, including basic raster content (coverage description elements) -->
+<!ELEMENT ImgDesc (attDesc, contentTyp, covDim, illElevAng, illAziAng, imagCond, imagQuCode, cloudCovPer, prcTyppCde, cmpGenQuan, trianInd, radCalDatAv, camCalInAv, filmDistInAv, lensDistInAv)>
+<!ELEMENT illElevAng (#PCDATA)>
+<!ELEMENT illAziAng (#PCDATA)>
+<!ELEMENT imagCond (ImgCondCd)>
+<!ELEMENT ImgCondCd (Code)>
+<!ATTLIST ImgCondCd value CDATA>
+<!ELEMENT imagQuCode (identAuth, identCode)>
+<!ELEMENT cloudCovPer (#PCDATA)>
+<!ELEMENT prcTyppCde (identAuth, identCode)>
+<!ELEMENT cmpGenQuan (#PCDATA)>
+<!ELEMENT trianInd (#PCDATA)>
+<!ELEMENT radCalDatAv (#PCDATA)>
+<!ELEMENT camCalInAv (#PCDATA)>
+<!ELEMENT filmDistInAv (#PCDATA)>
+<!ELEMENT lensDistInAv (#PCDATA)>
+
+<!-- Metadata.spatRepInfo: Raster resources general information -->
+<!ELEMENT spatRepInfo (Georef | Georect | GridSpatRep)>
+<!-- Metadata.spatRepInfo.Georef: Irregularly spaced cells that can be geolocated along with basic raster properties (grid elements) -->
+<!ELEMENT Georef (numDims, axisDimension*, dimSize, dimResol, cellGeo, tranParaAv, ctrlPtAv, orieParaAv, orieParaDs?, georefPars, paraCit*)>
+<!ELEMENT ctrlPtAv (Boolean)>
+<!ELEMENT orieParaAv (Boolean)>
+<!ELEMENT orieParaDs (#PCDATA)>
+<!ELEMENT georefPars (#PCDATA)>
+<!-- Metadata.spatRepInfo.Georef.paraCit: Georeferencing parameters citation (citation elements) -->
+<!ELEMENT paraCit (resTitle, resAltTitle*, collTitle?, date+, resEd*, resEdDate?, citId*, citRespParty*, presForm*, datasetSeries?, otherCitDet?, isbn?, issn?, citOnlineRes)>
+<!-- Metadata.spatRepInfo.Georect: Regularly spaced cells that can be geolocated along with basic raster properties (grid elements) -->
+<!ELEMENT Georect (numDims, axisDimension*, dimSize, dimResol, cellGeo, tranParaAv, chkPtAv, chkPtDesc?, cornerPts*, centerPt?, ptInPixel, transDimDesc?, transDimMap*)>
+<!ELEMENT chkPtAv (Boolean)>
+<!ELEMENT chkPtDesc (Text)>
+<!-- Metadata.spatRepInfo.Georect.cornerPts: Corner point coordinates, along with GML elements -->
+<!ELEMENT cornerPts (pos, gmlDesc, gmlDescRef, gmlIdent, gmlName)>
+<!ATTLIST cornerPts gmlID CDATA>
+<!-- Metadata.spatRepInfo.Georect.centerPt: Center point coordinates, along with GML elements -->
+<!ELEMENT centerPt (pos, gmlDesc, gmlDescRef, gmlIdent, gmlName)>
+<!ATTLIST centerPt gmlID CDATA>
+<!ELEMENT ptInPixel (PixOrientCd)>
+<!ELEMENT PixOrientCd (Code)>
+<!ATTLIST PixOrientCd value CDATA>
+<!ELEMENT transDimDesc (#PCDATA)>
+<!ELEMENT transDimMap (#PCDATA)>
+<!-- Metadata.spatRepInfo.GridSpatRep: Basic raster properties (grid elements) -->
+<!ELEMENT GridSpatRep (numDims, axisDimension*, dimSize, dimResol, cellGeo, tranParaAv)>
+
+<!-- Metadata.refSysInfo: Resource reference system (reference system elements) -->
+<!ELEMENT refSysInfo (RefSystem)>
+
+<!-- Metadata.distInfo: Distribution information -->
+<!ELEMENT distInfo (distFormat*, distributor*, distTranOps*)>
+<!-- Metadata.distInfo.distFormat: Resource distribution formats (format elements) -->
+<!ELEMENT distFormat (formatName, formatInfo, formatVer, formatAmdNum?, formatSpec?, fileDecmTech?, formatDist*)>
+<!-- Metadata.distInfo.distributor: Resource distributors (distributor elements) -->
+<!ELEMENT distributor (distorCont, distorOrdPrc*, distorFormat*, distorTran*)>
+<!-- Metadata.distInfo.distTranOps: Resource transfer options (resource transfer elements) -->
+<!ELEMENT distTranOps (transSize?, unitsODist?, onLineSrc*, offLineMed?)>
+
+<!-- Metadata.dqInfo: Data quality -->
+<!ELEMENT dqInfo (dqScope, report*, dataLineage?)>
+<!ELEMENT dqScope (scpExt, scpLvl, scpLvlDesc)>
+<!-- Metadata.dqInfo.dqScope.scpExt: Scope extent (extent elements) -->
+<!ELEMENT scpExt (exDesc?, geoEle*, tempEle*, vertEle*)>
+<!ELEMENT scpLvl (ScopeCd)>
+<!-- Metadata.dqInfo.dqScope.scpLvlDesc: Scope level description (scope description elements) -->
+<!ELEMENT scpLvlDesc (attribIntSet+, attribSet+, datasetSet, featIntSet+, featSet+, other)>
+<!ELEMENT report (measName*, measId?, measDesc?, evalMethType?, evalMethDesc?, evalProc?, measDateTm*, measResult+, dataLineage?)>
+<!ATTLIST report type CDATA>
+<!ATTLIST report dimension CDATA>
+<!ELEMENT measName (Text)>
+<!ELEMENT measId (identAuth, identCode)>
+<!ELEMENT measDesc (Text)>
+<!ELEMENT evalMethType (EvalMethTypeCd)>
+<!ELEMENT EvalMethTypeCd (Code)>
+<!ATTLIST EvalMethTypeCd value CDATA>
+<!ELEMENT evalMethDesc (Text)>
+<!-- Metadata.dqInfo.report.evalProc: Evaluation procedure citation (citation elements) -->
+<!ELEMENT evalProc (resTitle, resAltTitle*, date+, resEd*, resEdDate?, citId*, citRespParty*, presForm*, datasetSeries?, otherCitDet?, collTitle?, isbn?, issn?, citOnlineRes)>
+<!ELEMENT measDateTm (DateTime)>
+<!ELEMENT measResult (ConResult | QuanResult)>
+<!ELEMENT ConResult (conSpec, conExpl, conPass)>
+<!-- Metadata.dqInfo.report.measResult.ConResult.conSpec: Product quality specification or requirement citation (citation elements) -->
+<!ELEMENT conSpec (resTitle, resAltTitle*, date+, resEd*, resEdDate?, citId*, citRespParty*, presForm*, datasetSeries?, otherCitDet?, collTitle?, isbn?, issn?, citOnlineRes)>
+<!ELEMENT conExpl (Text)>
+<!ELEMENT conPass (Boolean)>
+<!ELEMENT QuanResult (quanValType?, quanValUnit, errStat?, quanVal)>
+<!ELEMENT quanValType (#PCDATA)>
+<!ELEMENT quanValUnit (UOM)>
+<!ELEMENT errStat (#PCDATA)>
+<!ELEMENT quanVal (#PCDATA)>
+<!ELEMENT dataLineage (statement?, prcStep*, dataSource*)>
+<!ELEMENT statement (Text)>
+<!-- Metadata.dqInfo.report.prcStep: Lineage process step, an event in the life of the resource (process step elements) -->
+<!ELEMENT prcStep (stepDesc, stepRat?, stepDateTm?, stepProc*, stepSrc*)>
+<!-- Metadata.dqInfo.report..dataSource: Lineage source, another resource used to create the resource (data source elements) -->
+<!ELEMENT dataSource (srcDesc?, srcMedName?, srcScale?, srcRefSys?, srcCitatn?, srcExt*, srcStep*)>
+
+<!-- Metadata.mdConst: Metadata constraints (constraint elements) -->
+<!ELEMENT mdConst (Consts | LegConsts | SecConsts)>
+
+<!-- Metadata.mdMaint: Metadata constraints (maintenance elements) -->
+<!ELEMENT mdMaint (maintFreq, dateNext?, usrDefFreq?, updateScope*, upScpDesc*, maintNote*, maintCont*)>
+
+<!-- Metadata.appSchInfo: Application schema -->
+<!ELEMENT appSchInfo (asName, asSchLang, asCstLang, asAscii, asGraFile, asSwDevFile, asSwDevFiFt)>
+<!-- Metadata.appSchInfo.asName: Application schema citation (citation elements) -->
+<!ELEMENT asName (resTitle, resAltTitle*, date+, resEd*, resEdDate?, citId*, citRespParty*, presForm*, datasetSeries?, otherCitDet?, collTitle?, isbn?, issn?, citOnlineRes)>
+<!ELEMENT asSchLang (#PCDATA)>
+<!ELEMENT asCstLang (#PCDATA)>
+<!ELEMENT asAscii (#PCDATA)>
+<!ELEMENT asGraFile (#PCDATA)>
+<!ATTLIST asGraFile src CDATA>
+<!ELEMENT asSwDevFile (#PCDATA)>
+<!ATTLIST asSwDevFile src CDATA>
+<!ELEMENT asSwDevFiFt (#PCDATA)>
+
+<!-- Metadata.mdExtInfo: Extended metadata info -->
+<!ELEMENT mdExtInfo (extOnRes, extEleInfo)>
+<!-- Metadata.mdExtInfo.extOnRes: Online info describing the community profile or extended elements used (online resource elements) -->
+<!ELEMENT extOnRes (linkage, protocol?, appProfile?, orName?, orDesc?, orFunct?)>
+<!ELEMENT extEleInfo (extEleName, extShortName, extDomCode, extEleDef, extEleOb, extEleCond, eleDataType, extEleMxOc, extEleDomVal, extEleParEnt, extEleRule, extEleRat, extEleSrc)>
+<!ELEMENT extEleName (Text)>
+<!ELEMENT extShortName (Text)>
+<!ELEMENT extDomCode (Code)>
+<!ELEMENT extEleDef (#PCDATA)>
+<!ELEMENT extEleOb (ObCd)>
+<!ELEMENT ObCd (Code)>
+<!ATTLIST ObCd value CDATA>
+<!ELEMENT extEleCond (#PCDATA)>
+<!ELEMENT eleDataType (DatatypeCd)>
+<!ELEMENT DatatypeCd (Code)>
+<!ATTLIST DatatypeCd value CDATA>
+<!ELEMENT extEleMxOc (#PCDATA)>
+<!ELEMENT extEleDomVal (#PCDATA)>
+<!ELEMENT extEleParEnt (#PCDATA)>
+<!ELEMENT extEleRule (#PCDATA)>
+<!ELEMENT extEleRat (#PCDATA)>
+<!-- Metadata.mdExtInfo.extEleInfo.extEleSrc: Extended element source (responsible party elements) -->
+<!ELEMENT extEleSrc (rpIndName?, rpOrgName?, rpPosName?, rpCntInfo?, role)>
+
+
+<!-- Metadata.porCatInfo: Portrayal catalog info -->
+<!ELEMENT porCatInfo (porCatCit)>
+<!-- Metadata.porCatInfo.porCatCit: Portrayal catalog citation (citation elements) -->
+<!ELEMENT porCatCit (resTitle, resAltTitle*, collTitle?, date+, resEd*, resEdDate?, citId*, citRespParty*, presForm*, datasetSeries?, otherCitDet?, isbn?, issn?, citOnlineRes)>
+
+
+<!-- Metadata.toolbox: Geoprocessing toolbox description -->
+<!ELEMENT toolbox (toolsets, summary)>
+<!ELEMENT toolsets (toolset)>
+<!ELEMENT toolset (#PCDATA)>
+<!ATTLIST toolset name CDATA>
+<!ELEMENT summary (#PCDATA)>
+
+
+<!-- Metadata.toolinfo: Geoprocessing tool description -->
+<!ELEMENT toolinfo (summary, toolIllust, usage, parameters, environments, scriptExamples)>
+<!ATTLIST toolinfo name CDATA>
+<!ATTLIST toolinfo displayname CDATA>
+<!ATTLIST toolinfo toolboxalias CDATA>
+<!ELEMENT summary (#PCDATA)>
+<!ELEMENT toolIllust (#PCDATA)>
+<!ATTLIST toolIllust type CDATA>
+<!ATTLIST toolIllust src CDATA>
+<!ATTLIST toolIllust alt CDATA>
+<!ELEMENT usage (#PCDATA)>
+<!ELEMENT parameters (param)>
+<!ELEMENT param (pythonReference, dialogReference)>
+<!ATTLIST param name CDATA>
+<!ATTLIST param displayname CDATA>
+<!ATTLIST param type CDATA>
+<!ATTLIST param direction CDATA>
+<!ATTLIST param datatype CDATA>
+<!ATTLIST param expression CDATA>
+<!ELEMENT pythonReference (#PCDATA)>
+<!ELEMENT dialogReference (#PCDATA)>
+<!ELEMENT environments (environment)>
+<!ELEMENT environment (#PCDATA)>
+<!ATTLIST environment name CDATA>
+<!ATTLIST environment label CDATA>
+<!ELEMENT scriptExamples (title, para, code)>
+<!ELEMENT title (Text)>
+<!ELEMENT para (#PCDATA)>
+<!ELEMENT code (#PCDATA)>
+
+
+<!-- Metadata.Binary: ArcGIS thumbnails and enclosed files -->
+<!ELEMENT Binary (Thumbnail, Enclosure)>
+<!ELEMENT Thumbnail (Data)>
+<!ELEMENT Enclosure (Data, Descript)>
+<!ELEMENT Data (#PCDATA)>
+<!ATTLIST Data EsriPropertyType CDATA>
+<!ATTLIST Data OriginalFileName CDATA>
+<!ATTLIST Data SourceMetadata CDATA>
+<!ATTLIST Data SourceMetadataDigest CDATA>
+<!ATTLIST Data SourceMetadataSchema CDATA>
+<!ATTLIST Data SourceMetadataDocId CDATA>
+<!ELEMENT Descript (#PCDATA)>
+
+
+<!-- Metadata.Esri: ArcGIS metadata management -->
+<!ELEMENT Esri (ArcGISFormat, ArcGISstyle, ArcGISProfile, MapLyrSync, CreaDate, CreaTime, SyncOnce, SyncDate, SyncTime, ModDate, ModTime, scaleRange, PublishedDocID, PublishStatus, DataProperties, Server, Service, ServiceType, ServiceFCType, ServiceFCName)>
+<!ELEMENT ArcGISFormat (#PCDATA)>
+<!ELEMENT ArcGISstyle (#PCDATA)>
+<!ELEMENT ArcGISProfile (#PCDATA)>
+<!ELEMENT MapLyrSync (#PCDATA)>
+<!ELEMENT CreaDate (Date)>
+<!ELEMENT CreaTime (Time)>
+<!ELEMENT SyncOnce (Boolean)>
+<!ELEMENT SyncDate (Date)>
+<!ELEMENT SyncTime (Time)>
+<!ELEMENT ModDate (Date)>
+<!ELEMENT ModTime (Time)>
+<!ELEMENT scaleRange (minScale, maxScale)>
+<!ELEMENT minScale (#PCDATA)>
+<!ELEMENT maxScale (#PCDATA)>
+<!ELEMENT PublishedDocID (#PCDATA)>
+<!ELEMENT PublishStatus (#PCDATA)>
+<!ELEMENT DataProperties (lineage, GeoStats, copyHistory, itemProps, coordRef)>
+<!ELEMENT lineage (Process)>
+<!ATTLIST Process Name CDATA>
+<!ATTLIST Process ToolSource CDATA>
+<!ATTLIST Process Date CDATA>
+<!ATTLIST Process Time CDATA>
+<!ATTLIST Process export CDATA>
+<!ELEMENT GeoStats (OutputType)>
+<!ELEMENT OutputType (#PCDATA)>
+<!ELEMENT copyHistory (copy)>
+<!ATTLIST copy source CDATA>
+<!ATTLIST copy dest CDATA>
+<!ATTLIST copy date CDATA>
+<!ATTLIST copy time CDATA>
+<!ELEMENT itemProps (itemName, itemSize, imsContentType, nativeExtBox, relatedItems, itemLocation)>
+<!ELEMENT itemName (Text)>
+<!ELEMENT itemSize (#PCDATA)>
+<!ELEMENT imsContentType (#PCDATA)>
+<!ELEMENT nativeExtBox (exTypeCode?, westBL, eastBL, northBL, southBL)>
+<!ELEMENT relatedItems (item)>
+<!ELEMENT item (itemName, itemType, objCount)>
+<!ELEMENT itemName (Text)>
+<!ELEMENT itemType (#PCDATA)>
+<!ELEMENT objCount (Integer)>
+<!ELEMENT itemLocation (linkage, protocol?, appProfile?, orName?, orDesc?, orFunct?)>
+<!ELEMENT coordRef (type, geogcsn, projcsn, csUnits, peXml)>
+<!ELEMENT type (#PCDATA)>
+<!ELEMENT geogcsn (#PCDATA)>
+<!ELEMENT projcsn (#PCDATA)>
+<!ELEMENT csUnits (#PCDATA)>
+<!ELEMENT peXml (#PCDATA)>
+<!ELEMENT Server (Text)>
+<!ELEMENT Service (Text)>
+<!ELEMENT ServiceType (#PCDATA)>
+<!ELEMENT ServiceFCType (#PCDATA)>
+<!ELEMENT ServiceFCName (#PCDATA)>
+
+
+<!-- Data Identification Elements -->
+
+<!ELEMENT aggrInfo (aggrDSName, aggrDSIdent?, assocType, initType)>
+<!-- DataIdentification.aggrInfo.aggrDSName: Related aggregate resource information (citation elements) -->
+<!ELEMENT aggrDSName (resTitle, resAltTitle*, collTitle?, date+, resEd*, resEdDate?, citId*, citRespParty*, presForm*, datasetSeries?, otherCitDet?, isbn?, issn?, citOnlineRes)>
+<!-- DataIdentification.aggrInfo.aggrDSIdent: Related aggregate resource identification (identifier authority citation elements) -->
+<!ELEMENT aggrDSIdent (identAuth, identCode)>
+<!ELEMENT assocType (#PCDATA)>
+<!ELEMENT initType (#PCDATA)>
+
+<!ELEMENT dataChar (CharSetCd)>
+<!ELEMENT dataLang (countryCode | languageCode)>
+
+<!-- DataIdentification.dataExt: Extent of the data (extent elements) -->
+<!ELEMENT dataExt (exDesc?, geoEle*, tempEle*, vertEle*)>
+<!ELEMENT dataScale (equScale, scaleDist)>
+<!ELEMENT equScale (rfDenom)>
+<!ELEMENT rfDenom (Decimal)>
+<!ELEMENT equScale (scaleDist)>
+<!ELEMENT scaleDist (value)>
+<!ATTLIST value uom CDATA>
+
+<!-- DataIdentification.dsFormat: Resource format (format elements) -->
+<!ELEMENT dsFormat (formatName, formatInfo, formatVer, formatAmdNum?, formatSpec?, fileDecmTech?, formatDist*)>
+
+<!ELEMENT envirDesc (Code)>
+<!ELEMENT idAbs (Text)>
+
+<!-- DataIdentification.idCitation: Resource citation (citation elements) -->
+<!ELEMENT idCitation (resTitle, resAltTitle*, date+, resEd?, resEdDate?, citId*, citRespParty*, presForm*, datasetSeries?, otherCitDet?, collTitle?, isbn?, issn?, citOnlineRes)>
+
+<!ELEMENT idCredit (Text)>
+
+<!-- DataIdentification.idPoC: Resource point of contact (responsible party elements) -->
+<!ELEMENT idPoC (rpIndName?, rpOrgName?, rpPosName?, rpCntInfo?, role)>
+
+<!ELEMENT idPurp (Text)>
+<!ELEMENT idSpecUse (specUsage, usageDate?, userDetLim?, usrCntInfo+)>
+<!ELEMENT specUsage (#PCDATA)>
+<!ELEMENT usageDate (Date)>
+<!ELEMENT userDetLim (#PCDATA)>
+<!-- DataIdentification.idPurp.usrCntInfo: Resource user contact (responsible party elements) -->
+<!ELEMENT usrCntInfo (rpIndName?, rpOrgName?, rpPosName?, rpCntInfo?, role)>
+
+<!ELEMENT idStatus (Code)>
+<!ELEMENT graphOver (bgFileName, bgFileDesc, bgFileType)>
+<!ELEMENT bgFileName (#PCDATA)>
+<!ELEMENT bgFileDesc (#PCDATA)>
+<!ELEMENT bgFileType (#PCDATA)>
+
+<!-- DataIdentification.resConst: Resource constraints (constraint elements) -->
+<!ELEMENT resConst (Consts | LegConsts | SecConsts)>
+
+<!-- DataIdentification.resMaint: Resource maintenance information (maintenance elements) -->
+<!ELEMENT resMaint (maintFreq, dateNext?, usrDefFreq?, updateScope*, upScpDesc*, maintNote*, maintCont*)>
+
+<!ELEMENT suppInfo (#PCDATA)>
+
+<!-- DataIdentification.*Keys: Keyword properties (keyword elements) -->
+<!ELEMENT discKeys (keyword+, thesaName?, thesaLang?)>
+<!ELEMENT otherKeys (keyword+, thesaName?, thesaLang?)>
+<!ELEMENT placeKeys (keyword+, thesaName?, thesaLang?)>
+<!ELEMENT productKeys (keyword+, thesaName?, thesaLang?)>
+<!ELEMENT stratKeys (keyword+, thesaName?, thesaLang?)>
+<!ELEMENT subTopicCatKeys (keyword+, thesaName?, thesaLang?)>
+<!ELEMENT tempKeys (keyword+, thesaName?, thesaLang?)>
+<!ELEMENT themeKeys (keyword+, thesaName?, thesaLang?)>
+<!ELEMENT searchKeys (#PCDATA)>
+
+<!ELEMENT tpCat (TopicCatCd)>
+<!ELEMENT TopicCatCd (Code)>
+<!ATTLIST TopicCatCd value CDATA>
+
+<!-- DataIdentification.svAccProps: Service availability (standard order process elements) -->
+<!ELEMENT svAccProps (resFees?, planAvDtTm?, planAvTmPd?, ordInstr?, ordTurn?resFees?, planAvDtTm?, planAvTmPd?, ordInstr?, ordTurn?)>
+<!ELEMENT svCouplRes (svOpName, svResCitId)>
+<!ELEMENT svOpName (Text)>
+<!ELEMENT svResCitId (identAuth, identCode)>
+<!ELEMENT svCoupleType (CouplTypCd)>
+<!ELEMENT CouplTypCd (Code)>
+<!ATTLIST CouplTypCd value CDATA>
+<!-- DataIdentification.svOperOn: Service method description (service operation elements) -->
+<!ELEMENT svOper (svOpName, svDCP?, svDesc, svInvocName, svParams*, svConPt, svOper)>
+<!-- DataIdentification.svOperOn: Citation for a resource on which the service operates (data identification elements) -->
+<!ELEMENT svOperOn (aggrInfo?, dataChar?, dataExt+, dataLang+, dataScale*, spatRpType, dsFormat, envirDesc?, idAbs, idCitation, idCredit+, idPoC, idPurp, idSpecUse, idStatus, graphOver?, resConst*, resMaint+, suppInfo?, discKeys*, otherKeys*, placeKeys+, productKeys*, searchKeys*, stratKeys*, subTopicCatKeys*, tempKeys*, themeKeys+, tpCat, svAccProps?, svCouplRes, svCoupleType, svOper, svOperOn, svType, svTypeVer?)>
+<!ELEMENT svType (Text)>
+<!ATTLIST svType codeSpace CDATA>
+<!ELEMENT svTypeVer (#PCDATA)>
+
+
+<!-- Citation Elements -->
+
+<!ELEMENT resTitle (Text)>
+<!ELEMENT resAltTitle (Text)>
+<!ELEMENT collTitle (Text)>
+
+<!ELEMENT date (adoptDate, createDate, deprecDate, inforceDate, notavailDate, pubDate, reviseDate, supersDate)>
+<!ELEMENT adoptDate (Date)>
+<!ELEMENT createDate (Date)>
+<!ELEMENT deprecDate (Date)>
+<!ELEMENT inforceDate (Date)>
+<!ELEMENT notavailDate (Date)>
+<!ELEMENT pubDate (DateTime)>
+<!ATTLIST pubDate date CDATA>
+<!ATTLIST pubDate time CDATA>
+<!ELEMENT reviseDate (Date)>
+<!ELEMENT supersDate (Date)>
+
+<!ELEMENT resEd (Text)>
+<!ELEMENT resEdDate (Date)>
+<!ELEMENT citId (identAuth, identCode)>
+
+<!-- Citation.citRespParty: Responsible party or contact (responsible party elements) -->
+<!ELEMENT citRespParty (rpIndName?, rpOrgName?, rpPosName?, rpCntInfo?, role)>
+
+<!ELEMENT presForm (PresFormCd, fgdcGeoform)>
+<!ELEMENT PresFormCd (Code)>
+<!ATTLIST PresFormCd value CDATA>
+<!ELEMENT datasetSeries (artPage, issId, seriesName)>
+<!ELEMENT artPage (Text)>
+<!ELEMENT issId (#PCDATA)>
+<!ELEMENT seriesName (Text)>
+<!ELEMENT otherCitDet (Text)>
+<!ELEMENT isbn (Text)>
+<!ELEMENT issn (Text)>
+<!ELEMENT citOnlineRes (URL)>
+
+
+<!-- Responsible Party Elements -->
+
+<!ELEMENT rpIndName (#PCDATA)>
+<!ELEMENT rpOrgName (#PCDATA)>
+<!ELEMENT rpPosName (#PCDATA)>
+
+<!ELEMENT rpCntInfo (cntAddress?, cntHours?, cntInstr?, cntOnlineRes?, cntPhone?)>
+<!ELEMENT cntAddress (delPoint?, city?, adminArea?, postCode?, country?, eMailAdd)>
+<!ATTLIST cntAddress addressType CDATA>
+<!ELEMENT delPoint (#PCDATA)>
+<!ELEMENT city (#PCDATA)>
+<!ELEMENT adminArea (#PCDATA)>
+<!ELEMENT postCode (#PCDATA)>
+<!ELEMENT country (#PCDATA)>
+<!ELEMENT eMailAdd (#PCDATA)>
+<!ELEMENT cntHours (#PCDATA)>
+<!ELEMENT cntInstr (#PCDATA)>
+<!-- ResponsibleParty.cntOnlineRes: Contact online resource (online resource elements) -->
+<!ELEMENT cntOnlineRes (linkage, protocol?, appProfile?, orName?, orDesc?, orFunct?)>
+<!ELEMENT cntPhone (voiceNum, faxNum?)>
+<!ELEMENT voiceNum (#PCDATA)>
+<!ATTLIST voiceNum tddtty CDATA>
+<!ELEMENT faxNum (#PCDATA)>
+
+<!ELEMENT role (RoleCd)>
+<!ELEMENT RoleCd (#PCDATA)>
+<!ATTLIST RoleCd value CDATA>
+
+
+<!-- Online Resource Elements -->
+
+<!ELEMENT linkage (URL)>
+<!ELEMENT protocol (#PCDATA)>
+<!ELEMENT appProfile (#PCDATA)>
+<!ELEMENT orName (#PCDATA)>
+<!ELEMENT orDesc (#PCDATA)>
+<!ELEMENT orFunct (OnFunctCd)>
+
+
+<!-- Constraint Elements -->
+
+<!ELEMENT Consts (useLimit+)>
+<!ELEMENT LegConsts (accessConsts, useConsts, othConsts, useLimit+)>
+<!ELEMENT accessConsts (RestrictCd)>
+<!ELEMENT useConsts (RestrictCd)>
+<!ELEMENT RestrictCd (Code)>
+<!ATTLIST RestrictCd value CDATA>
+<!ELEMENT othConsts (Text)>
+<!ELEMENT SecConsts (class, classSys, handDesc, userNote, useLimit+)>
+<!ELEMENT class (ClasscationCd)>
+<!ELEMENT ClasscationCd (Code)>
+<!ATTLIST ClasscationCd value CDATA>
+<!ELEMENT classSys (Text)>
+<!ELEMENT handDesc (Text)>
+<!ELEMENT userNote (Text)>
+<!ELEMENT useLimit (Text)>
+
+
+<!-- Coverage Description Elements -->
+
+<!ELEMENT attDesc (Text)>
+<!ELEMENT contentTyp (ContentTypCd)>
+<!ELEMENT ContentTypCd (Code)>
+<!ATTLIST ContentTypCd value CDATA>
+<!ELEMENT covDim (Band, RangeDim)>
+<!ELEMENT Band (seqID, dimDescrip, maxVal, minVal, valUnit, pkResp, bitsPerVal, toneGrad, sclFac, offset)>
+<!ELEMENT RangeDim (seqID, dimDescrip)>
+<!ELEMENT maxVal (Decimal)>
+<!ELEMENT minVal (Decimal)>
+<!ELEMENT valUnit (UOM)>
+<!ELEMENT pkResp (#PCDATA)>
+<!ELEMENT bitsPerVal (#PCDATA)>
+<!ELEMENT toneGrad (#PCDATA)>
+<!ELEMENT sclFac (#PCDATA)>
+<!ELEMENT offset (#PCDATA)>
+
+
+<!-- Unit of Measure Elements: including additional GML elements -->
+
+<!ELEMENT UOM (unitQuanType, unitQuanRef, unitSymbol, gmlDesc, gmlDescRef, gmlIdent, gmlName, gmlRemarks)>
+<!ELEMENT unitQuanType (#PCDATA)>
+<!ELEMENT unitQuanRef (#PCDATA)>
+<!ATTLIST unitQuanRef href CDATA>
+<!ELEMENT unitSymbol (#PCDATA)>
+<!ATTLIST unitSymbol codeSpace CDATA>
+
+
+<!-- GML Elements -->
+
+<!ELEMENT gmlDesc (Text)>
+<!ELEMENT gmlDescRef (#PCDATA)>
+<!ATTLIST gmlDescRef href CDATA>
+<!ELEMENT gmlIdent (#PCDATA)>
+<!ATTLIST gmlIdent codeSpace CDATA>
+<!ELEMENT gmlName (#PCDATA)>
+<!ATTLIST gmlName codeSpace CDATA>
+<!ELEMENT gmlRemarks (#PCDATA)>
+
+
+<!-- Grid Elements -->
+
+<!ELEMENT numDims (#PCDATA)>
+<!ELEMENT axisDimension (dimSize, dimResol)>
+<!ATTLIST axisDimension type CDATA>
+<!ELEMENT dimSize (#PCDATA)>
+<!ELEMENT dimResol (value)>
+<!ELEMENT value (#PCDATA)>
+<!ATTLIST value uom CDATA>
+<!ELEMENT cellGeo (CellGeoCd)>
+<!ELEMENT CellGeoCd (Code)>
+<!ATTLIST CellGeoCd value CDATA>
+<!ELEMENT tranParaAv (#PCDATA)>
+
+
+<!-- Extent Elements -->
+
+<!ELEMENT exDesc (Text)>
+
+<!-- Extent.geoEle: Horizontal spatial extent -->
+<!ELEMENT geoEle (BoundPoly | GeoBndBox | GeoDesc)>
+<!ELEMENT BoundPoly (exTypeCode?, polygon+)>
+<!-- BoundPoly.polygon: Bounding polygon plus GML elements -->
+<!ELEMENT polygon (exterior, interior, gmlDesc, gmlDescRef, gmlIdent, gmlName)>
+<!ATTLIST polygon gmlID CDATA>
+<!ELEMENT exterior (pos, posList)>
+<!ELEMENT interior (Decimal)>
+<!ELEMENT interior (pos, posList)>
+<!ELEMENT pos (#PCDATA)>
+<!ELEMENT posList (DecimalList)>
+<!ELEMENT GeoBndBox (exTypeCode?, westBL, eastBL, northBL, southBL)>
+<!ATTLIST GeoBndBox esriExtentType CDATA>
+<!ELEMENT westBL (Decimal)>
+<!ELEMENT eastBL (Decimal)>
+<!ELEMENT northBL (Decimal)>
+<!ELEMENT southBL (Decimal)>
+<!ELEMENT GeoDesc (exTypeCode?, geoId)>
+<!ELEMENT geoId (identAuth, identCode)>
+
+<!-- Extent.tempEle: Temporal extent -->
+<!ELEMENT tempEle (TempExtent, SpatTempEx)>
+<!ELEMENT TempExtent (TM_Instant, TM_Period)>
+<!ELEMENT SpatTempEx (TM_Instant, TM_Period)>
+<!-- TM_Instant: Time period plus GML elements -->
+<!ELEMENT TM_Instant (tmPosition)>
+<!ATTLIST TM_Instant gmlID CDATA>
+<!ELEMENT tmPosition (DateTime)>
+<!ATTLIST tmPosition date CDATA>
+<!ATTLIST tmPosition time CDATA>
+<!-- TM_Period: Time period plus GML elements -->
+<!ELEMENT TM_Period (tmBegin, tmEnd, gmlDesc, gmlDescRef, gmlIdent, gmlName)>
+<!ATTLIST TM_Period gmlID CDATA>
+
+<!-- Extent.vertEle: Vertical spatial extent -->
+<!ELEMENT vertEle (vertMinVal, vertMaxVal)>
+<!ELEMENT vertMinVal (#PCDATA)>
+<!ELEMENT vertMaxVal (#PCDATA)>
+
+
+<!-- Format Elements -->
+
+<!ELEMENT formatName (Text)>
+<!ELEMENT formatInfo (#PCDATA)>
+<!ELEMENT formatVer (#PCDATA)>
+<!ELEMENT formatAmdNum (#PCDATA)>
+<!ELEMENT fileDecmTech (#PCDATA)>
+<!-- Format.formatDist: Distributors who provide the resource in this format (distributor elements) -->
+<!ELEMENT formatDist (distorCont, distorOrdPrc*, distorFormat*, distorTran*)>
+
+
+<!-- Distributor Elements -->
+
+<!-- Distributor.distorCont: Distributor contact (responsible party elements) -->
+<!ELEMENT distorCont (rpIndName?, rpOrgName?, rpPosName?, rpCntInfo?, role)>
+<!-- Distributor.distorOrdPrc: Distributor's order process (standard order process elements) -->
+<!ELEMENT distorOrdPrc (resFees?, planAvDtTm?, planAvTmPd?, ordInstr?, ordTurn?)>
+<!-- Distributor.distorFormat: The formats in which the distributor provides the resource (format elements) -->
+<!ELEMENT distorFormat (formatName, formatInfo, formatVer, formatAmdNum?, formatSpec?, fileDecmTech?, formatDist*)>
+<!-- Distributor.distorTran: Transfer options specific to this distributor (resource transfer elements) -->
+<!ELEMENT distorTran (transSize?, unitsODist?, onLineSrc*, offLineMed?)>
+
+
+<!-- Keyword Elements -->
+
+<!ELEMENT keyword ()>
+<!-- Keyword.thesaName: Thesaurus citation (citation elements) -->
+<!ELEMENT thesaName (resTitle, resAltTitle*, collTitle?, date+, resEd*, resEdDate?, citId*, citRespParty*, presForm*, datasetSeries?, otherCitDet?, isbn?, issn?, citOnlineRes)>
+<!ATTLIST thesaName uuidref CDATA>
+<!ELEMENT thesaLang (countryCode | languageCode)>
+
+
+<!-- Maintenance Elements -->
+
+<!ELEMENT dateNext (Date)>
+<!-- Maintenance contact (responsible party elements) -->
+<!ELEMENT maintCont (rpIndName?, rpOrgName?, rpPosName?, rpCntInfo?, role)>
+<!ELEMENT maintFreq (MaintFreqCd)>
+<!ELEMENT MaintFreqCd (Code)>
+<!ATTLIST MaintFreqCd value CDATA>
+<!ELEMENT maintNote (Text)>
+<!ELEMENT maintScp (ScopeCd)>
+<!-- Maintenance upScpDesc (scope description elements) -->
+<!ELEMENT upScpDesc (attribIntSet+, attribSet+, datasetSet, featIntSet+, featSet+, other)>
+
+
+<!-- Process Step Elements -->
+
+<!ELEMENT stepDesc (Text)>
+<!ELEMENT stepRat (#PCDATA)>
+<!ELEMENT stepDateTm (DateTime)>
+<!-- ProcessStep.stepProc: Process step contact (responsible party elements) -->
+<!ELEMENT stepProc (rpIndName?, rpOrgName?, rpPosName?, rpCntInfo?, role)>
+<!-- ProcessStep.stepSrc: Process step source type (data source elements) -->
+<!ELEMENT stepSrc (srcDesc?, srcMedName?, srcScale?, srcRefSys?, srcCitatn?, srcExt*, srcStep*)>
+<!ATTLIST stepSrc type CDATA>
+
+
+<!-- Data Source Elements -->
+
+<!ELEMENT stepDesc (Text)>
+<!ELEMENT srcMedName (MedNameCd)>
+<!ELEMENT MedNameCd (Code)>
+<!ATTLIST MedNameCd value CDATA>
+<!ELEMENT srcScale (rfDenom)>
+<!ELEMENT rfDenom (#PCDATA)>
+<!-- DataSource.srcRefSys: Source reference system (reference system elements) -->
+<!ELEMENT srcRefSys (RefSystem)>
+<!-- DataSource.srcCitatn: Source citation (citation elements) -->
+<!ELEMENT srcCitatn (resTitle, resAltTitle*, date+, resEd*, resEdDate?, citId*, citRespParty*, presForm*, datasetSeries?, otherCitDet?, collTitle?, isbn?, issn?, citOnlineRes)>
+<!-- DataSource.srcExt: Source extent (extent elements) -->
+<!ELEMENT srcExt (exDesc?, geoEle*, tempEle*, vertEle*)>
+<!-- DataSource.srcStep: Process step source (process step elements) -->
+<!ELEMENT srcStep (stepDesc, stepRat?, stepDateTm?, stepProc*, stepSrc*)>
+
+
+<!-- Reference System Elements -->
+
+<!ELEMENT RefSystem (refSysID)>
+<!ELEMENT refSysID (identAuth, identCode, idCodeSpace, idVersion)>
+<!ATTLIST refSysID dimension CDATA>
+<!ELEMENT idCodeSpace (#PCDATA)>
+<!ELEMENT idVersion (#PCDATA)>
+
+
+<!-- Scope Description Elements -->
+
+<!ELEMENT attribIntSet (#PCDATA)>
+<!ELEMENT attribSet (#PCDATA)>
+<!ELEMENT datasetSet (#PCDATA)>
+<!ELEMENT featIntSet (#PCDATA)>
+<!ELEMENT featSet (#PCDATA)>
+<!ELEMENT other (#PCDATA)>
+
+
+<!-- Service Operation Elements -->
+
+<!ELEMENT svOpName (Text)>
+<!ELEMENT svDCP (DCPListCd)>
+<!ELEMENT DCPListCd (Code)>
+<!ATTLIST DCPListCd value CDATA>
+<!ELEMENT svDesc (Text)>
+<!ELEMENT svInvocName (Text)>
+<!ELEMENT svParams (svParName, svParDir?, svDesc, svParOpt, svRepeat, svValType)>
+<!ELEMENT svParName (aName, attributeType)>
+<!ELEMENT svParDir (ParamDirCd)>
+<!ELEMENT ParamDirCd (Code)>
+<!ATTLIST ParamDirCd value CDATA>
+<!ELEMENT svDesc (Text)>
+<!ELEMENT svParOpt (Text)>
+<!ELEMENT svRepeat (Boolean)>
+<!ELEMENT svValType (aName)>
+<!-- ServiceOperation.svConPt: Service operation connection point (online resource elements) -->
+<!ELEMENT svConPt (linkage, protocol?, appProfile?, orName?, orDesc?, orFunct?)>
+<!-- ServiceOperation.svOper: Other operations on which this operation depends (service operation elements) -->
+<!ELEMENT svOper (svOpName, svDCP?, svDesc, svInvocName, svParams*, svConPt, svOper)>
+
+
+<!-- Standard Order Process Elements -->
+
+<!ELEMENT resFees (#PCDATA)>
+<!ATTLIST resFees units CDATA>
+<!ELEMENT planAvDtTm (DateTime)>
+<!ATTLIST planAvDtTm date CDATA>
+<!ATTLIST planAvDtTm time CDATA>
+<!ELEMENT planAvTmPd (tmBegin, tmEnd)>
+<!ELEMENT ordInstr (#PCDATA)>
+<!ELEMENT ordTurn (#PCDATA)>
+
+
+<!-- Resource Transfer Elements -->
+
+<!ELEMENT unitsODist (#PCDATA)>
+<!ELEMENT transSize (#PCDATA)>
+<!ELEMENT onLineSrc (#PCDATA)>
+<!ELEMENT offLineMed (medName, medDensity*, medDenUnits?, medVol?, medFormat*, medNote?)>
+<!ELEMENT medName (medNameCd)>
+<!ELEMENT medNameCd (Code)>
+<!ATTLIST medNameCd value CDATA>
+<!ELEMENT medDensity (#PCDATA)>
+<!ELEMENT medDenUnits (#PCDATA)>
+<!ELEMENT medVol (#PCDATA)>
+<!ELEMENT medFormat (MedFormCd)>
+<!ELEMENT MedFormCd (Code)>
+<!ATTLIST MedFormCd value CDATA>
+<!ELEMENT medNote (Text)>
+
+
+<!-- Identifier Elements -->
+<!ELEMENT identCode (Code)>
+<!ATTLIST identCode code CDATA>
+<!-- Identifier.identAuth: Identifier authorization citation (citation elements) -->
+<!ELEMENT identAuth (resTitle, resAltTitle*, date+, resEd*, resEdDate?, citId*, citRespParty*, presForm*, datasetSeries?, otherCitDet?, collTitle?, isbn?, issn?, citOnlineRes)>
+
+
+<!-- Common Code Elements -->
+
+<!ELEMENT CharSetCd (Code)>
+<!ATTLIST CharSetCd codeListValue CDATA>
+
+<!ELEMENT exTypeCode (Boolean)>
+
+<!ELEMENT ScopeCd (Code)>
+<!ATTLIST ScopeCd value CDATA>
+
+<!-- OnFunctCd: Function code -->
+<!ELEMENT OnFunctCd (Code)>
+<!ATTLIST OnFunctCd value CDATA>
+
+<!ELEMENT countryCode (Code)>
+<!ATTLIST countryCode value CDATA>
+<!ELEMENT languageCode (Code)>
+<!ATTLIST languageCode value CDATA>
+
+
+<!-- Common Date Elements -->
+
+<!ELEMENT tmBegin (DateTime)>
+<!ATTLIST tmBegin date CDATA>
+<!ATTLIST tmBegin time CDATA>
+<!ELEMENT tmEnd (DateTime)>
+<!ATTLIST tmEnd date CDATA>
+<!ATTLIST tmEnd time CDATA>
+
+
+<!-- Other Common Elements -->
+
+<!ELEMENT seqID (aName, attributeType)>
+<!ELEMENT dimDescrip (#PCDATA)>
+
+<!ELEMENT attributeType (aName)>
+<!ELEMENT aName (Text)>
+
+
+<!-- Basic Types -->
+
+<!ELEMENT Boolean (#PCDATA)>
+<!ELEMENT Code (#PCDATA)>
+<!ELEMENT Date (#PCDATA)>
+<!ELEMENT DateTime (#PCDATA)>
+<!ELEMENT Decimal (#PCDATA)>
+<!ELEMENT DecimalList (#PCDATA)>
+<!ELEMENT Integer (#PCDATA)>
+<!ELEMENT Text (#PCDATA)>
+<!ELEMENT Time (#PCDATA)>
+<!ELEMENT URL (#PCDATA)>
+
+
+<!-- Borrowed FGDC Elements -->
+
+<!-- Attribute (eainfo) Elements -->
+<!ELEMENT eainfo   (detailed*, overview*)>
+<!ELEMENT detailed (enttyp, attr*)>
+<!ELEMENT enttyp   (enttypl, enttypd, enttypds)>
+<!ELEMENT attr     (attrlabl, attrdef, attrdefs, attrdomv+, (begdatea, enddatea?)*, attrvai?, attrmfrq?)>
+<!ELEMENT attrdomv ((edom+ | rdom | codesetd | udom))>
+<!ELEMENT edom     (edomv, edomvd, edomvds, attr*)>
+<!ELEMENT rdom     (rdommin, rdommax, attrunit?, attrmres?, attr*)>
+<!ELEMENT codesetd (codesetn, codesets)>
+<!ELEMENT attrvai  (attrva, attrvae)>
+<!ELEMENT overview (eaover, eadetcit+)>
+
+<!ELEMENT attrdef  (#PCDATA)>
+<!ELEMENT attrdefs (#PCDATA)>
+<!ELEMENT attrlabl (#PCDATA)>
+<!ELEMENT attrmfrq (#PCDATA)>
+<!ELEMENT attrmres (#PCDATA)>
+<!ELEMENT attrunit (#PCDATA)>
+<!ELEMENT attrva   (#PCDATA)>
+<!ELEMENT attrvae  (#PCDATA)>
+<!ELEMENT begdatea (#PCDATA)>
+<!ELEMENT codesetn (#PCDATA)>
+<!ELEMENT codesets (#PCDATA)>
+<!ELEMENT enddatea (#PCDATA)>
+<!ELEMENT eadetcit (#PCDATA)>
+<!ELEMENT eaover   (#PCDATA)>
+<!ELEMENT edomv    (#PCDATA)>
+<!ELEMENT edomvd   (#PCDATA)>
+<!ELEMENT edomvds  (#PCDATA)>
+<!ELEMENT enttypl  (#PCDATA)>
+<!ELEMENT enttypd  (#PCDATA)>
+<!ELEMENT enttypds (#PCDATA)>
+<!ELEMENT rdommax  (#PCDATA)>
+<!ELEMENT rdommin  (#PCDATA)>
+<!ELEMENT udom     (#PCDATA)>
+
+
+<!-- Feature Class (spdoinfo) Elements -->
+<!ELEMENT spdoinfo (indspref?, (direct, ((ptvctinf | rastinfo))?)?)>
+<!ELEMENT ptvctinf ((sdtsterm+ | vpfterm))>
+<!ELEMENT sdtsterm (sdtstype, ptvctcnt?)>
+<!ELEMENT vpfterm  (vpflevel, vpfinfo+)>
+<!ELEMENT vpfinfo  (vpftype, ptvctcnt?)>
+<!ELEMENT rastinfo (rasttype, (rowcount, colcount, vrtcount?)?)>
+
+<!ELEMENT colcount (#PCDATA)>
+<!ELEMENT direct   (#PCDATA)>
+<!ELEMENT indspref (#PCDATA)>
+<!ELEMENT ptvctcnt (#PCDATA)>
+<!ELEMENT rasttype (#PCDATA)>
+<!ELEMENT rowcount (#PCDATA)>
+<!ELEMENT sdtstype (#PCDATA)>
+<!ELEMENT vpflevel (#PCDATA)>
+<!ELEMENT vpftype  (#PCDATA)>
+<!ELEMENT vrtcount (#PCDATA)>
