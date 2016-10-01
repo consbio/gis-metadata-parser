@@ -1,4 +1,4 @@
-<!-- ISO-19139 Metadata DTD Approximation (gis-metadata-parser app)     -->
+<!-- ISO-19139 Metadata DTD Approximation for gis-metadata-parser app   -->
 <!-- This is a derived Document Type Declaration for the ISO standard   -->
 <!-- It is not officially supported, but represents a lot of research   -->
 <!-- into common usage of the standard in examples put out by various   -->
@@ -37,15 +37,6 @@
 
 <!--======================================================================-->
 
-<!-- Maybe this is the right entity reference for XML -->
-
-<!ENTITY % HTMLlat1 PUBLIC
-	"-//W3C//ENTITIES Full Latin 1//EN//HTML"
-	>
-
-<!-- %HTMLlat1; -->
-
-<!--======================================================================-->
 
 <!-- Root Level Elements: MD_Metadata or MI_Metadata -->
 <!ELEMENT gmd:MD_Metadata (gmd:fileIdentifier, gmd:language, gmd:characterSet, gmd:parentIdentifier?, gmd:hierarchyLevel, gmd:hierarchyLevelName?, gmd:contact+, gmd:dateStamp, gmd:metadataStandardName, gmd:metadataStandardVersion?, gmd:dataSetURI?, gmd:locale*, gmd:identificationInfo+, gmd:contentInfo?, gmd:spatialRepresentationInfo?, gmd:referenceSystemInfo?, gmd:distributionInfo?, gmd:dataQualityInfo?, gmd:metadataConstraints?, gmd:metadataMaintenance?)>
@@ -81,8 +72,32 @@
 <!ELEMENT gmd:characterEncoding (gmd:MD_CharacterSetCode|gco:CharacterString)>
 
 <!-- MD_Metadata.spatialRepresentationInfo -->
-<!ELEMENT gmd:spatialRepresentationInfo (gmd:MD_VectorSpatialRepresentation)>
+<!ELEMENT gmd:spatialRepresentationInfo (gmd:MD_GridSpatialRepresentation | gmd:MD_Georeferenceable | gmd:MD_Georectified | gmd:MD_VectorSpatialRepresentation)>
+<!ELEMENT gmd:MD_GridSpatialRepresentation (gmd:numberOfDimensions, gmd:axisDimensionProperties*, gmd:cellGeometry, gmd:transformationParameterAvailability)>
+<!ELEMENT gmd:MD_Georeferenceable (gmd:numberOfDimensions, gmd:axisDimensionProperties*, gmd:cellGeometry, gmd:transformationParameterAvailability, gmd:controlPointAvailability, gmd:orientationParameterAvailability, gmd:orientationParameterDescription?, gmd:georeferencedParameters, gmd:parameterCitation*)>
+<!ELEMENT gmd:MD_Georectified (gmd:numberOfDimensions, gmd:axisDimensionProperties*, gmd:cellGeometry, gmd:transformationParameterAvailability, gmd:checkPointAvailability, gmd:checkPointDescription?, gmd:cornerPoints*, gmd:centerPoint?, gmd:pointInPixel, gmd:transformationDimensinonDescription?, gmd:transformationDimensionMapping{0,2})>
 <!ELEMENT gmd:MD_VectorSpatialRepresentation (gmd:topologyLevel, gmd:geometricObjects)>
+<!ELEMENT gmd:numberOfDimensions (gco:Integer)>
+<!ELEMENT gmd:axisDimensionProperties (gmd:MD_Dimension?)>
+<!ELEMENT gmd:cellGeometry (gmd:MD_CellGeometryCode?)>
+<!ELEMENT gmd:MD_CellGeometryCode (gco:CharacterString)>
+<!ELEMENT gmd:transformationParameterAvailability (gco:Boolean)>
+<!-- MD_Metadata.spatialRepresentationInfo.MD_Georeferenceable -->
+<!ELEMENT gmd:controlPointAvailability (gco:Boolean)>
+<!ELEMENT gmd:orientationParameterAvailability (gco:Boolean)>
+<!ELEMENT gmd:orientationParameterDescription (gco:CharacterString)>
+<!ELEMENT gmd:georeferencedParameters (gco:Record)>
+<!ELEMENT gmd:parameterCitation (gco:CI_Citation)>
+<!-- MD_Metadata.spatialRepresentationInfo.MD_Georectified -->
+<!ELEMENT gmd:checkPointAvailability (gco:Boolean)>
+<!ELEMENT gmd:checkPointDescription (gco:CharacterString)>
+<!ELEMENT gmd:cornerPoints (gml:Point)>
+<!ELEMENT gmd:centerPoint (gml:Point)>
+<!ELEMENT gmd:pointInPixel (gmd:MD_PixelOrientationCode)>
+<!ELEMENT gmd:MD_PixelOrientationCode (gco:CharacterString)>
+<!ELEMENT gmd:transformationDimensinonDescription (gco:CharacterString)>
+<!ELEMENT gmd:transformationDimensionMapping (gco:CharacterString)>
+<!-- MD_Metadata.spatialRepresentationInfo.MD_VectorSpatialRepresentation -->
 <!ELEMENT gmd:topologyLevel (gmd:MD_TopologyLevelCode)>
 <!ELEMENT gmd:MD_TopologyLevelCode (#PCDATA)>
 <!ATTLIST gmd:MD_TopologyLevelCode codeListValue CDATA>
@@ -97,7 +112,6 @@
 <!ATTLIST gmd:MD_GeometricObjectTypeCode codeSpace CDATA>
 <!ELEMENT gmd:geometricObjectCount (gco:Integer)>
 
-
 <!-- MD_Metadata.referenceSystemInfo -->
 <!ELEMENT gmd:referenceSystemInfo (gmd:MD_ReferenceSystem)>
 <!ELEMENT gmd:MD_ReferenceSystem (gmd:referenceSystemIdentifier)>
@@ -111,7 +125,7 @@
 <!ELEMENT gmd:credit (gco:CharacterString)>
 <!ELEMENT gmd:pointOfContact (gmd:CI_ResponsibleParty+)>
 <!ELEMENT gmd:resourceMaintenance (gmd:MD_MaintenanceInformation)>
-<!ELEMENT gmd:MD_MaintenanceInformation (gmd:maintenanceAndUpdateFrequency, gmd:dateOfNextUpdate, gmd:userDefinedMaintenanceFrequency, gmd:updateScope, gmd:updateScopeDescription, gmd:maintenanceNote, gmd:contact)>
+<!ELEMENT gmd:MD_MaintenanceInformation (gmd:maintenanceAndUpdateFrequency, gmd:dateOfNextUpdate?, gmd:userDefinedMaintenanceFrequency?, gmd:updateScope*, gmd:updateScopeDescription*, gmd:maintenanceNote*, gmd:contact*)>
 <!ELEMENT gmd:userDefinedMaintenanceFrequency (gts:TM_PeriodDuration)>
 <!ELEMENT gmd:maintenanceNote (gco:CharacterString)>
 <!ELEMENT gmd:graphicOverview (gmd:MD_BrowseGraphic)>
@@ -120,7 +134,7 @@
 <!ELEMENT gmd:fileDescription (gco:CharacterString)>
 <!ELEMENT gmd:fileType (gco:CharacterString)>
 <!ELEMENT gmd:resourceSpecificUsage (gmd:MD_Usage)>
-<!ELEMENT gmd:MD_Usage (gmd:specificUsage, gmd:usageDateTime, gmd:userDeterminedLimitations, gmd:userContactInfo)>
+<!ELEMENT gmd:MD_Usage (gmd:specificUsage, gmd:usageDateTime?, gmd:userDeterminedLimitations?, gmd:userContactInfo+)>
 <!ELEMENT gmd:specificUsage (gco:CharacterString)>
 <!ELEMENT gmd:usageDateTime (gco:DateTime)>
 <!ELEMENT gmd:userDeterminedLimitations (gco:CharacterString)>
@@ -130,8 +144,7 @@
 <!ELEMENT gmd:MD_AggregateInformation (gmd:aggregateDataSetName, gmd:aggregateDataSetIdentifier?, gmd:associationType, gmd:initiativeType)>
 <!ELEMENT gmd:aggregateDataSetName (gmd:CI_Citation)>
 <!ELEMENT gmd:aggregateDataSetIdentifier (gmd:MD_Identifier)>
-<!ELEMENT gmd:MD_Identifier (gmd:code)>
-<!ELEMENT gmd:associationType (gmd:DS_AssociationTypeCode)>
+<!ELEMENT gmd:associationType (gmd:CI_Citation?)>
 <!ELEMENT gmd:DS_AssociationTypeCode (#PCDATA)>
 <!ATTLIST gmd:DS_AssociationTypeCode codeListValue CDATA>
 <!ATTLIST gmd:DS_AssociationTypeCode codeList CDATA>
@@ -267,14 +280,15 @@
 
 <!-- MD_Metadata.distributionInfo -->
 <!ELEMENT gmd:distributionInfo (gmd:MD_Distribution)>
-<!ELEMENT gmd:MD_Distribution (gmd:distributionFormat*, gmd:distributor, gmd:transferOptions+)>
+<!ELEMENT gmd:MD_Distribution (gmd:distributionFormat*, gmd:distributor*, gmd:transferOptions*)>
 <!ELEMENT gmd:distributionFormat (gmd:MD_Format)>
 <!ELEMENT gmd:distributor (gmd:MD_Distributor)>
-<!ELEMENT gmd:MD_Distributor (gmd:distributorContact, gmd:distributionOrderProcess?, gmd:distributorFormat?, gmd:distributorTransferOptions+)>
+<!ELEMENT gmd:MD_Distributor (gmd:distributorContact, gmd:distributionOrderProcess*, gmd:distributorFormat*, gmd:distributorTransferOptions*)>
 <!ELEMENT gmd:distributorContact (gmd:CI_ResponsibleParty)>
 <!ELEMENT gmd:distributionOrderProcess (gmd:MD_StandardOrderProcess)>
-<!ELEMENT gmd:MD_StandardOrderProcess (gmd:fees, gmd:orderingInstructions, gmd:turnaround)>
+<!ELEMENT gmd:MD_StandardOrderProcess (gmd:fees?, gmd:plannedAvailableDateTime?, gmd:orderingInstructions?, gmd:turnaround?)>
 <!ELEMENT gmd:fees (gco:CharacterString)>
+<!ELEMENT gmd:plannedAvailableDateTime (gco:DateTime)>
 <!ELEMENT gmd:orderingInstructions (gco:CharacterString)>
 <!ELEMENT gmd:turnaround (gco:CharacterString)>
 <!ELEMENT gmd:distributorFormat (gmd:MD_Format)>
@@ -307,10 +321,11 @@
 
 <!-- MD_Metadata.dataQualityInfo -->
 <!ELEMENT gmd:dataQualityInfo (gmd:DQ_DataQuality)>
-<!ELEMENT gmd:DQ_DataQuality (gmd:scope, gmd:report*, gmd:lineage)>
+<!ELEMENT gmd:DQ_DataQuality (gmd:scope, gmd:report*, gmd:lineage?)>
 <!ELEMENT gmd:scope (gmd:DQ_Scope)>
-<!ELEMENT gmd:DQ_Scope (gmd:level)>
+<!ELEMENT gmd:DQ_Scope (gmd:level, gmd:extent?, gmd:levelDescription*)>
 <!ELEMENT gmd:level (gmd:MD_ScopeCode)>
+<!ELEMENT gmd:levelDescription (gmd:MD_ScopeDescription?)>
 <!ELEMENT gmd:report (gmd:DQ_ConceptualConsistency | gmd:DQ_CompletenessOmission | gmd:DQ_QuantitativeAttributeAccuracy)>
 <!ELEMENT gmd:DQ_ConceptualConsistency (gmd:measureDescription, gmd:result?)>
 <!ELEMENT gmd:DQ_CompletenessOmission (gmd:measureDescription, gmd:result?)>
@@ -319,15 +334,18 @@
 <!ELEMENT gmd:result (gco:CharacterString)>
 <!ATTLIST gmd:result gco:nilReason CDATA>
 <!ELEMENT gmd:lineage (gmd:LI_Lineage)>
-<!ELEMENT gmd:LI_Lineage (gmd:processStep*, gmd:source*, gmd:statement?)>
+<!ELEMENT gmd:LI_Lineage (gmd:statement?, gmd:processStep*, gmd:source*)>
 <!ELEMENT gmd:processStep (gmd:LI_ProcessStep)>
 <!ELEMENT gmd:LI_ProcessStep (gmd:description, gmd:rationale?, gmd:dateTime?, gmd:processor*, gmd:source*)>
 <!ELEMENT gmd:rationale (gco:CharacterString)>
 <!ELEMENT gmd:processor (gmd:CI_ResponsibleParty)>
 <!ELEMENT gmd:source (gmd:LI_Source)>
-<!ELEMENT gmd:LI_Source (gmd:description, gmd:scaleDenominator?, gmd:sourceCitation?, gmd:sourceExtent?)>
+<!ELEMENT gmd:LI_Source (gmd:description?, gmd:scaleDenominator?, gmd:sourceReferenceSystem?, gmd:sourceCitation?, gmd:sourceExtent*, gmd:sourceStep*)>
+<!ELEMENT gmd:description (gco:CharacterString)>
+<!ELEMENT gmd:sourceReferenceSystem (gmd:MD_ReferenceSystem)>
 <!ELEMENT gmd:sourceCitation (gmd:CI_Citation)>
 <!ELEMENT gmd:sourceExtent (gmd:EX_Extent)>
+<!ELEMENT gmd:sourceStep (gmd:LI_ProcessStep)>
 <!ELEMENT gmd:statement (gco:CharacterString)>
 
 <!-- MD_Metadata.metadataConstraints -->
@@ -374,6 +392,12 @@
 <!ELEMENT gmd:classificationSystem (gco:CharacterString)>
 <!ELEMENT gmd:handlingDescription (gco:CharacterString)>
 
+<!ELEMENT gmd:MD_Dimension (gmd:dimensionName, gmd:dimensionSize, gmd:resolution?)>
+<!ELEMENT gmd:dimensionName (gmd:MD_DimensionNameTypeCode)>
+<!ELEMENT gmd:MD_DimensionNameTypeCode (gco:CharacterString)>
+<!ELEMENT gmd:dimensionSize (gco:Integer)>
+<!ELEMENT gmd:resolution (gco:Measure, gco:Length, gco:Distance, gco:Angle, gco:Scale)>
+
 <!ELEMENT gmd:descriptiveKeywords (gmd:MD_Keywords)>
 <!ELEMENT gmd:MD_Keywords (gmd:keyword+, gmd:type, gmd:thesaurusName?)>
 <!ELEMENT gmd:keyword (gco:CharacterString)>
@@ -387,7 +411,7 @@
 <!ATTLIST gmd:thesaurusName xlink:title CDATA>
 
 <!ELEMENT gmd:citation (gmd:CI_Citation)>
-<!ELEMENT gmd:CI_Citation (gmd:title, gmd:alternateTitle*, gmd:collectiveTitle?, gmd:date+, gmd:edition*, gmd:editionDate?, gmd:identifier*, gmd:citedResponsibleParty*, gmd:otherCitationDetails?, gmd:presentationForm*, gmd:series?, ISBN?, ISSN?)>
+<!ELEMENT gmd:CI_Citation (gmd:title, gmd:alternateTitle*, gmd:date+, gmd:edition?, gmd:editionDate?, gmd:identifier*, gmd:citedResponsibleParty*, gmd:presentationForm*, gmd:series?, gmd:otherCitationDetails?, gmd:collectiveTitle?, ISBN?, ISSN?)>
 <!ELEMENT gmd:title (gco:CharacterString)>
 <!ELEMENT gmd:alternateTitle (gco:CharacterString)>
 <!ELEMENT gmd:collectiveTitle (gco:CharacterString)>
@@ -461,10 +485,14 @@
 <!ELEMENT gmd:MD_RepresentativeFraction (gmd:denominator)>
 
 <!ELEMENT gmd:EX_Extent (gmd:description?, gmd:temporalElement?, gmd:geographicElement*)>
-<!ELEMENT gmd:geographicElement (gmd:EX_BoundingPolygon | gmd:EX_GeographicBoundingBox)>
+<!ELEMENT gmd:geographicElement (gmd:EX_BoundingPolygon | gmd:EX_GeographicBoundingBox | gmd:EX_GeographicDescription)>
 <!ELEMENT gmd:EX_BoundingPolygon (gmd:extentTypeCode?, gmd:polygon+)>
-<!ELEMENT gmd:extentTypeCode (gco:Boolean)>
-<!ELEMENT gmd:polygon (gco:Decimal)>
+<!ELEMENT gmd:polygon (gml:LineString|gml:Point)>
+<!ELEMENT gmd:LineString (gml:description?, gml:metaDataProperty)>
+<!ELEMENT gml:Point (gml:description?, gml:metaDataProperty*)>
+<!ELEMENT gml:Polygon (gml:description?, gml:metaDataProperty*)>
+<!ELEMENT gml:description (gco:CharacterString)>
+<!ELEMENT gml:metaDataProperty (#PCDATA)>
 <!ELEMENT gmd:EX_GeographicBoundingBox (gmd:extentTypeCode?, gmd:westBoundLongitude, gmd:eastBoundLongitude, gmd:southBoundLatitude, gmd:northBoundLatitude)>
 <!ELEMENT gmd:westBoundLongitude (gco:Decimal)>
 <!ELEMENT gmd:eastBoundLongitude (gco:Decimal)>
@@ -473,12 +501,18 @@
 <!ELEMENT gmd:temporalElement (gmd:EX_TemporalExtent)>
 <!ELEMENT gmd:EX_TemporalExtent (gmd:extent)>
 <!ELEMENT gmd:extent (gml:TimeInstant | gml:TimePeriod)>
+<!ELEMENT gmd:EX_GeographicDescription (gmd:extentTypeCode?, gmd:geographicIdentifier)>
+<!ELEMENT gmd:geographicIdentifier (gmd:MD_Identifier)>
+<!ELEMENT gmd:extentTypeCode (gco:Boolean)>
 
 <!ELEMENT gmd:language (gmd:LanguageCode|gco:CharacterString)>
 <!ELEMENT gmd:LanguageCode (#PCDATA)>
 <!ATTLIST gmd:LanguageCode codeListValue CDATA>
 <!ATTLIST gmd:LanguageCode codeList CDATA>
 <!ATTLIST gmd:LanguageCode codeSpace CDATA>
+
+<!ELEMENT gmd:MD_Identifier (gmd:authority?, gmd:code)>
+<!ELEMENT gmd:authority (gmd:DS_AssociationTypeCode)>
 
 <!ELEMENT gmd:maintenanceAndUpdateFrequency (gmd:MD_MaintenanceFrequencyCode)>
 <!ELEMENT gmd:MD_MaintenanceFrequencyCode (#PCDATA)>
@@ -504,8 +538,13 @@
 <!ATTLIST gmd:MD_ScopeCode codeList CDATA>
 <!ATTLIST gmd:MD_ScopeCode codeSpace CDATA>
 <!ELEMENT gmd:updateScopeDescription (gmd:MD_ScopeDescription)>
-<!ELEMENT gmd:MD_ScopeDescription (gmd:dataset)>
+<!ELEMENT gmd:MD_ScopeDescription (gmd:attributes+, gmd:features+, gmd:featureInstances+, gmd:attributeInstances+, gmd:dataset, gmd:other)>
+<!ELEMENT gmd:attributes ()>
+<!ELEMENT gmd:features ()>
+<!ELEMENT gmd:featureInstances ()>
+<!ELEMENT gmd:attributeInstances ()>
 <!ELEMENT gmd:dataset (gco:CharacterString)>
+<!ELEMENT gmd:other (gco:CharacterString)>
 
 <!ELEMENT gmd:URL (#PCDATA)>
 
@@ -547,13 +586,16 @@
 <!ELEMENT gco:TypeName (gco:aName)>
 <!ELEMENT gco:aName (gco:CharacterString)>
 
-<!ELEMENT gco:Distance (#PCDATA)>
+<!ELEMENT gco:Angle (gco:Double)>
+<!ELEMENT gco:Distance (gco:Double)>
 <!ATTLIST gco:Distance uom CDATA>
+<!ELEMENT gco:Length (gco:Double)>
+<!ELEMENT gco:Measure (gco:Double)>
 <!ELEMENT gco:Multiplicity (gco:range)>
 <!ELEMENT gco:MultiplicityRange (gco:lower, gco:upper)>
+<!ELEMENT gco:Scale (gco:Double)>
 <!ELEMENT gco:lower (gco:Integer)>
 <!ELEMENT gco:upper (gco:UnlimitedInteger)>
-
 
 <!ELEMENT gco:Binary (#PCDATA)>
 <!ELEMENT gco:Boolean (#PCDATA)>
