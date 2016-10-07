@@ -114,8 +114,8 @@ def get_parsed_content(metadata_content):
 def _import_parsers():
     """ Lazy imports to prevent circular dependencies between this module and utils """
 
-    global ARCGIS_ROOTS
-    global ArcGISParser
+#     global ARCGIS_ROOTS
+#     global ArcGISParser
 
     global FGDC_ROOT
     global FgdcParser
@@ -125,9 +125,9 @@ def _import_parsers():
 
     global VALID_ROOTS
 
-    if ARCGIS_ROOTS is None or ArcGISParser is None:
-        from gis_metadata.arcgis_metadata_parser import ARCGIS_ROOTS
-        from gis_metadata.arcgis_metadata_parser import ArcGISParser
+#     if ARCGIS_ROOTS is None or ArcGISParser is None:
+#         from gis_metadata.arcgis_metadata_parser import ARCGIS_ROOTS
+#         from gis_metadata.arcgis_metadata_parser import ArcGISParser
 
     if FGDC_ROOT is None or FgdcParser is None:
         from gis_metadata.fgdc_metadata_parser import FGDC_ROOT
