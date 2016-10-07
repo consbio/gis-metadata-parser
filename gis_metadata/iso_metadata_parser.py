@@ -22,16 +22,14 @@ from gis_metadata.utils import CONTACTS
 from gis_metadata.utils import BOUNDING_BOX
 from gis_metadata.utils import DATES
 from gis_metadata.utils import DIGITAL_FORMS
-from gis_metadata.utils import KEYWORDS_PLACE
-from gis_metadata.utils import KEYWORDS_THEME
+from gis_metadata.utils import KEYWORDS_PLACE, KEYWORDS_THEME
 from gis_metadata.utils import LARGER_WORKS
 from gis_metadata.utils import PROCESS_STEPS
 from gis_metadata.utils import ParserProperty
 
-from gis_metadata.utils import format_xpath, format_xpaths
-from gis_metadata.utils import get_complex_definitions, get_xpath_branch
-from gis_metadata.utils import parse_complex, parse_complex_list, parse_dates
-from gis_metadata.utils import update_complex, update_complex_list, update_property
+from gis_metadata.utils import format_xpaths, get_complex_definitions, get_xpath_branch
+from gis_metadata.utils import parse_complex, parse_complex_list
+from gis_metadata.utils import update_complex_list, update_property
 
 
 xrange = getattr(six.moves, 'xrange')
@@ -82,7 +80,7 @@ _iso_tag_roots.update(format_xpaths(_iso_tag_roots, **_iso_tag_roots))
 
 _iso_tag_formats = {
     # Property-specific xpath roots: the base from which each element repeats
-    '_bbox_root': '{_idinfo_extent}/geographicElement',
+    '_bounding_box_root': '{_idinfo_extent}/geographicElement',
     '_contacts_root': '{_idinfo_resp}',
     '_dates_root': '{_idinfo_extent}/temporalElement/EX_TemporalExtent/extent',
     '_digital_form_content_root': '{_contentinfo_coverage}',
@@ -166,10 +164,10 @@ class IsoParser(MetadataParser):
 
         # Parse and validate the ISO metadata root
 
-        if self._xml_tree is not None:
-            iso_root = get_element_name(self._xml_tree)
-        else:
+        if self._xml_tree is None:
             iso_root = ISO_ROOTS[0]
+        else:
+            iso_root = get_element_name(self._xml_tree)
 
         if iso_root not in ISO_ROOTS:
             raise ParserError('Invalid XML root for ISO-19115 standard: {root}', root=iso_root)
@@ -178,85 +176,89 @@ class IsoParser(MetadataParser):
         iso_data_map.update(_iso_tag_roots)
         iso_data_map.update(_iso_tag_formats)
 
+        iso_data_structures = {}
+
         # Capture and format complex XPATHs
 
         ad_format = iso_data_map[ATTRIBUTES]
-        self._attr_details_xpaths = format_xpaths(
+        iso_data_structures[ATTRIBUTES] = format_xpaths(
             _iso_definitions[ATTRIBUTES],
-            label=format_xpath(ad_format, ad_path='memberName/LocalName'),
-            aliases=format_xpath(iso_data_map['_attr_alias'], ad_path='aliases/LocalName'),
-            definition=format_xpath(ad_format, ad_path='definition/CharacterString'),
-            definition_src=format_xpath(
-                iso_data_map['_attr_src'], ad_path='CI_Citation/organisationName/CharacterString'
+            label=ad_format.format(ad_path='memberName/LocalName'),
+            aliases=iso_data_map['_attr_alias'].format(ad_path='aliases/LocalName'),
+            definition=ad_format.format(ad_path='definition/CharacterString'),
+            definition_src=iso_data_map['_attr_src'].format(
+                ad_path='CI_Citation/organisationName/CharacterString'
             )
         )
 
         bb_format = iso_data_map[BOUNDING_BOX]
-        self._bounding_box_xpaths = format_xpaths(
+        iso_data_structures[BOUNDING_BOX] = format_xpaths(
             _iso_definitions[BOUNDING_BOX],
-            east=format_xpath(bb_format, bbox_path='eastBoundLongitude/Decimal'),
-            south=format_xpath(bb_format, bbox_path='southBoundLatitude/Decimal'),
-            west=format_xpath(bb_format, bbox_path='westBoundLongitude/Decimal'),
-            north=format_xpath(bb_format, bbox_path='northBoundLatitude/Decimal')
+            east=bb_format.format(bbox_path='eastBoundLongitude/Decimal'),
+            south=bb_format.format(bbox_path='southBoundLatitude/Decimal'),
+            west=bb_format.format(bbox_path='westBoundLongitude/Decimal'),
+            north=bb_format.format(bbox_path='northBoundLatitude/Decimal')
         )
 
         ct_format = iso_data_map[CONTACTS]
-        self._contact_xpaths = format_xpaths(
+        iso_data_structures[CONTACTS] = format_xpaths(
             _iso_definitions[CONTACTS],
-            name=format_xpath(ct_format, ct_path='individualName/CharacterString'),
-            organization=format_xpath(ct_format, ct_path='organisationName/CharacterString'),
-            position=format_xpath(ct_format, ct_path='positionName/CharacterString'),
-            email=format_xpath(
-                ct_format, ct_path='contactInfo/CI_Contact/address/CI_Address/electronicMailAddress/CharacterString'
+            name=ct_format.format(ct_path='individualName/CharacterString'),
+            organization=ct_format.format(ct_path='organisationName/CharacterString'),
+            position=ct_format.format(ct_path='positionName/CharacterString'),
+            email=ct_format.format(
+                ct_path='contactInfo/CI_Contact/address/CI_Address/electronicMailAddress/CharacterString'
             )
         )
 
         dt_format = iso_data_map[DATES]
-        self._dates_xpaths = {
-            DATE_TYPE_MULTIPLE: format_xpath(dt_format, type_path='TimeInstant/timePosition'),
-            DATE_TYPE_RANGE_BEGIN: format_xpath(dt_format, type_path='TimePeriod/begin/TimeInstant/timePosition'),
-            DATE_TYPE_RANGE_END: format_xpath(dt_format, type_path='TimePeriod/end/TimeInstant/timePosition'),
-            DATE_TYPE_SINGLE: format_xpath(dt_format, type_path='TimeInstant/timePosition')  # Same as multiple
+        iso_data_structures[DATES] = {
+            DATE_TYPE_MULTIPLE: dt_format.format(type_path='TimeInstant/timePosition'),
+            DATE_TYPE_RANGE_BEGIN: dt_format.format(type_path='TimePeriod/begin/TimeInstant/timePosition'),
+            DATE_TYPE_RANGE_END: dt_format.format(type_path='TimePeriod/end/TimeInstant/timePosition'),
+            DATE_TYPE_SINGLE: dt_format.format(type_path='TimeInstant/timePosition')  # Same as multiple
         }
 
         df_format = iso_data_map[DIGITAL_FORMS]
-        self._digital_forms_xpaths = format_xpaths(
+        iso_data_structures[DIGITAL_FORMS] = format_xpaths(
             _iso_definitions[DIGITAL_FORMS],
-            name=format_xpath(df_format, df_path='name/CharacterString'),
+            name=df_format.format(df_path='name/CharacterString'),
             content='',  # Not supported in ISO-19115 (using coverage description)
-            decompression=format_xpath(df_format, df_path='fileDecompressionTechnique/CharacterString'),
-            version=format_xpath(df_format, df_path='version/CharacterString'),
-            specification=format_xpath(df_format, df_path='specification/CharacterString'),
+            decompression=df_format.format(df_path='fileDecompressionTechnique/CharacterString'),
+            version=df_format.format(df_path='version/CharacterString'),
+            specification=df_format.format(df_path='specification/CharacterString'),
             access_desc='',  # Placeholder for later assignment
             access_instrs='',  # Placeholder for later assignment
             network_resource=''  # Placeholder for later assignment
         )
 
-        self._keywords_xpaths = {
+        keywords_structure = {
             'keyword_root': 'MD_Keywords/keyword',
             'keyword_type': 'MD_Keywords/type/MD_KeywordTypeCode',
             'keyword': 'MD_Keywords/keyword/CharacterString'
         }
+        iso_data_structures[KEYWORDS_PLACE] = keywords_structure
+        iso_data_structures[KEYWORDS_THEME] = keywords_structure
 
         lw_format = iso_data_map[LARGER_WORKS]
-        self._larger_works_xpaths = format_xpaths(
+        iso_data_structures[LARGER_WORKS] = format_xpaths(
             _iso_definitions[LARGER_WORKS],
-            title=format_xpath(lw_format, lw_path='title/CharacterString'),
-            edition=format_xpath(lw_format, lw_path='edition/CharacterString'),
-            origin=format_xpath(iso_data_map['_lw_citation'], lw_path='individualName/CharacterString'),
-            online_linkage=format_xpath(iso_data_map['_lw_linkage'], lw_path='linkage/URL'),
-            other_citation=format_xpath(lw_format, lw_path='otherCitationDetails/CharacterString'),
-            date=format_xpath(lw_format, lw_path='editionDate/Date'),
-            place=format_xpath(iso_data_map['_lw_contact'], lw_path='address/CI_Address/city/CharacterString'),
-            info=format_xpath(iso_data_map['_lw_citation'], lw_path='organisationName/CharacterString')
+            title=lw_format.format(lw_path='title/CharacterString'),
+            edition=lw_format.format(lw_path='edition/CharacterString'),
+            origin=iso_data_map['_lw_citation'].format(lw_path='individualName/CharacterString'),
+            online_linkage=iso_data_map['_lw_linkage'].format(lw_path='linkage/URL'),
+            other_citation=lw_format.format(lw_path='otherCitationDetails/CharacterString'),
+            date=lw_format.format(lw_path='editionDate/Date'),
+            place=iso_data_map['_lw_contact'].format(lw_path='address/CI_Address/city/CharacterString'),
+            info=iso_data_map['_lw_citation'].format(lw_path='organisationName/CharacterString')
         )
 
         ps_format = iso_data_map[PROCESS_STEPS] + '/{ps_path}'
-        self._process_steps_xpaths = format_xpaths(
+        iso_data_structures[PROCESS_STEPS] = format_xpaths(
             _iso_definitions[PROCESS_STEPS],
-            description=format_xpath(ps_format, ps_path='description/CharacterString'),
-            date=format_xpath(ps_format, ps_path='dateTime/DateTime'),
-            sources=format_xpath(ps_format, ps_path='source/LI_Source/sourceCitation/CI_Citation/alternateTitle')
+            description=ps_format.format(ps_path='description/CharacterString'),
+            date=ps_format.format(ps_path='dateTime/DateTime'),
+            sources=ps_format.format(ps_path='source/LI_Source/sourceCitation/CI_Citation/alternateTitle')
         )
 
         # Assign XPATHS and gis_metadata.utils.ParserProperties to fgdc_data_map
@@ -268,11 +270,11 @@ class IsoParser(MetadataParser):
             elif prop in ['attribute_accuracy', 'dataset_completeness']:
                 iso_data_map[prop] = ParserProperty(self._parse_property, self._update_report_item, xpath)
 
-            elif prop == CONTACTS:
-                iso_data_map[prop] = ParserProperty(self._parse_contacts, self._update_contacts)
+            elif prop in [CONTACTS, PROCESS_STEPS]:
+                iso_data_map[prop] = ParserProperty(self._parse_complex_list, self._update_complex_list)
 
             elif prop == BOUNDING_BOX:
-                iso_data_map[prop] = ParserProperty(self._parse_bounding_box, self._update_bounding_box)
+                iso_data_map[prop] = ParserProperty(self._parse_complex, self._update_complex)
 
             elif prop == DATES:
                 iso_data_map[prop] = ParserProperty(self._parse_dates, self._update_dates)
@@ -281,10 +283,7 @@ class IsoParser(MetadataParser):
                 iso_data_map[prop] = ParserProperty(self._parse_digital_forms, self._update_digital_forms)
 
             elif prop == LARGER_WORKS:
-                iso_data_map[prop] = ParserProperty(self._parse_larger_works, self._update_larger_works)
-
-            elif prop == PROCESS_STEPS:
-                iso_data_map[prop] = ParserProperty(self._parse_process_steps, self._update_process_steps)
+                iso_data_map[prop] = ParserProperty(self._parse_larger_works, self._update_complex)
 
             elif prop in [KEYWORDS_PLACE, KEYWORDS_THEME]:
                 iso_data_map[prop] = ParserProperty(self._parse_keywords, self._update_keywords)
@@ -293,6 +292,7 @@ class IsoParser(MetadataParser):
                 iso_data_map[prop] = xpath
 
         self._data_map = iso_data_map
+        self._data_structures = iso_data_structures
 
     def _parse_attribute_details(self, prop=ATTRIBUTES):
         """ Concatenates a list of Attribute Details data structures parsed from a remote file """
@@ -326,7 +326,7 @@ class IsoParser(MetadataParser):
 
             self._attr_details_file_url = file_location
 
-            xpath_map = dict(self._attr_details_xpaths)
+            xpath_map = dict(self._data_structures[ATTRIBUTES])
             xpath_root = 'featureType'
 
             try:
@@ -375,32 +375,11 @@ class IsoParser(MetadataParser):
 
         return attrib_details
 
-    def _parse_bounding_box(self, prop=BOUNDING_BOX):
-        """ Creates and returns a Bounding Box data structure parsed from the metadata """
-
-        xpath_root = self._data_map['_bbox_root']
-        xpath_map = self._bounding_box_xpaths
-
-        return parse_complex(self._xml_tree, xpath_root, xpath_map, prop)
-
-    def _parse_contacts(self, prop=CONTACTS):
-        """ Creates and returns a list of one Contact structure parsed from the metadata """
-
-        xpath_root = self._data_map['_contacts_root']
-        xpath_map = self._contact_xpaths
-
-        return parse_complex_list(self._xml_tree, xpath_root, xpath_map, prop)
-
-    def _parse_dates(self, prop=DATES):
-        """ Creates and returns a Date Types data structure parsed from the metadata """
-
-        return parse_dates(self._xml_tree, self._dates_xpaths)
-
     def _parse_digital_forms(self, prop=DIGITAL_FORMS):
         """ Concatenates a list of Digital Form data structures parsed from the metadata """
 
         xpath_root = self._data_map['_distribution_format_root']
-        xpath_map = self._digital_forms_xpaths
+        xpath_map = self._data_structures[prop]
 
         transopt_root = self._data_map['_transfer_options_root']
         acdesc_xpath = get_xpath_branch(transopt_root, self._data_map['_access_desc'])
@@ -455,9 +434,10 @@ class IsoParser(MetadataParser):
 
         if prop in [KEYWORDS_PLACE, KEYWORDS_THEME]:
             xpath_root = self._data_map['_keywords_root']
+            xpath_map = self._data_structures[prop]
 
-            xtype = self._keywords_xpaths['keyword_type']
-            xpath = self._keywords_xpaths['keyword']
+            xtype = xpath_map['keyword_type']
+            xpath = xpath_map['keyword']
 
             if prop == KEYWORDS_PLACE:
                 ktype = KEYWORD_TYPE_PLACE
@@ -471,20 +451,12 @@ class IsoParser(MetadataParser):
         return keywords
 
     def _parse_larger_works(self, prop=LARGER_WORKS):
-        """ Creates and returns a Larger Works data structure parsed from the metadata """
+        """ Overridden to set xpath root to None when parsing larger works """
 
         xpath_root = None
-        xpath_map = self._larger_works_xpaths
+        xpath_map = self._data_structures[prop]
 
         return parse_complex(self._xml_tree, xpath_root, xpath_map, prop)
-
-    def _parse_process_steps(self, prop=PROCESS_STEPS):
-        """ Creates and returns a list of Process Steps data structures parsed from the metadata """
-
-        xpath_root = self._data_map['_process_steps_root']
-        xpath_map = self._process_steps_xpaths
-
-        return parse_complex_list(self._xml_tree, xpath_root, xpath_map, prop)
 
     def _update_attribute_details(self, **update_props):
         """ Update operation for ISO Attribute Details metadata (standard 19110) """
@@ -517,28 +489,6 @@ class IsoParser(MetadataParser):
 
         return attributes
 
-    def _update_bounding_box(self, **update_props):
-        """
-        Update operation for ISO Bounding Box metadata
-        :see: gis_metadata.utils._complex_definitions[BOUNDING_BOX]
-        """
-
-        xpath_root = self._data_map['_bbox_root']
-        xpath_map = self._bounding_box_xpaths
-
-        return update_complex(xpath_root=xpath_root, xpath_map=xpath_map, **update_props)
-
-    def _update_contacts(self, **update_props):
-        """
-        Update operation for ISO Contacts metadata
-        :see: gis_metadata.utils._complex_definitions[CONTACTS]
-        """
-
-        xpath_root = self._data_map['_contacts_root']
-        xpath_map = self._contact_xpaths
-
-        return update_complex_list(xpath_root=xpath_root, xpath_map=xpath_map, **update_props)
-
     def _update_dates(self, **update_props):
         """
         Update operation for ISO Dates metadata
@@ -559,7 +509,7 @@ class IsoParser(MetadataParser):
             elif date_type == DATE_TYPE_RANGE:
                 xpath_root += '/TimePeriod'
 
-        return self._update_dates_property(xpath_root, self._dates_xpaths, **update_props)
+        return super(IsoParser, self)._update_dates(xpath_root, **update_props)
 
     def _update_digital_forms(self, **update_props):
         """
@@ -589,9 +539,11 @@ class IsoParser(MetadataParser):
 
         # Update all Digital Form properties: distributionFormat*
 
+        xpath_map = self._data_structures[update_props['prop']]
+
         dist_format_props = ('name', 'decompression', 'version', 'specification')
         dist_format_xroot = self._data_map['_distribution_format_root']
-        dist_format_xmap = {prop: self._digital_forms_xpaths[prop] for prop in dist_format_props}
+        dist_format_xmap = {prop: xpath_map[prop] for prop in dist_format_props}
 
         dist_formats = []
         for digital_form in digital_forms:
@@ -635,10 +587,11 @@ class IsoParser(MetadataParser):
 
         if prop in [KEYWORDS_PLACE, KEYWORDS_THEME]:
             xpath_root = self._data_map['_keywords_root']
+            xpath_map = self._data_structures[update_props['prop']]
 
-            xtype = self._keywords_xpaths['keyword_type']
-            xroot = self._keywords_xpaths['keyword_root']
-            xpath = self._keywords_xpaths['keyword']
+            xtype = xpath_map['keyword_type']
+            xroot = xpath_map['keyword_root']
+            xpath = xpath_map['keyword']
 
             if prop == KEYWORDS_PLACE:
                 ktype = KEYWORD_TYPE_PLACE
@@ -656,28 +609,6 @@ class IsoParser(MetadataParser):
             keywords.extend(update_property(element, xroot, xpath, prop, values))
 
         return keywords
-
-    def _update_larger_works(self, **update_props):
-        """
-        Update operation for ISO Larger Works metadata
-        :see: gis_metadata.utils._complex_definitions[LARGER_WORKS]
-        """
-
-        xpath_root = self._data_map['_larger_works_root']
-        xpath_map = self._larger_works_xpaths
-
-        return update_complex(xpath_root=xpath_root, xpath_map=xpath_map, **update_props)
-
-    def _update_process_steps(self, **update_props):
-        """
-        Update operation for ISO Process Steps metadata
-        :see: gis_metadata.utils._complex_definitions[PROCESS_STEPS]
-        """
-
-        xpath_root = self._data_map['_process_steps_root']
-        xpath_map = self._process_steps_xpaths
-
-        return update_complex_list(xpath_root=xpath_root, xpath_map=xpath_map, **update_props)
 
     def _update_report_item(self, **update_props):
         """ Update operation for ISO Attribute Accuracy metadata """

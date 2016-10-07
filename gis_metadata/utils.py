@@ -116,18 +116,13 @@ _complex_definitions = {
 }
 
 
-def format_xpath(xpath, *args, **kwargs):
-    """ :return: an XPATH formatted with the ordered or keyword values """
-    return xpath.format(*args, **kwargs)
-
-
 def format_xpaths(xpath_map, *args, **kwargs):
     """ :return: a copy of xpath_map, but with XPATHs formatted with ordered or keyword values """
 
     formatted = {}.fromkeys(xpath_map)
 
     for key, xpath in iteritems(xpath_map):
-        formatted[key] = format_xpath(xpath, *args, **kwargs)
+        formatted[key] = xpath.format(*args, **kwargs)
 
     return formatted
 
@@ -180,7 +175,7 @@ def get_default_for(prop, value):
     elif prop in (BOUNDING_BOX, DATES, LARGER_WORKS):
         return val or {}
     else:
-        return val
+        return u'' if val is None else val
 
 
 def parse_complex(tree_to_parse, xpath_root, xpath_map, complex_key):

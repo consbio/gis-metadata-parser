@@ -3,20 +3,21 @@
 from copy import deepcopy
 from six import iteritems
 
-from parserutils.elements import create_element_tree, element_exists, element_to_string, strip_namespaces
-from parserutils.elements import get_element_name, get_element_tree, get_elements_text
-from parserutils.elements import insert_element, remove_element, write_element
+from parserutils.elements import create_element_tree, element_exists, element_to_dict, element_to_string
+from parserutils.elements import get_element_name, get_element_tree, get_elements, get_elements_text
+from parserutils.elements import insert_element, remove_element, write_element, strip_namespaces
 from parserutils.strings import DEFAULT_ENCODING
 
-from gis_metadata.utils import DATE_TYPE, DATE_VALUES
+from gis_metadata.utils import DATES, DATE_TYPE, DATE_VALUES, parse_complex, parse_complex_list, parse_dates
 from gis_metadata.utils import DATE_TYPE_RANGE, DATE_TYPE_RANGE_BEGIN, DATE_TYPE_RANGE_END
 from gis_metadata.utils import get_default_for, get_required_keys
-from gis_metadata.utils import update_property, validate_any, validate_keyset
+from gis_metadata.utils import update_complex, update_complex_list, update_property, validate_any, validate_keyset
 from gis_metadata.utils import ParserError
 
 
 # Place holders for lazy, one-time FGDC & ISO imports
 
+ArcGISParser, ARCGIS_ROOTS = None, None
 FgdcParser, FGDC_ROOT = None, None
 IsoParser, ISO_ROOTS = None, None
 VALID_ROOTS = None
@@ -36,7 +37,7 @@ def convert_parser_to(parser, parser_or_type):
     new_parser = get_metadata_parser(parser_or_type)
 
     for prop in get_required_keys():
-        setattr(new_parser, prop, deepcopy(getattr(old_parser, prop, '')))
+        setattr(new_parser, prop, deepcopy(getattr(old_parser, prop, u'')))
 
     new_parser.update()
 
@@ -113,6 +114,9 @@ def get_parsed_content(metadata_content):
 def _import_parsers():
     """ Lazy imports to prevent circular dependencies between this module and utils """
 
+    global ARCGIS_ROOTS
+    global ArcGISParser
+
     global FGDC_ROOT
     global FgdcParser
 
@@ -120,6 +124,10 @@ def _import_parsers():
     global IsoParser
 
     global VALID_ROOTS
+
+    if ARCGIS_ROOTS is None or ArcGISParser is None:
+        from gis_metadata.arcgis_metadata_parser import ARCGIS_ROOTS
+        from gis_metadata.arcgis_metadata_parser import ArcGISParser
 
     if FGDC_ROOT is None or FgdcParser is None:
         from gis_metadata.fgdc_metadata_parser import FGDC_ROOT
@@ -130,7 +138,7 @@ def _import_parsers():
         from gis_metadata.iso_metadata_parser import IsoParser
 
     if VALID_ROOTS is None:
-        VALID_ROOTS = {FGDC_ROOT}.union(ISO_ROOTS)
+        VALID_ROOTS = {FGDC_ROOT}.union(ARCGIS_ROOTS + ISO_ROOTS)
 
 
 class MetadataParser(object):
@@ -183,8 +191,9 @@ class MetadataParser(object):
         self.has_data = False
         self.out_file_or_path = out_file_or_path
 
-        self._data_map = None
         self._xml_tree = None
+        self._data_map = None
+        self._data_structures = None
 
         if metadata_to_parse is None:
             self._xml_tree = self._get_template(**metadata_defaults)
@@ -211,7 +220,7 @@ class MetadataParser(object):
 
         for prop, xpath in iteritems(self._data_map):
             if not xpath:
-                parsed = ''
+                parsed = u''
             elif hasattr(xpath, '__call__'):
                 parsed = xpath(prop)
             else:
@@ -259,6 +268,12 @@ class MetadataParser(object):
 
         return self._template_paths
 
+    def _get_elements_as_dict(self, xpath):
+        """ :return: a dict with all element data except for the element children """
+
+        elements = get_elements(self._xml_tree, xpath)
+        return [element_to_dict(e, recurse=False) for e in elements]
+
     def _get_elements_text(self, xpath):
         """ :return: all the text associated with the specified XPATH as a string array """
 
@@ -269,14 +284,61 @@ class MetadataParser(object):
 
         return False if not xpath else element_exists(self._xml_tree, xpath)
 
+    def _parse_complex(self, prop):
+        """ Default parsing operation for a complex struct """
+
+        xpath_root = self._data_map.get('_{prop}_root'.format(prop=prop))
+        xpath_map = self._data_structures[prop]
+
+        return parse_complex(self._xml_tree, xpath_root, xpath_map, prop)
+
+    def _parse_complex_list(self, prop):
+        """ Default parsing operation for lists of complex structs """
+
+        xpath_root = self._data_map.get('_{prop}_root'.format(prop=prop))
+        xpath_map = self._data_structures[prop]
+
+        return parse_complex_list(self._xml_tree, xpath_root, xpath_map, prop)
+
+    def _parse_dates(self, prop=DATES):
+        """ Creates and returns a Date Types data structure parsed from the metadata """
+
+        return parse_dates(self._xml_tree, self._data_structures[prop])
+
+    def _parse_elements(self, prop, attr=None):
+        """ :return: the element for the XPATH corresponding to prop as a dict """
+
+        xpath = self._data_map[prop]
+        parsed = self._get_elements_as_dict(getattr(xpath, 'xpath', xpath))
+
+        return parsed if attr is None else parsed.get(attr)
+
     def _parse_property(self, prop):
-        """ :return: the value for the XPATH corresponding to prop """
+        """ :return: the text value for the XPATH corresponding to prop """
 
         xpath = self._data_map[prop]
 
         return get_default_for(prop, self._get_elements_text(getattr(xpath, 'xpath', xpath)))
 
-    def _update_dates_property(self, xpath_root, xpaths, **update_props):
+    def _update_complex(self, **update_props):
+        """ Default update operation for a complex struct """
+
+        prop = update_props['prop']
+        xpath_root = self._data_map.get('_{prop}_root'.format(prop=prop))
+        xpath_map = self._data_structures[prop]
+
+        return update_complex(xpath_root=xpath_root, xpath_map=xpath_map, **update_props)
+
+    def _update_complex_list(self, **update_props):
+        """ Default update operation for lists of complex structs """
+
+        prop = update_props['prop']
+        xpath_root = self._data_map.get('_{prop}_root'.format(prop=prop))
+        xpath_map = self._data_structures[prop]
+
+        return update_complex_list(xpath_root=xpath_root, xpath_map=xpath_map, **update_props)
+
+    def _update_dates(self, xpath_root=None, **update_props):
         """
         Default update operation for Dates metadata
         :see: gis_metadata.utils._complex_definitions[DATES]
@@ -284,12 +346,13 @@ class MetadataParser(object):
 
         tree_to_update = update_props['tree_to_update']
         prop = update_props['prop']
-        values = get_default_for(prop, update_props['values']).get(DATE_VALUES, '')
+        values = get_default_for(prop, update_props['values']).get(DATE_VALUES, u'')
+        xpaths = self._data_structures[prop]
 
         if not self.dates:
             date_xpaths = xpath_root
         elif self.dates[DATE_TYPE] != DATE_TYPE_RANGE:
-            date_xpaths = xpaths.get(self.dates[DATE_TYPE], '')
+            date_xpaths = xpaths.get(self.dates[DATE_TYPE], u'')
         else:
             date_xpaths = [
                 xpaths[DATE_TYPE_RANGE_BEGIN],
@@ -344,7 +407,7 @@ class MetadataParser(object):
 
         for prop, xpath in iteritems(self._data_map):
             if not prop.startswith('_'):  # Update only non-private properties
-                update_property(tree_to_update, None, xpath, prop, getattr(self, prop, ''))
+                update_property(tree_to_update, None, xpath, prop, getattr(self, prop, u''))
 
         return tree_to_update
 
