@@ -28,8 +28,7 @@ from gis_metadata.utils import PROCESS_STEPS
 from gis_metadata.utils import ParserProperty
 
 from gis_metadata.utils import format_xpaths, get_complex_definitions, get_xpath_branch
-from gis_metadata.utils import parse_complex, parse_complex_list
-from gis_metadata.utils import update_complex_list, update_property
+from gis_metadata.utils import parse_complex_list, update_complex_list, update_property
 
 
 xrange = getattr(six.moves, 'xrange')
@@ -82,7 +81,7 @@ _iso_tag_formats = {
     # Property-specific xpath roots: the base from which each element repeats
     '_bounding_box_root': '{_idinfo_extent}/geographicElement',
     '_contacts_root': '{_idinfo_resp}',
-    '_dates_root': '{_idinfo_extent}/temporalElement/EX_TemporalExtent/extent',
+    '_dates_root': '{_idinfo_extent}/temporalElement',
     '_digital_form_content_root': '{_contentinfo_coverage}',
     '_distribution_format_root': '{_distinfo}/distributionFormat',
     '_transfer_options_root': '{_distinfo}/transferOptions',
@@ -103,14 +102,15 @@ _iso_tag_formats = {
     CONTACTS: '{_idinfo_resp}/{{ct_path}}',
     'dist_contact_org': '{_distinfo_resp}/organisationName/CharacterString',
     'dist_contact_person': '{_distinfo_resp}/individualName/CharacterString',
-    'dist_address_type': '',  # Not available in ISO-19115
+    'dist_address_type': '{_distinfo_resp_contact}/address/@type',
     'dist_address': '{_distinfo_resp_contact}/address/CI_Address/deliveryPoint/CharacterString',
     'dist_city': '{_distinfo_resp_contact}/address/CI_Address/city/CharacterString',
     'dist_state': '{_distinfo_resp_contact}/address/CI_Address/administrativeArea/CharacterString',
     'dist_postal': '{_distinfo_resp_contact}/address/CI_Address/postalCode/CharacterString',
     'dist_country': '{_distinfo_resp_contact}/address/CI_Address/country/CharacterString',
+    '_dist_country': '{_distinfo_resp_contact}/address/CI_Address/country/Country',  # If not in CharacterString
     'dist_phone': '{_distinfo_resp_contact}/phone/CI_Telephone/voice/CharacterString',
-    'dist_email': '{_distinfo_resp_contact}/address/CI_Address/electronicMailAddressy/CharacterString',
+    'dist_email': '{_distinfo_resp_contact}/address/CI_Address/electronicMailAddress/CharacterString',
     'dist_liability': '{_idinfo}/resourceConstraints/MD_LegalConstraints/otherConstraints/CharacterString',
     'processing_fees': '{_distinfo_proc}/fees/CharacterString',
     'processing_instrs': '{_distinfo_proc}/orderingInstructions/CharacterString',
@@ -172,7 +172,7 @@ class IsoParser(MetadataParser):
         if iso_root not in ISO_ROOTS:
             raise ParserError('Invalid XML root for ISO-19115 standard: {root}', root=iso_root)
 
-        iso_data_map = {'root': iso_root}
+        iso_data_map = {'_root': iso_root}
         iso_data_map.update(_iso_tag_roots)
         iso_data_map.update(_iso_tag_formats)
 
@@ -258,7 +258,9 @@ class IsoParser(MetadataParser):
             _iso_definitions[PROCESS_STEPS],
             description=ps_format.format(ps_path='description/CharacterString'),
             date=ps_format.format(ps_path='dateTime/DateTime'),
-            sources=ps_format.format(ps_path='source/LI_Source/sourceCitation/CI_Citation/alternateTitle')
+            sources=ps_format.format(
+                ps_path='source/LI_Source/sourceCitation/CI_Citation/alternateTitle/CharacterString'
+            )
         )
 
         # Assign XPATHS and gis_metadata.utils.ParserProperties to fgdc_data_map
@@ -267,13 +269,13 @@ class IsoParser(MetadataParser):
             if prop == ATTRIBUTES:
                 iso_data_map[prop] = ParserProperty(self._parse_attribute_details, self._update_attribute_details)
 
-            elif prop in ['attribute_accuracy', 'dataset_completeness']:
-                iso_data_map[prop] = ParserProperty(self._parse_property, self._update_report_item, xpath)
+            elif prop in ('attribute_accuracy', 'dataset_completeness'):
+                iso_data_map[prop] = ParserProperty(self._parse_property, self._update_report_item, xpath=xpath)
 
-            elif prop in [CONTACTS, PROCESS_STEPS]:
+            elif prop in (CONTACTS, PROCESS_STEPS):
                 iso_data_map[prop] = ParserProperty(self._parse_complex_list, self._update_complex_list)
 
-            elif prop == BOUNDING_BOX:
+            elif prop in (BOUNDING_BOX, LARGER_WORKS):
                 iso_data_map[prop] = ParserProperty(self._parse_complex, self._update_complex)
 
             elif prop == DATES:
@@ -281,9 +283,6 @@ class IsoParser(MetadataParser):
 
             elif prop == DIGITAL_FORMS:
                 iso_data_map[prop] = ParserProperty(self._parse_digital_forms, self._update_digital_forms)
-
-            elif prop == LARGER_WORKS:
-                iso_data_map[prop] = ParserProperty(self._parse_larger_works, self._update_complex)
 
             elif prop in [KEYWORDS_PLACE, KEYWORDS_THEME]:
                 iso_data_map[prop] = ParserProperty(self._parse_keywords, self._update_keywords)
@@ -450,14 +449,6 @@ class IsoParser(MetadataParser):
 
         return keywords
 
-    def _parse_larger_works(self, prop=LARGER_WORKS):
-        """ Overridden to set xpath root to None when parsing larger works """
-
-        xpath_root = None
-        xpath_map = self._data_structures[prop]
-
-        return parse_complex(self._xml_tree, xpath_root, xpath_map, prop)
-
     def _update_attribute_details(self, **update_props):
         """ Update operation for ISO Attribute Details metadata (standard 19110) """
 
@@ -621,6 +612,7 @@ class IsoParser(MetadataParser):
         self.validate()
 
         tree_to_update = self._xml_tree if not use_template else self._get_template(**metadata_defaults)
+        supported_props = self._metadata_props
 
         # Iterate over keys, and extract non-primitive root for all XPATHs
         #    xroot = identificationInfo/MD_DataIdentification/abstract/
@@ -629,10 +621,11 @@ class IsoParser(MetadataParser):
         # This prevents multiple primitive tags from being inserted under an element
 
         for prop, xpath in iteritems(self._data_map):
-            if not prop.startswith('_'):
+            if not prop.startswith('_') or prop.strip('_') in supported_props:
+                # Send only public or alternate properties
                 xroot = self._trim_xpath(xpath)
                 values = getattr(self, prop, u'')
-                update_property(tree_to_update, xroot, xpath, prop, values)
+                update_property(tree_to_update, xroot, xpath, prop, values, supported_props)
 
         return tree_to_update
 

@@ -3,14 +3,14 @@
     <gmd:contentInfo>
         <gmd:MD_CoverageDescription>
             <attributeDescription>
-                <RecordType>Test Digital Form Content 1</RecordType>
+                <RecordType>Digital Form Content 1</RecordType>
             </attributeDescription>
         </gmd:MD_CoverageDescription>
     </gmd:contentInfo>
     <gmd:contentInfo>
         <gmd:MD_CoverageDescription>
             <attributeDescription>
-                <RecordType>Test Digital Form Content 2</RecordType>
+                <RecordType>Digital Form Content 2</RecordType>
             </attributeDescription>
         </gmd:MD_CoverageDescription>
     </gmd:contentInfo>
@@ -19,7 +19,7 @@
             <gmd:featureCatalogueCitation href="http://www.isotc211.org/2005/gfc/resources/example/G_3.xml">
                 <gmd:CI_Citation>
                     <gmd:title>
-                        <gco:CharacterString>Feature Catalogue for Provisional Processed CTD Data from the Deepwater Horizon Incident Response in the Gulf of Mexico May 08, 2010 through November 15 ,2010</gco:CharacterString>
+                        <gco:CharacterString>Attributes Title (unused)</gco:CharacterString>
                     </gmd:title>
                     <gmd:citedResponsibleParty>
                         <gmd:CI_ResponsibleParty>
@@ -81,7 +81,7 @@
                                             <onlineResource>
                                                 <CI_OnlineResource>
                                                     <linkage>
-                                                        <URL>larger.works.onlinelinkage.com</URL>
+                                                        <URL>http://test.largerworks.online.linkage.com</URL>
                                                     </linkage>
                                                 </CI_OnlineResource>
                                             </onlineResource>
@@ -134,7 +134,7 @@
                                     <onlineResource>
                                         <CI_OnlineResource>
                                             <linkage>
-                                                <URL>http://test.onlinelinkages.com</URL>
+                                                <URL>http://test.onlinelinkages.org</URL>
                                             </linkage>
                                         </CI_OnlineResource>
                                     </onlineResource>
@@ -172,15 +172,34 @@
                             <address>
                                 <CI_Address>
                                     <electronicMailAddress>
-                                        <CharacterString>Test Contact Email 1</CharacterString>
+                                        <CharacterString>Contact Email 1</CharacterString>
                                     </electronicMailAddress>
                                 </CI_Address>
                             </address>
                         </CI_Contact>
                     </contactInfo>
-                    <role>
-                        <CI_RoleCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_RoleCode" codeListValue="pointOfContact" codeSpace="ISOTC211/19115">pointOfContact</CI_RoleCode>
-                    </role>
+                </CI_ResponsibleParty>
+                <CI_ResponsibleParty>
+                    <individualName>
+                        <CharacterString>Contact Name 2</CharacterString>
+                    </individualName>
+                    <organisationName>
+                        <CharacterString>Contact Organization 2</CharacterString>
+                    </organisationName>
+                    <positionName>
+                        <CharacterString>Contact Position 2</CharacterString>
+                    </positionName>
+                    <contactInfo>
+                        <CI_Contact>
+                            <address>
+                                <CI_Address>
+                                    <electronicMailAddress>
+                                        <CharacterString>Contact Email 2</CharacterString>
+                                    </electronicMailAddress>
+                                </CI_Address>
+                            </address>
+                        </CI_Contact>
+                    </contactInfo>
                 </CI_ResponsibleParty>
             </pointOfContact>
             <resourceConstraints>
@@ -242,8 +261,26 @@
                     <temporalElement>
                         <EX_TemporalExtent>
                             <extent>
-                                <TimeInstant id="_66b99e683d41fed11943dce2d1f049">
-                                    <timePosition>Test Single Date Only (as per DTD)</timePosition>
+                                <TimeInstant>
+                                    <timePosition>Multiple Date 1</timePosition>
+                                </TimeInstant>
+                            </extent>
+                        </EX_TemporalExtent>
+                    </temporalElement>
+                    <temporalElement>
+                        <EX_TemporalExtent>
+                            <extent>
+                                <TimeInstant>
+                                    <timePosition>Multiple Date 2</timePosition>
+                                </TimeInstant>
+                            </extent>
+                        </EX_TemporalExtent>
+                    </temporalElement>
+                    <temporalElement>
+                        <EX_TemporalExtent>
+                            <extent>
+                                <TimeInstant>
+                                    <timePosition>Multiple Date 3</timePosition>
                                 </TimeInstant>
                             </extent>
                         </EX_TemporalExtent>
@@ -255,23 +292,23 @@
                     <geographicElement>
                         <EX_GeographicBoundingBox>
                             <westBoundLongitude>
-                                <Decimal>-116.33665673</Decimal>
+                                <Decimal>-179.99999999998656</Decimal>
                             </westBoundLongitude>
                             <eastBoundLongitude>
-                                <Decimal>-111.247685898</Decimal>
+                                <Decimal>179.99999999998656</Decimal>
                             </eastBoundLongitude>
                             <southBoundLatitude>
-                                <Decimal>32.3804377656</Decimal>
+                                <Decimal>-86.78249642712764</Decimal>
                             </southBoundLatitude>
                             <northBoundLatitude>
-                                <Decimal>34.8636229386</Decimal>
+                                <Decimal>87.81211601444309</Decimal>
                             </northBoundLatitude>
                         </EX_GeographicBoundingBox>
                     </geographicElement>
                 </EX_Extent>
             </extent>
             <supplementalInformation>
-                <CharacterString>Test Supplemental Info</CharacterString>
+                <CharacterString>Test Supplementary Info</CharacterString>
             </supplementalInformation>
         </MD_DataIdentification>
     </identificationInfo>
@@ -330,6 +367,9 @@
                 <MD_DigitalTransferOptions>
                     <onLine>
                         <CI_OnlineResource>
+                            <protocol>
+                                <CharacterString>Digital Form Access Instructions 2</CharacterString>
+                            </protocol>
                             <linkage>
                                 <URL>digitalform.network.resource.two.com</URL>
                             </linkage>
@@ -340,43 +380,26 @@
                     </onLine>
                 </MD_DigitalTransferOptions>
             </transferOptions>
-            <transferOptions>
-                <MD_DigitalTransferOptions>
-                    <onLine>
-                        <CI_OnlineResource>
-                            <protocol>
-                                <CharacterString>Digital Form Access Instructions 3</CharacterString>
-                            </protocol>
-                            <linkage>
-                                <URL>digitalform.network.resource.three.com</URL>
-                            </linkage>
-                            <description>
-                                <CharacterString>Digital Form Access Description 3</CharacterString>
-                            </description>
-                        </CI_OnlineResource>
-                    </onLine>
-                </MD_DigitalTransferOptions>
-            </transferOptions>
             <distributor>
                 <MD_Distributor>
                     <distributorContact>
                         <CI_ResponsibleParty>
                             <individualName>
-                                <CharacterString>Test Distribution Contact Person</CharacterString>
+                                <CharacterString>Test Distribution Person</CharacterString>
                             </individualName>
                             <organisationName>
-                                <CharacterString>Test Distribution Contact Org</CharacterString>
+                                <CharacterString>Test Distribution Org</CharacterString>
                             </organisationName>
                             <contactInfo>
                                 <CI_Contact>
                                     <phone>
                                         <CI_Telephone>
                                             <voice>
-                                                <CharacterString>Test Distribution Contact Phone</CharacterString>
+                                                <CharacterString>Test Distribution Phone</CharacterString>
                                             </voice>
                                         </CI_Telephone>
                                     </phone>
-                                    <address>
+                                    <address xlink:type="Test Distribution Address Type">
                                         <CI_Address>
                                             <deliveryPoint>
                                                 <CharacterString>Test Distribution Address</CharacterString>
@@ -455,6 +478,9 @@
                                             <alternateTitle>
                                                 <CharacterString>Process Step Sources 1.1</CharacterString>
                                             </alternateTitle>
+                                            <alternateTitle>
+                                                <CharacterString>Process Step Sources 1.2</CharacterString>
+                                            </alternateTitle>
                                         </CI_Citation>
                                     </sourceCitation>
                                 </LI_Source>
@@ -466,29 +492,29 @@
                             <description>
                                 <CharacterString>Process Step Description 2</CharacterString>
                             </description>
+                        </LI_ProcessStep>
+                    </processStep>
+                    <processStep>
+                        <LI_ProcessStep>
                             <dateTime>
-                                <DateTime>Process Step Date 2</DateTime>
+                                <DateTime>Process Step Date 3</DateTime>
                             </dateTime>
+                        </LI_ProcessStep>
+                    </processStep>
+                    <processStep>
+                        <LI_ProcessStep>
+                            <description>
+                                <CharacterString>Process Step Description 4</CharacterString>
+                            </description>
                             <source>
                                 <LI_Source>
                                     <sourceCitation>
                                         <CI_Citation>
-                                            <title>
-                                                <CharacterString>Process Step Sources 2 (not used)</CharacterString>
-                                            </title>
                                             <alternateTitle>
-                                                <CharacterString>Process Step Sources 2.1</CharacterString>
+                                                <CharacterString>Process Step Sources 4.1</CharacterString>
                                             </alternateTitle>
-                                        </CI_Citation>
-                                    </sourceCitation>
-                                </LI_Source>
-                            </source>
-                            <source>
-                                <LI_Source>
-                                    <sourceCitation>
-                                        <CI_Citation>
                                             <alternateTitle>
-                                                <CharacterString>Process Step Sources 2.2</CharacterString>
+                                                <CharacterString>Process Step Sources 4.2</CharacterString>
                                             </alternateTitle>
                                         </CI_Citation>
                                     </sourceCitation>

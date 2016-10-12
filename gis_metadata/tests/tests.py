@@ -13,7 +13,7 @@ from gis_metadata.iso_metadata_parser import IsoParser, ISO_ROOTS, _iso_tag_form
 from gis_metadata.metadata_parser import MetadataParser, get_metadata_parser, get_parsed_content
 
 from gis_metadata.exceptions import ParserError
-from gis_metadata.utils import get_complex_definitions, get_required_keys
+from gis_metadata.utils import get_complex_definitions, get_supported_props
 from gis_metadata.utils import DATE_TYPE, DATE_VALUES
 from gis_metadata.utils import DATE_TYPE_SINGLE, DATE_TYPE_RANGE, DATE_TYPE_MISSING, DATE_TYPE_MULTIPLE
 from gis_metadata.utils import ATTRIBUTES, CONTACTS, DIGITAL_FORMS, PROCESS_STEPS
@@ -72,49 +72,69 @@ class MetadataParserTestCase(unittest.TestCase):
             )
         )
 
-    def assert_reparsed_complex_for(self, parser, prop, value, target, exclude=(), sub_prop=None):
+    def assert_reparsed_complex_for(self, parser, prop, value, target):
 
         setattr(parser, prop, value)
 
         parser_type = type(parser)
+        parser_name = parser_type.__name__
         reparsed = getattr(parser_type(parser.serialize()), prop)
-        sub_prop = sub_prop or prop
 
         if not isinstance(reparsed, (dict, list)):
-            self.assert_equal_for(parser_type.__name__, sub_prop, reparsed, target)
-        elif isinstance(reparsed, list):
-            for idx, val in enumerate(reparsed):
-                self.assert_reparsed_complex_for(
-                    parser, prop, val, target[idx], exclude, sub_prop='{0}[{1}]'.format(prop, idx)
-                )
-        else:
-            target = target or {}
-            for key, val in iteritems(reparsed):
-                if key not in exclude:
-                    self.assert_equal_for(
-                        parser_type.__name__, '{0}.{1}'.format(sub_prop, key), val, target.get(key, u'')
-                    )
+            # Reparsed should not be a collection: do a single value comparison
+            self.assert_equal_for(parser_name, prop, reparsed, target)
 
-    def assert_reparsed_simple_for(self, parser, props, value, target, exclude=()):
+        elif isinstance(reparsed, type(target)) and len(target) != len(reparsed):
+            # Reparsed and target equal in type, but lengths differ: do a single value comparison
+            self.assert_equal_for(parser_name, prop, reparsed, target)
+
+        elif isinstance(reparsed, dict):
+            # Reparsed is a dict: compare each value with corresponding in target
+            for key, val in iteritems(reparsed):
+                self.assert_equal_for(
+                    parser_name, '{0}.{1}'.format(prop, key), val, target.get(key, u'')
+                )
+
+        elif len(reparsed) <= 1:
+            # Reparsed is empty or a single-item list: do a single value comparison
+            self.assert_equal_for(parser_name, prop, reparsed, target)
+
+        else:
+            # Reparsed is a multiple-item list: compare each value with corresponding in target
+            for idx, value in enumerate(reparsed):
+                if not isinstance(value, dict):
+                    self.assert_equal_for(parser_name, '{0}[{1}]'.format(prop, idx), value, target[idx])
+                else:
+                    for key, val in iteritems(value):
+                        self.assert_equal_for(
+                            parser_name, '{0}.{1}'.format(prop, key), val, target[idx].get(key, u'')
+                        )
+
+
+    def assert_reparsed_simple_for(self, parser, props, value, target):
 
         for prop in props:
             setattr(parser, prop, value)
 
         parser_type = type(parser)
+        parser_name = parser_type.__name__
         reparsed = parser_type(parser.serialize())
 
         for prop in props:
-            self.assert_equal_for(parser_type.__name__, prop, getattr(reparsed, prop), target)
+            self.assert_equal_for(parser_name, prop, getattr(reparsed, prop), target)
 
     def assert_parser_conversion(self, content_parser, target_parser, comparison_type=''):
         converted = content_parser.convert_to(target_parser)
+
+        self.assert_valid_parser(content_parser)
+        self.assert_valid_parser(target_parser)
 
         self.assertFalse(
             converted is target_parser,
             '{0} conversion is returning the original {0} instance'.format(type(converted).__name__)
         )
 
-        for prop in get_required_keys():
+        for prop in get_supported_props():
             self.assertEqual(
                 getattr(content_parser, prop), getattr(converted, prop),
                 '{0} {1}conversion does not equal original {2} content for {3}'.format(
@@ -125,21 +145,11 @@ class MetadataParserTestCase(unittest.TestCase):
     def assert_parsers_are_equal(self, parser_1, parser_2):
         parser_type = type(parser_1).__name__
 
-        for prop in get_required_keys():
+        self.assert_valid_parser(parser_1)
+        self.assert_valid_parser(parser_2)
+
+        for prop in get_supported_props():
             self.assert_equal_for(parser_type, prop, getattr(parser_1, prop), getattr(parser_2, prop))
-
-    def assert_template_after_write(self, parser_type, out_file_path):
-
-        parser = parser_type(out_file_or_path=out_file_path)
-
-        # Reverse each value and read the file in again
-        for prop, val in iteritems(TEST_TEMPLATE_CONSTANTS):
-            setattr(parser, prop, val[::-1])
-
-        parser.write()
-
-        with open(out_file_path) as out_file:
-            self.assert_parsers_are_equal(parser, parser_type(out_file))
 
     def assert_parser_after_write(self, parser_type, in_file, out_file_path, use_template=False):
 
@@ -148,7 +158,7 @@ class MetadataParserTestCase(unittest.TestCase):
         complex_defs = get_complex_definitions()
 
         # Update each value and read the file in again
-        for prop in get_required_keys():
+        for prop in get_supported_props():
 
             if isinstance(parser, IsoParser) and prop == ATTRIBUTES:
                 val = []  # The ISO standard stores attributes in an external file
@@ -172,6 +182,18 @@ class MetadataParserTestCase(unittest.TestCase):
 
         with open(out_file_path) as out_file:
             self.assert_parsers_are_equal(parser, parser_type(out_file))
+
+    def assert_valid_parser(self, parser, root=None):
+
+        parser_type = type(parser.validate()).__name__
+
+        self.assertIsNotNone(parser._xml_root, '{0} root not set'.format(parser_type))
+
+        if root is not None:
+            self.assertEqual(parser._xml_root, root)
+
+        self.assertIsNotNone(parser._xml_tree)
+        self.assertEqual(parser._xml_tree.getroot().tag, parser._xml_root)
 
     def assert_validates_for(self, parser, prop, invalid):
 
@@ -202,25 +224,39 @@ class MetadataParserTestCase(unittest.TestCase):
 
 class MetadataParserTemplateTests(MetadataParserTestCase):
 
-    def assert_valid_template(self, parser, exclude=()):
+    def assert_template_after_write(self, parser_type, out_file_path):
+
+        parser = parser_type(out_file_or_path=out_file_path)
+
+        # Reverse each value and read the file in again
+        for prop, val in iteritems(TEST_TEMPLATE_CONSTANTS):
+            setattr(parser, prop, val[::-1])
+
+        parser.write()
+
+        with open(out_file_path) as out_file:
+            self.assert_parsers_are_equal(parser, parser_type(out_file))
+
+    def assert_valid_template(self, parser, root):
 
         parser_type = type(parser.validate()).__name__
 
-        for prop, val in iteritems(TEST_TEMPLATE_CONSTANTS):
-            if prop not in exclude:
-                parsed_val = getattr(parser, prop)
+        self.assertIsNotNone(parser._xml_root, '{0} root not set'.format(parser_type))
+        self.assertEqual(parser._xml_root, root)
+        self.assertIsNotNone(parser._xml_tree)
+        self.assertEqual(parser._xml_tree.getroot().tag, parser._xml_root)
 
-                self.assertEqual(parsed_val, val, (
-                    '{0} property {1}, "{2}", does not equal "{3}"'.format(
-                        parser_type, prop, parsed_val, val
-                    )
-                ))
+        for prop, val in iteritems(TEST_TEMPLATE_CONSTANTS):
+            parsed_val = getattr(parser, prop)
+            self.assertEqual(parsed_val, val, (
+                '{0} property {1}, "{2}", does not equal "{3}"'.format(parser_type, prop, parsed_val, val)
+            ))
 
     def test_fgdc_template_values(self):
-        self.assert_valid_template(FgdcParser(**TEST_TEMPLATE_CONSTANTS))
+        self.assert_valid_template(FgdcParser(**TEST_TEMPLATE_CONSTANTS), root='metadata')
 
     def test_iso_template_values(self):
-        self.assert_valid_template(IsoParser(**TEST_TEMPLATE_CONSTANTS), exclude=('dist_address_type'))
+        self.assert_valid_template(IsoParser(**TEST_TEMPLATE_CONSTANTS), root='MD_Metadata')
 
     def test_template_conversion(self):
         fgdc_template = FgdcParser()
@@ -352,7 +388,8 @@ class MetadataParserTests(MetadataParserTestCase):
         # Assert that the contact organization has been read in
         fgdc_parser = FgdcParser(element_to_string(fgdc_element))
         for key in contacts_def:
-            self.assertIsNotNone(fgdc_parser.contacts[key], 'Failed to read contact.{0}'.format(key))
+            for contact in fgdc_parser.contacts:
+                self.assertIsNotNone(contact[key], 'Failed to read contact.{0}'.format(key))
 
         # Remove the contact person completely
         fgdc_element = get_remote_element(self.fgdc_file)
@@ -363,7 +400,8 @@ class MetadataParserTests(MetadataParserTestCase):
         # Assert that the contact organization has been read in
         fgdc_parser = FgdcParser(element_to_string(fgdc_element))
         for key in contacts_def:
-            self.assertIsNotNone(fgdc_parser.contacts[key], 'Failed to read updated contact.{0}'.format(key))
+            for contact in fgdc_parser.contacts:
+                self.assertIsNotNone(contact[key], 'Failed to read updated contact.{0}'.format(key))
 
     def test_iso_parser(self):
         """ Tests behavior unique to the ISO parser """
@@ -456,13 +494,17 @@ class MetadataParserTests(MetadataParserTestCase):
                 complex_list = []
 
                 for val in self.valid_complex_values:
-                    complex_list.append({}.fromkeys(complex_defs[prop], val))
-
                     # The ISO standard stores attributes in an external file
-                    if isinstance(parser, IsoParser) and prop == ATTRIBUTES:
-                        target_list = []
-                    else:
-                        target_list = reduce_value(complex_list)
+                    wont_parse = isinstance(parser, IsoParser) and prop == ATTRIBUTES
+
+                    # Test with single unwrapped value
+                    next_complex = {}.fromkeys(complex_defs[prop], val)
+                    target_list = [] if wont_parse else wrap_value(next_complex)
+                    self.assert_reparsed_complex_for(parser, prop, next_complex, target_list)
+
+                    # Test with accumulated list of values
+                    complex_list.append({}.fromkeys(complex_defs[prop], val))
+                    target_list = [] if wont_parse else wrap_value(complex_list)
 
                     self.assert_reparsed_complex_for(parser, prop, complex_list, target_list)
 
@@ -514,8 +556,8 @@ class MetadataParserTests(MetadataParserTestCase):
 
             # Test reparsed valid keywords
             for keywords in ('keyword', ['keyword', 'list']):
-                self.assert_reparsed_complex_for(parser, KEYWORDS_PLACE, keywords, keywords)
-                self.assert_reparsed_complex_for(parser, KEYWORDS_THEME, keywords, keywords)
+                self.assert_reparsed_complex_for(parser, KEYWORDS_PLACE, keywords, wrap_value(keywords))
+                self.assert_reparsed_complex_for(parser, KEYWORDS_THEME, keywords, wrap_value(keywords))
 
     def test_reparse_process_steps(self):
         proc_step_def = get_complex_definitions()[PROCESS_STEPS]
@@ -539,14 +581,12 @@ class MetadataParserTests(MetadataParserTestCase):
 
                 complex_list.append(complex_struct)
 
-                self.assert_reparsed_complex_for(
-                    parser, PROCESS_STEPS, complex_list, reduce_value(complex_list)
-                )
+                self.assert_reparsed_complex_for(parser, PROCESS_STEPS, complex_list, complex_list)
 
     def test_reparse_simple_values(self):
 
         complex_props = set(get_complex_definitions().keys())
-        required_props = set(get_required_keys())
+        required_props = set(get_supported_props())
 
         simple_props = required_props.difference(complex_props)
         simple_props = simple_props.difference({KEYWORDS_PLACE, KEYWORDS_THEME})
@@ -605,7 +645,7 @@ class MetadataParserTests(MetadataParserTestCase):
 
     def test_validate_simple_values(self):
         complex_props = set(get_complex_definitions().keys())
-        simple_props = set(get_required_keys()).difference(complex_props)
+        simple_props = set(get_supported_props()).difference(complex_props)
 
         invalid_values = (None, [None], dict(), [dict()], set(), [set()], tuple(), [tuple()])
 

@@ -3,7 +3,7 @@
     <idinfo>
         <descript>
             <abstract>Test Abstract</abstract>
-            <purpose>Test Purupose</purpose>
+            <purpose>Test Purpose</purpose>
             <supplinf>Test Supplementary Info</supplinf>
         </descript>
         <citation>
@@ -11,23 +11,23 @@
                 <origin>Test Originators</origin>
                 <pubdate>Test Publish Date</pubdate>
                 <title>Test Title</title>
-                <onlink>http://test.online.linkages.org</onlink>
-                <othercit>Test Other Citation</othercit>
+                <onlink>http://test.onlinelinkages.org</onlink>
+                <othercit>Test Other Citation Info</othercit>
                 <pubinfo>
                     <publish />
                     <pubplace />
                 </pubinfo>
                 <lworkcit>
                     <citeinfo>
-                        <origin>LW Origin</origin>
-                        <pubdate>LW Publish Date</pubdate>
-                        <title>LW Title</title>
-                        <edition>LW Edition</edition>
-                        <othercit>LW Other Citation</othercit>
+                        <origin>Larger Works Originator</origin>
+                        <pubdate>Larger Works Date</pubdate>
+                        <title>Larger Works Title</title>
+                        <edition>Larger Works Edition</edition>
+                        <othercit>Larger Works Other Citation</othercit>
                         <onlink>http://test.largerworks.online.linkage.com</onlink>
                         <pubinfo>
-                            <publish>LW Info</publish>
-                            <pubplace>LW Place</pubplace>
+                            <publish>Larger Works Info</publish>
+                            <pubplace>Larger Works Place</pubplace>
                         </pubinfo>
                     </citeinfo>
                 </lworkcit>
@@ -84,8 +84,8 @@
         <datacred>Test Data Credits</datacred>
         <ptcontac>
             <cntinfo>
-                <cntemail>Test Contact Email 1</cntemail>
-                <cntpos>Test Contact Position 1</cntpos>
+                <cntemail>Contact Email 1</cntemail>
+                <cntpos>Contact Position 1</cntpos>
                 <cntorgp>
                     <cntper>Contact Name 1</cntper>
                     <cntorg>Contact Organization 1</cntorg>
@@ -94,8 +94,8 @@
         </ptcontac>
         <ptcontac>
             <cntinfo>
-                <cntemail>Test Contact Email 2</cntemail>
-                <cntpos>Test Contact Position 2</cntpos>
+                <cntemail>Contact Email 2</cntemail>
+                <cntpos>Contact Position 2</cntpos>
                 <cntperp>
                     <cntper>Contact Name 2</cntper>
                     <cntorg>Contact Organization 2</cntorg>
@@ -116,7 +116,7 @@
                     <city>Test Distribution City</city>
                     <state>OR</state>
                     <postal>12345</postal>
-                    <country>USA</country>
+                    <country>US</country>
                 </cntaddr>
                 <cntvoice>Test Distribution Phone</cntvoice>
                 <cntemail>Test Distribution Email</cntemail>
@@ -171,7 +171,7 @@
                             </networka>
                         </computer>
                         <accinstr>Digital Form Access Instructions 1</accinstr>
-                        <oncomp>Digital Form Access Desc 1</oncomp>
+                        <oncomp>Digital Form Access Description 1</oncomp>
                     </onlinopt>
                 </digtopt>
             </digform>
@@ -221,7 +221,7 @@
                             </networka>
                         </computer>
                         <accinstr>Digital Form Access Instructions 2</accinstr>
-                        <oncomp>Digital Form Access Desc 2</oncomp>
+                        <oncomp>Digital Form Access Description 2</oncomp>
                     </onlinopt>
                 </digtopt>
             </digform>
@@ -272,12 +272,12 @@
                 <srcused>Process Step Sources 1.2</srcused>
             </procstep>
             <procstep>
-                <procdesc>Process Description 2</procdesc>
+                <procdesc>Process Step Description 2</procdesc>
             </procstep>
             <procstep>
-                <procdesc>
-Process Step Description 3
-                </procdesc>
+                <procdate>
+Process Step Date 3
+                </procdate>
             </procstep>
             <procstep>
                 <procdesc>

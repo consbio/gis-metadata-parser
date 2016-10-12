@@ -20,12 +20,16 @@ from gis_metadata.utils import LARGER_WORKS
 from gis_metadata.utils import PROCESS_STEPS
 from gis_metadata.utils import ParserProperty
 
-from gis_metadata.utils import format_xpaths, get_complex_definitions, parse_complex
+from gis_metadata.utils import format_xpaths, get_complex_definitions
 
 
 FGDC_ROOT = 'metadata'
 
 _fgdc_definitions = get_complex_definitions()
+_fgdc_definitions[CONTACTS].update({
+    '_name': '{_name}',
+    '_organization': '{_organization}'
+})
 
 _fgdc_tag_formats = {
     '_attributes_root': 'eainfo/detailed/attr',
@@ -44,9 +48,11 @@ _fgdc_tag_formats = {
     'originators': 'idinfo/citation/citeinfo/origin',
     'publish_date': 'idinfo/citation/citeinfo/pubdate',
     'data_credits': 'idinfo/datacred',
-    CONTACTS: 'idinfo/ptcontac/{ct_path}',
-    'dist_contact_org': 'distinfo/distrib/cntinfo/{org}/cntorg',
-    'dist_contact_person': 'distinfo/distrib/cntinfo/{person}/cntper',
+    CONTACTS: 'idinfo/ptcontac/cntinfo/{ct_path}',
+    'dist_contact_org': 'distinfo/distrib/cntinfo/cntperp/cntorg',
+    '_dist_contact_org': 'distinfo/distrib/cntinfo/cntorgp/cntorg',
+    'dist_contact_person': 'distinfo/distrib/cntinfo/cntperp/cntper',
+    '_dist_contact_person': 'distinfo/distrib/cntinfo/cntorgp/cntper',
     'dist_address_type': 'distinfo/distrib/cntinfo/cntaddr/addrtype',
     'dist_address': 'distinfo/distrib/cntinfo/cntaddr/address',
     'dist_city': 'distinfo/distrib/cntinfo/cntaddr/city',
@@ -78,8 +84,6 @@ _fgdc_tag_formats = {
 class FgdcParser(MetadataParser):
     """ A class to parse metadata files conforming to the FGDC standard """
 
-    DEFAULT_CONTACT_TAG = 'cntperp'
-
     def _init_data_map(self):
         """ OVERRIDDEN: Initialize required FGDC data map with XPATHS and specialized functions """
 
@@ -96,19 +100,8 @@ class FgdcParser(MetadataParser):
         if fgdc_root != FGDC_ROOT:
             raise ParserError('Invalid XML root for ISO-19115 standard: {root}', root=fgdc_root)
 
-        fgdc_data_map = {'root': FGDC_ROOT}
+        fgdc_data_map = {'_root': FGDC_ROOT}
         fgdc_data_structures = {}
-
-        # Capture contact information that may differ per document
-
-        cntinfo = 'idinfo/ptcontac/cntinfo/{contact}'
-
-        if self._has_element(cntinfo.format(contact='cntorgp')):
-            contact = 'cntorgp'
-        elif self._has_element(cntinfo.format(contact='cntperp')):
-            contact = 'cntperp'
-        else:
-            contact = FgdcParser.DEFAULT_CONTACT_TAG
 
         # Capture and format other complex XPATHs
 
@@ -133,10 +126,12 @@ class FgdcParser(MetadataParser):
         ct_format = _fgdc_tag_formats[CONTACTS]
         fgdc_data_structures[CONTACTS] = format_xpaths(
             _fgdc_definitions[CONTACTS],
-            name=ct_format.format(ct_path='cntinfo/{ct}/cntper'.format(ct=contact)),
-            organization=ct_format.format(ct_path='cntinfo/{ct}/cntorg'.format(ct=contact)),
-            position=ct_format.format(ct_path='cntinfo/cntpos'.format(ct=contact)),
-            email=ct_format.format(ct_path='cntinfo/cntemail')
+            name=ct_format.format(ct_path='cntperp/cntper'),
+            _name=ct_format.format(ct_path='cntorgp/cntper'),
+            organization=ct_format.format(ct_path='cntperp/cntorg'),
+            _organization=ct_format.format(ct_path='cntorgp/cntorg'),
+            position=ct_format.format(ct_path='cntpos'),
+            email=ct_format.format(ct_path='cntemail')
         )
 
         dt_format = _fgdc_tag_formats[DATES]
@@ -186,45 +181,20 @@ class FgdcParser(MetadataParser):
         fgdc_data_formats = dict(_fgdc_tag_formats)
 
         for prop, xpath in iteritems(fgdc_data_formats):
-            if prop in [ATTRIBUTES, CONTACTS, DIGITAL_FORMS, PROCESS_STEPS]:
+            if prop in (ATTRIBUTES, CONTACTS, DIGITAL_FORMS, PROCESS_STEPS):
                 fgdc_data_map[prop] = ParserProperty(self._parse_complex_list, self._update_complex_list)
 
-            elif prop == BOUNDING_BOX:
-                fgdc_data_map[prop] = ParserProperty(self._parse_bounding_box, self._update_complex)
-
-            elif prop == 'dist_contact_org':
-                fgdc_data_map[prop] = xpath.format(org=contact)
-
-            elif prop == 'dist_contact_person':
-                fgdc_data_map[prop] = xpath.format(person=contact)
+            elif prop in (BOUNDING_BOX, LARGER_WORKS):
+                fgdc_data_map[prop] = ParserProperty(self._parse_complex, self._update_complex)
 
             elif prop == DATES:
                 fgdc_data_map[prop] = ParserProperty(self._parse_dates, self._update_dates)
-
-            elif prop == LARGER_WORKS:
-                fgdc_data_map[prop] = ParserProperty(self._parse_larger_works, self._update_complex)
 
             else:
                 fgdc_data_map[prop] = xpath
 
         self._data_map = fgdc_data_map
         self._data_structures = fgdc_data_structures
-
-    def _parse_bounding_box(self, prop=BOUNDING_BOX):
-        """ Overridden to set xpath root to None when parsing bounding box """
-
-        xpath_root = None
-        xpath_map = self._data_structures[prop]
-
-        return parse_complex(self._xml_tree, xpath_root, xpath_map, prop)
-
-    def _parse_larger_works(self, prop=LARGER_WORKS):
-        """ Overridden to set xpath root to None when parsing larger works """
-
-        xpath_root = None
-        xpath_map = self._data_structures[prop]
-
-        return parse_complex(self._xml_tree, xpath_root, xpath_map, prop)
 
     def _update_dates(self, **update_props):
         """

@@ -3,15 +3,15 @@
 from copy import deepcopy
 from six import iteritems
 
-from parserutils.elements import create_element_tree, element_exists, element_to_dict, element_to_string
-from parserutils.elements import get_element_name, get_element_tree, get_elements, get_elements_text
-from parserutils.elements import insert_element, remove_element, write_element, strip_namespaces
+from parserutils.elements import create_element_tree, element_to_dict, element_to_string
+from parserutils.elements import remove_element, write_element, strip_namespaces
+from parserutils.elements import get_element_name, get_element_tree, get_elements
 from parserutils.strings import DEFAULT_ENCODING
 
-from gis_metadata.utils import DATES, DATE_TYPE, DATE_VALUES, parse_complex, parse_complex_list, parse_dates
+from gis_metadata.utils import DATES, DATE_TYPE, DATE_VALUES
 from gis_metadata.utils import DATE_TYPE_RANGE, DATE_TYPE_RANGE_BEGIN, DATE_TYPE_RANGE_END
-from gis_metadata.utils import get_default_for, get_required_keys
-from gis_metadata.utils import update_complex, update_complex_list, update_property, validate_any, validate_keyset
+from gis_metadata.utils import _supported_props, parse_complex, parse_complex_list, parse_dates, parse_property
+from gis_metadata.utils import update_complex, update_complex_list, update_property, validate_any, validate_properties
 from gis_metadata.utils import ParserError
 
 
@@ -23,7 +23,7 @@ IsoParser, ISO_ROOTS = None, None
 VALID_ROOTS = None
 
 
-def convert_parser_to(parser, parser_or_type):
+def convert_parser_to(parser, parser_or_type, metadata_props=None):
     """
     :return: a parser of type parser_or_type, initialized with the properties of parser. If parser_or_type
     is a type, an instance of it must contain a update method. The update method must also process
@@ -36,7 +36,7 @@ def convert_parser_to(parser, parser_or_type):
     old_parser = parser if isinstance(parser, MetadataParser) else get_metadata_parser(parser)
     new_parser = get_metadata_parser(parser_or_type)
 
-    for prop in get_required_keys():
+    for prop in (metadata_props or _supported_props):
         setattr(new_parser, prop, deepcopy(getattr(old_parser, prop, u'')))
 
     new_parser.update()
@@ -174,7 +174,7 @@ class MetadataParser(object):
             The _data_map dictionary will contain identifying property names as keys, and either
             XPATHs or ParserProperties as values.
 
-    III. If the new content is required across standards, update utils._required_keys as needed
+    III. If the new content is required across standards, update utils._supported_props as needed
 
         Requiring new content does not mean a value is required from the incoming metadata. Rather,
         it means all MetadataParser children must provide an XPATH for parsing the value, even if
@@ -183,7 +183,7 @@ class MetadataParser(object):
 
     """
 
-    def __init__(self, metadata_to_parse=None, out_file_or_path=None, **metadata_defaults):
+    def __init__(self, metadata_to_parse=None, out_file_or_path=None, metadata_props=None, **metadata_defaults):
         """
         Initialize new parser with valid content as defined by get_parsed_content
         :see: get_parsed_content(metdata_content) for more on what constitutes valid content
@@ -195,10 +195,11 @@ class MetadataParser(object):
         self._xml_tree = None
         self._data_map = None
         self._data_structures = None
+        self._metadata_props = set(metadata_props or _supported_props)
 
         if metadata_to_parse is None:
             self._xml_tree = self._get_template(**metadata_defaults)
-            self._xml_root = self._data_map['root']
+            self._xml_root = self._data_map['_root']
         else:
             self._xml_root, self._xml_tree = get_parsed_content(metadata_to_parse)
 
@@ -215,80 +216,55 @@ class MetadataParser(object):
         if self._data_map is None:
             self._init_data_map()
 
-        validate_keyset(self._data_map.keys())
+        validate_properties(self._data_map, self._metadata_props)
 
         # Parse attribute values and assign them: key = parse(val)
 
-        for prop, xpath in iteritems(self._data_map):
-            if not xpath:
-                parsed = u''
-            elif hasattr(xpath, '__call__'):
-                parsed = xpath(prop)
-            else:
-                parsed = get_elements_text(self._xml_tree, xpath)
+        for prop in self._data_map:
+            setattr(self, prop, parse_property(self._xml_tree, None, self._data_map, prop))
 
-            setattr(self, prop, get_default_for(prop, parsed))
-
-            if not self.has_data:
-                self.has_data = bool(parsed)
+        self.has_data = any(getattr(self, prop) for prop in self._data_map)
 
     def _init_data_map(self):
         """ Default data map initialization: MUST be overridden in children """
 
         if self._data_map is None:
-            self._data_map = {'root': None}
-            self._data_map.update({}.fromkeys(get_required_keys()))
+            self._data_map = {'_root': None}
+            self._data_map.update({}.fromkeys(self._metadata_props))
 
     def _get_template(self, root=None, **metadata_defaults):
-        """ Iterate over items retrieved from _get_template_paths to populate template """
+        """ Iterate over items metadata_defaults {prop: val, ...} to populate template """
 
         if root is None:
             if self._data_map is None:
                 self._init_data_map()
 
-            root = self._data_map['root']
+            root = self._xml_root = self._data_map['_root']
 
-        template = create_element_tree(root)
+        template_tree = self._xml_tree = create_element_tree(root)
 
-        for path, val in iteritems(self._get_template_paths(**metadata_defaults)):
+        for prop, val in iteritems(metadata_defaults):
+            path = self._get_xpath_for(prop)
             if path and val:
-                insert_element(template, 0, path, val)
+                update_property(template_tree, None, path, prop, val)
 
-        return template
+        return template_tree
 
-    def _get_template_paths(self, **metadata_defaults):
-        """
-        Default template XPATHs: MAY be overridden in children.
-        :return: a dict containing at least the distribution contact info: {xpath: value}
-        """
+    def _get_xpath_for(self, prop):
+        """ :return: the configured xpath for a given property """
 
-        if not hasattr(self, '_template_paths'):
-            self._template_paths = {
-                self._data_map[key]: val for key, val in iteritems(metadata_defaults)
-            }
+        xpath = self._data_map.get(prop)
+        return getattr(xpath, 'xpath', xpath)  # May be a ParserProperty
 
-        return self._template_paths
+    def _get_xroot_for(self, prop):
+        """ :return: the configured root for a given property based on the property name """
 
-    def _get_elements_as_dict(self, xpath):
-        """ :return: a dict with all element data except for the element children """
-
-        elements = get_elements(self._xml_tree, xpath)
-        return [element_to_dict(e, recurse=False) for e in elements]
-
-    def _get_elements_text(self, xpath):
-        """ :return: all the text associated with the specified XPATH as a string array """
-
-        return [] if not xpath else get_elements_text(self._xml_tree, xpath)
-
-    def _has_element(self, xpath):
-        """ :return: true if the specified XPATH identifies a metadata element, false otherwise """
-
-        return False if not xpath else element_exists(self._xml_tree, xpath)
+        return self._get_xpath_for('_{prop}_root'.format(prop=prop))
 
     def _parse_complex(self, prop):
         """ Default parsing operation for a complex struct """
 
-        xpath_root = self._data_map.get('_{prop}_root'.format(prop=prop))
+        xpath_root = None
         xpath_map = self._data_structures[prop]
 
         return parse_complex(self._xml_tree, xpath_root, xpath_map, prop)
@@ -296,7 +272,7 @@ class MetadataParser(object):
     def _parse_complex_list(self, prop):
         """ Default parsing operation for lists of complex structs """
 
-        xpath_root = self._data_map.get('_{prop}_root'.format(prop=prop))
+        xpath_root = self._get_xroot_for(prop)
         xpath_map = self._data_structures[prop]
 
         return parse_complex_list(self._xml_tree, xpath_root, xpath_map, prop)
@@ -309,23 +285,29 @@ class MetadataParser(object):
     def _parse_elements(self, prop, attr=None):
         """ :return: the element for the XPATH corresponding to prop as a dict """
 
-        xpath = self._data_map[prop]
-        parsed = self._get_elements_as_dict(getattr(xpath, 'xpath', xpath))
+        xpath = self._get_xpath_for(prop)
+        parsed = [element_to_dict(e, recurse=False) for e in get_elements(self._xml_tree, xpath)]
 
         return parsed if attr is None else parsed.get(attr)
 
     def _parse_property(self, prop):
-        """ :return: the text value for the XPATH corresponding to prop """
+        """ :return: a value for a property parsed the default way """
 
-        xpath = self._data_map[prop]
+        xpath_root = None
+        xpath_map = {k: v for k, v in iteritems(self._data_map) if k.strip('_') == prop.strip('_')}
+        xpath_parser = getattr(xpath_map[prop], '_parser', None)
 
-        return get_default_for(prop, self._get_elements_text(getattr(xpath, 'xpath', xpath)))
+        # Prevents infinite recursion: use XPATH instead
+        if xpath_parser == self._parse_property:
+            xpath_map[prop] = xpath_map[prop].xpath
+
+        return parse_property(self._xml_tree, xpath_root, xpath_map, prop)
 
     def _update_complex(self, **update_props):
         """ Default update operation for a complex struct """
 
         prop = update_props['prop']
-        xpath_root = self._data_map.get('_{prop}_root'.format(prop=prop))
+        xpath_root = self._get_xroot_for(prop)
         xpath_map = self._data_structures[prop]
 
         return update_complex(xpath_root=xpath_root, xpath_map=xpath_map, **update_props)
@@ -334,7 +316,7 @@ class MetadataParser(object):
         """ Default update operation for lists of complex structs """
 
         prop = update_props['prop']
-        xpath_root = self._data_map.get('_{prop}_root'.format(prop=prop))
+        xpath_root = self._get_xroot_for(prop)
         xpath_map = self._data_structures[prop]
 
         return update_complex_list(xpath_root=xpath_root, xpath_map=xpath_map, **update_props)
@@ -347,7 +329,7 @@ class MetadataParser(object):
 
         tree_to_update = update_props['tree_to_update']
         prop = update_props['prop']
-        values = get_default_for(prop, update_props['values']).get(DATE_VALUES, u'')
+        values = (update_props['values'] or {}).get(DATE_VALUES) or u''
         xpaths = self._data_structures[prop]
 
         if not self.dates:
@@ -371,7 +353,7 @@ class MetadataParser(object):
         as a parser, it must have
         :param new_parser_or_type: a new parser to initialize, or parser type to instantiate
         """
-        return convert_parser_to(self, new_parser_or_type)
+        return convert_parser_to(self, new_parser_or_type, self._metadata_props)
 
     def serialize(self, use_template=False):
         """
@@ -405,17 +387,19 @@ class MetadataParser(object):
         self.validate()
 
         tree_to_update = self._xml_tree if not use_template else self._get_template(**metadata_defaults)
+        supported_props = self._metadata_props
 
         for prop, xpath in iteritems(self._data_map):
-            if not prop.startswith('_'):  # Update only non-private properties
-                update_property(tree_to_update, None, xpath, prop, getattr(self, prop, u''))
+            if not prop.startswith('_') or prop.strip('_') in supported_props:
+                # Send only public or alternate properties
+                update_property(tree_to_update, None, xpath, prop, getattr(self, prop, u''), supported_props)
 
         return tree_to_update
 
     def validate(self):
         """ Default validation for updated properties: MAY be overridden in children """
 
-        validate_keyset(self._data_map.keys())
+        validate_properties(self._data_map, self._metadata_props)
 
         for prop in self._data_map:
             validate_any(prop, getattr(self, prop))

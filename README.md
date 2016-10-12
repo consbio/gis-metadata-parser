@@ -63,7 +63,7 @@ fgdc_from_file.digital_forms
 fgdc_from_file.larger_works
 fgdc_from_file.process_steps
 
-# :see: gis_metadata.utils._required_keys for list of all properties
+# :see: gis_metadata.utils.get_supported_props for list of all supported properties
 
 # Update properties
 fgdc_from_file.title = 'New Title'

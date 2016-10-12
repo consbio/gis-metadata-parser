@@ -4,8 +4,8 @@ from copy import deepcopy
 from six import iteritems, string_types
 
 from parserutils.collections import filter_empty, reduce_value, wrap_value
-from parserutils.elements import get_element, get_elements, get_elements_text
-from parserutils.elements import element_exists, insert_element, remove_element, remove_elements
+from parserutils.elements import get_element, get_elements, get_element_attributes, get_elements_text
+from parserutils.elements import element_exists, insert_element, remove_element_attributes, remove_element
 from parserutils.elements import XPATH_DELIM
 
 from gis_metadata.exceptions import ParserError
@@ -26,9 +26,14 @@ DIGITAL_FORMS = 'digital_forms'
 LARGER_WORKS = 'larger_works'
 PROCESS_STEPS = 'process_steps'
 
+# Grouping property name constants for complex definitions
+
+_COMPLEX_LISTS = {ATTRIBUTES, CONTACTS, DIGITAL_FORMS, KEYWORDS_PLACE, KEYWORDS_THEME, PROCESS_STEPS}
+_COMPLEX_STRUCTS = {BOUNDING_BOX, DATES, LARGER_WORKS}
+
 # A set of identifying property names that must be supported by all parsers
 
-_required_keys = {
+_supported_props = {
     'title', 'abstract', 'purpose', 'supplementary_info',
     'online_linkages', 'originators', 'publish_date', 'data_credits',
     'dist_contact_org', 'dist_contact_person', 'dist_email', 'dist_phone',
@@ -59,7 +64,7 @@ DATE_VALUES = 'values'
 # To add a new complex definition field:
 #    1. Create a new constant representing the property name for the field
 #    2. Create a new item in _complex_definitions that represents the structure of the field
-#    3. If required by all metadata parsers, add the constant to _required_keys
+#    3. If required by all metadata parsers, add the constant to _supported_props
 #    4. Update the target metadata parsers with a parse and update method for the new field
 #    5. Update the target metadata parsers' _init_data_map method to instantiate a ParserProperty
 #    6. Create a new validation method for the type if validate_complex or validate_complex_list won't suffice
@@ -136,21 +141,18 @@ def get_complex_definitions():
     return deepcopy(_complex_definitions)
 
 
-def get_required_keys():
-    """
-    Get a deep copy of the set of required keys, which contains the set of
-    identifying property names that must be supported by all parsers
-    """
+def get_supported_props():
+    """ Get a deep copy of the default set of the keys supported by a given parser """
 
-    return deepcopy(_required_keys)
+    return deepcopy(_supported_props)
 
 
 def get_xpath_root(xpath):
-    """ :return: the base of an XPATH: the part preceding any formattable segments """
+    """ :return: the base of an XPATH: the part preceding any format keys or attribute references """
 
     if xpath:
-        format_idx = xpath.find('/{')
-        xpath = xpath[:format_idx] if format_idx >= 0 else xpath
+        index = xpath.find('/@' if '@' in xpath else '/{')
+        xpath = xpath[:index] if index >= 0 else xpath
 
     return xpath
 
@@ -165,32 +167,61 @@ def get_xpath_branch(xroot, xpath):
     return xpath
 
 
+def get_xpath_tuple(xpath):
+    """ :return: a tuple with the base of an XPATH followed by any format key or attribute reference """
+
+    xroot = get_xpath_root(xpath)
+    xattr = None
+
+    if xroot and xroot != xpath:
+        xattr = get_xpath_branch(xroot, xpath).strip('@')
+
+    return (xroot, xattr)
+
+
 def get_default_for(prop, value):
     """ Ensures complex property types have the correct default values """
 
+    prop = prop.strip('_')     # Handle alternate props (leading underscores)
     val = reduce_value(value)  # Filtering of value happens here
 
-    if prop in (ATTRIBUTES, CONTACTS, DIGITAL_FORMS, KEYWORDS_PLACE, KEYWORDS_THEME, PROCESS_STEPS):
-        return val or []
-    elif prop in (BOUNDING_BOX, DATES, LARGER_WORKS):
+    if prop in _COMPLEX_LISTS:
+        return wrap_value(val) or []
+    elif prop in _COMPLEX_STRUCTS:
         return val or {}
     else:
         return u'' if val is None else val
 
 
+def has_element(elem_to_parse, xpath):
+    """
+    Parse xpath for any attribute reference "path/@attr" and check for root and presence of attribute.
+    :return: True if xpath is present in the element along with any attribute referenced, otherwise False
+    """
+
+    xroot, attr = get_xpath_tuple(xpath)
+
+    if not xroot:
+        return False
+    elif not attr:
+        return element_exists(elem_to_parse, xroot)
+    else:
+        return attr in get_element_attributes(elem_to_parse, xroot)
+
+
 def parse_complex(tree_to_parse, xpath_root, xpath_map, complex_key):
     """
     Creates and returns a Dictionary data structure parsed from the metadata.
-    :param tree_to_update: the XML tree compatible with element_utils to be parsed
-    :param props: a set or list of sub-properties to be stored in the structure
-    :param xpath_map: a Dictionary of XPATHs corresponding to the props provided
+    :param tree_to_parse: the XML tree compatible with element_utils to be parsed
+    :param xpath_root: the XPATH location of the structure inside the parent element
+    :param xpath_map: a dict of XPATHs corresponding to a complex definition
+    :param complex_key: indicates which complex definition describes the structure
     """
 
     complex_struct = {}
 
-    for prop in _complex_definitions[complex_key].keys():
-        xpath = xpath_map[prop]
-        complex_struct[prop] = reduce_value(get_elements_text(tree_to_parse, xpath))
+    for prop in _complex_definitions[complex_key]:
+        complex_struct[prop] = parse_property(tree_to_parse, xpath_root, xpath_map, prop)
 
     return complex_struct if any(complex_struct.values()) else {}
 
@@ -198,22 +229,17 @@ def parse_complex(tree_to_parse, xpath_root, xpath_map, complex_key):
 def parse_complex_list(tree_to_parse, xpath_root, xpath_map, complex_key):
     """
     Creates and returns a list of Dictionary data structures parsed from the metadata.
-    :param tree_to_update: the XML tree compatible with element_utils to be parsed
-    :param props: a set or list of sub-properties to be stored in each structure
-    :param xpath_root: the XPATH location of the parent element of all the structures
-    :param xpath_map: a Dictionary of XPATHs corresponding to the props provided
+    :param tree_to_parse: the XML tree compatible with element_utils to be parsed
+    :param xpath_root: the XPATH location of each structure inside the parent element
+    :param xpath_map: a dict of XPATHs corresponding to a complex definition
+    :param complex_key: indicates which complex definition describes each structure
     """
 
     complex_list = []
 
     for element in get_elements(tree_to_parse, xpath_root):
-        complex_struct = {}
-
-        for prop in _complex_definitions[complex_key].keys():
-            xpath = get_xpath_branch(xpath_root, xpath_map[prop])
-            complex_struct[prop] = reduce_value(get_elements_text(element, xpath))
-
-        if any(complex_struct.values()):
+        complex_struct = parse_complex(element, xpath_root, xpath_map, complex_key)
+        if complex_struct:
             complex_list.append(complex_struct)
 
     return complex_list
@@ -272,7 +298,45 @@ def parse_dates(tree_to_parse, date_xpath_map, date_type=None, date_xpaths=None,
     return {DATE_TYPE: date_type, DATE_VALUES: date_values}
 
 
-def update_property(tree_to_update, xpath_root, xpaths, prop, values):
+def parse_property(tree_to_parse, xpath_root, xpath_map, prop):
+    """
+    Defines the default parsing behavior for metadata values.
+    :param tree_to_parse: the XML tree compatible with element_utils to be parsed
+    :param xpath_root: used to determine the relative XPATH location within the parent element
+    :param xpath_map: a dict of XPATHs that may contain alternate locations for a property
+    :param complex_key: indicates which complex definition describes the structure
+    """
+
+    xpath = xpath_map[prop]
+
+    if isinstance(xpath, ParserProperty):
+        if xpath.xpath is None:
+            return xpath.get_prop(prop)
+
+        xpath = xpath.xpath
+
+    if xpath_root:
+        xpath = get_xpath_branch(xpath_root, xpath)
+
+    parsed = None
+
+    if not has_element(tree_to_parse, xpath):
+        # Element is not present in tree: try next alternate location
+
+        alternate = '_' + prop
+        if alternate in xpath_map:
+            return parse_property(tree_to_parse, xpath_root, xpath_map, alternate)
+
+    elif '@' not in xpath:
+        parsed = get_elements_text(tree_to_parse, xpath)
+    else:
+        xroot, xattr = get_xpath_tuple(xpath)
+        parsed = get_element_attributes(tree_to_parse, xroot).get(xattr)
+
+    return get_default_for(prop, parsed)
+
+
+def update_property(tree_to_update, xpath_root, xpaths, prop, values, supported=None):
     """
     Either update the tree the default way, or call the custom updater
 
@@ -283,7 +347,7 @@ def update_property(tree_to_update, xpath_root, xpaths, prop, values):
 
     :param tree_to_update: the XML tree compatible with element_utils to be updated
     :param xpath_root: the XPATH location shared by all the xpaths passed in
-    :param xpaths: a string or a list of strings representing the XPATH location(s) of the values to update
+    :param xpaths: a string or a list of strings representing the XPATH location(s) to which to write values
     :param prop: the name of the property of the parser containing the value(s) with which to update the tree
     :param values: a single value, or a list of values to write to the specified XPATHs
 
@@ -292,15 +356,18 @@ def update_property(tree_to_update, xpath_root, xpaths, prop, values):
     :return: a list of all elements updated by this operation
     """
 
+    if supported and prop.startswith('_') and prop.strip('_') in supported:
+        values = u''  # Remove alternate elements: write values only to primary location
+    else:
+        values = get_default_for(prop, values)  # Enforce defaults as required per property
+
     if not xpaths:
         return []
     elif not isinstance(xpaths, ParserProperty):
         return _update_property(tree_to_update, xpath_root, xpaths, prop, values)
-
-    custom_update = xpaths.set_prop
-
-    # Do not send xpath_root: this is generally parsed in the custom update method
-    return custom_update(tree_to_update=tree_to_update, prop=prop, values=values)
+    else:
+        # Call ParserProperty.set_prop without xpath_root (managed internally)
+        return xpaths.set_prop(tree_to_update=tree_to_update, prop=prop, values=values)
 
 
 def _update_property(tree_to_update, xpath_root, xpaths, prop, values):
@@ -316,45 +383,49 @@ def _update_property(tree_to_update, xpath_root, xpaths, prop, values):
         """ Internal helper function to encapsulate single item update """
 
         has_root = (root and len(path) > len(root) and path.startswith(root))
+        path, attr = get_xpath_tuple(path)  # 'path/@attr' to ('path', 'attr')
 
-        if not has_root:
-            remove_element(elem, path)
+        if attr:
+            removed = [get_element(elem, path)]
+            remove_element_attributes(removed, attr)
+        elif not has_root:
+            removed = wrap_value(remove_element(elem, path))
         else:
             path = get_xpath_branch(root, path)
+            removed = [] if idx != 0 else [remove_element(e, path, True) for e in get_elements(elem, root)]
 
-            if idx == 0:
-                for e in get_elements(elem, root):
-                    remove_element(e, path, True)
+        if not vals:
+            return removed
 
         items = []
 
         for i, val in enumerate(wrap_value(vals)):
-            if len(val):
-                elem_to_update = elem
+            elem_to_update = elem
 
-                if has_root:
-                    elem_to_update = insert_element(elem, (i + idx), root)
+            if has_root:
+                elem_to_update = insert_element(elem, (i + idx), root)
 
-                val = val.decode('utf-8') if not isinstance(val, string_types) else val
+            val = val.decode('utf-8') if not isinstance(val, string_types) else val
+            if not attr:
                 items.append(insert_element(elem_to_update, i, path, val))
+            else:
+                items.append(insert_element(elem_to_update, i, path, **{attr: val}))
 
         return items
 
     # Code to update each of the XPATHs with each of the values
 
     xpaths = reduce_value(xpaths)
+    values = filter_empty(values)
 
-    if not values:
-        return remove_elements(tree_to_update, xpaths)
-    elif isinstance(xpaths, string_types):
-        # Insert an element for each value
+    if isinstance(xpaths, string_types):
         return update_element(tree_to_update, 0, xpath_root, xpaths, values)
     else:
-        # Insert elements for each XPATH provided (values must correspond)
         each = []
 
         for index, xpath in enumerate(xpaths):
-            each.extend(update_element(tree_to_update, index, xpath_root, xpath, values[index]))
+            value = values[index] if values else None
+            each.extend(update_element(tree_to_update, index, xpath_root, xpath, value))
 
         return each
 
@@ -436,13 +507,13 @@ def validate_complex(prop, value):
     if value is not None:
         validate_type(prop, value, dict)
 
-        complex_keys = _complex_definitions[prop].keys()
+        complex_keys = set(_complex_definitions[prop])
 
         for complex_prop, complex_val in iteritems(value):
             complex_key = '.'.join((prop, complex_prop))
 
             if complex_prop not in complex_keys:
-                _validation_error(prop, None, value, ('keys: {0}'.format(complex_keys)))
+                _validation_error(prop, None, value, ('keys: {0}'.format(','.join(complex_keys))))
 
             validate_type(complex_key, complex_val, (string_types, list))
 
@@ -453,7 +524,7 @@ def validate_complex_list(prop, value):
     if value is not None:
         validate_type(prop, value, (dict, list))
 
-        complex_keys = _complex_definitions[prop].keys()
+        complex_keys = set(_complex_definitions[prop])
 
         for idx, complex_struct in enumerate(wrap_value(value)):
             cs_idx = prop + '[' + str(idx) + ']'
@@ -463,7 +534,7 @@ def validate_complex_list(prop, value):
                 cs_key = '.'.join((cs_idx, cs_prop))
 
                 if cs_prop not in complex_keys:
-                    _validation_error(prop, None, value, ('keys: {0}'.format(complex_keys)))
+                    _validation_error(prop, None, value, ('keys: {0}'.format(','.join(complex_keys))))
 
                 if not isinstance(cs_val, list):
                     validate_type(cs_key, cs_val, (string_types, list))
@@ -479,11 +550,11 @@ def validate_dates(prop, value):
     if value is not None:
         validate_type(prop, value, dict)
 
-        date_keys = value.keys()
+        date_keys = set(value)
 
         if date_keys:
             if DATE_TYPE not in date_keys or DATE_VALUES not in date_keys:
-                _validation_error(prop, None, value, ('keys: {0}'.format(_complex_definitions[prop].keys())))
+                _validation_error(prop, None, value, ('keys: {0}'.format(','.join(_complex_definitions[prop]))))
 
             date_type = value[DATE_TYPE]
 
@@ -519,7 +590,7 @@ def validate_process_steps(prop, value):
     if value is not None:
         validate_type(prop, value, (dict, list))
 
-        procstep_keys = _complex_definitions[prop].keys()
+        procstep_keys = set(_complex_definitions[prop])
 
         for idx, procstep in enumerate(wrap_value(value)):
             ps_idx = prop + '[' + str(idx) + ']'
@@ -529,7 +600,7 @@ def validate_process_steps(prop, value):
                 ps_key = '.'.join((ps_idx, ps_prop))
 
                 if ps_prop not in procstep_keys:
-                    _validation_error(prop, None, value, ('keys: {0}'.format(procstep_keys)))
+                    _validation_error(prop, None, value, ('keys: {0}'.format(','.join(procstep_keys))))
 
                 if ps_prop != 'sources':
                     validate_type(ps_key, ps_val, string_types)
@@ -539,6 +610,19 @@ def validate_process_steps(prop, value):
                     for src_idx, src_val in enumerate(wrap_value(ps_val)):
                         src_key = ps_key + '[' + str(src_idx) + ']'
                         validate_type(src_key, src_val, string_types)
+
+
+def validate_properties(props, required):
+    """
+    Ensures the key set contains the base supported properties for a Parser
+    :param props: a set of property names to validate against those supported
+    """
+
+    props = set(props)
+    required = set(required or _supported_props)
+
+    if len(required.intersection(props)) < len(required):
+        raise ParserError('Missing property names: {props}', props=','.join(required - props))
 
 
 def validate_type(prop, value, expected):
@@ -564,21 +648,6 @@ def _validation_error(prop, prop_type, prop_value, expected):
     )
 
 
-def validate_keyset(props):
-    """
-    Ensures the key set contains the required properties for a Parser
-    :param props: a set of keys to validate against those required
-    """
-
-    props = set(props)
-
-    if len(_required_keys.intersection(props)) < len(_required_keys):
-        raise ParserError(
-            'Missing property names: {props}',
-            props=', '.join(_required_keys - props)
-        )
-
-
 class ParserProperty(object):
     """
     A class to manage Parser dynamic getter & setters.
@@ -591,10 +660,10 @@ class ParserProperty(object):
 
         if hasattr(prop_parser, '__call__'):
             self._parser = prop_parser
-        else:
+        elif xpath is None:
             raise ParserError(
                 'Invalid property getter:\n\tpassed in: {param}\n\texpected: {expected}',
-                param=type(prop_parser), expected='<type "callable">'
+                param=type(prop_parser), expected='<type "callable"> or provide XPATH'
             )
 
         if hasattr(prop_updater, '__call__'):
@@ -605,11 +674,7 @@ class ParserProperty(object):
                 param=type(prop_updater), expected='<type "callable">'
             )
 
-        self.xpath = get_xpath_root(xpath)
-
-    def __call__(self, prop=None):
-        """ :return: the value of the getter by default """
-        return self.get_prop(prop)
+        self.xpath = xpath
 
     def get_prop(self, prop):
         """ Calls the getter with no arguments and returns its value """
