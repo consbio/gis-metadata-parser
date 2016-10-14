@@ -3,7 +3,7 @@ import unittest
 from os.path import os
 from six import iteritems
 
-from parserutils.collections import reduce_value, wrap_value
+from parserutils.collections import wrap_value
 from parserutils.elements import element_exists, element_to_dict, element_to_string
 from parserutils.elements import get_element_text, get_elements, get_remote_element
 from parserutils.elements import clear_element, remove_element_attributes, set_element_attributes
@@ -22,7 +22,7 @@ from gis_metadata.utils import KEYWORDS_PLACE, KEYWORDS_THEME
 from gis_metadata.utils import ParserProperty
 
 
-TEST_TEMPLATE_CONSTANTS = {
+TEST_TEMPLATE_VALUES = {
     'dist_contact_org': 'ORG',
     'dist_contact_person': 'PERSON',
     'dist_address_type': 'PHYSICAL ADDRESS',
@@ -33,6 +33,93 @@ TEST_TEMPLATE_CONSTANTS = {
     'dist_country': 'USA',
     'dist_phone': '123-456-7890',
     'dist_email': 'EMAIL@DOMAIN.COM',
+}
+
+TEST_METADATA_VALUES = {
+    'abstract': 'Test Abstract',
+    'attribute_accuracy': 'Test Attribute Accuracy',
+    'attributes': [{
+        'definition': 'Attributes Definition 1',
+        'label': 'Attributes Label 1',
+        'aliases': 'Attributes Alias 1',
+        'definition_source': 'Attributes Definition Source 1'
+    }, {
+        'definition': 'Attributes Definition 2',
+        'label': 'Attributes Label 2',
+        'aliases': 'Attributes Alias 2',
+        'definition_source': 'Attributes Definition Source 2'
+    }, {
+        'definition': 'Attributes Definition 3',
+        'label': 'Attributes Label 3',
+        'aliases': 'Attributes Alias 3',
+        'definition_source': 'Attributes Definition Source 3'
+    }],
+    'bounding_box': {
+        'east': '179.99999999998656',
+        'north': '87.81211601444309',
+        'west': '-179.99999999998656',
+        'south': '-86.78249642712764'
+    },
+    'contacts': [{
+        'name': 'Contact Name 1', 'email': 'Contact Email 1',
+        'position': 'Contact Position 1', 'organization': 'Contact Organization 1'
+    }, {
+        'name': 'Contact Name 2', 'email': 'Contact Email 2',
+        'position': 'Contact Position 2', 'organization': 'Contact Organization 2'
+    }],
+    'dataset_completeness': 'Test Dataset Completeness',
+    'data_credits': 'Test Data Credits',
+    'dates': {'type': 'multiple', 'values': ['Multiple Date 1', 'Multiple Date 2', 'Multiple Date 3']},
+    'dist_address': 'Test Distribution Address',
+    'dist_address_type': 'Test Distribution Address Type',
+    'dist_city': 'Test Distribution City',
+    'dist_contact_org': 'Test Distribution Org',
+    'dist_contact_person': 'Test Distribution Person',
+    'dist_country': 'US',
+    'dist_email': 'Test Distribution Email',
+    'dist_liability': 'Test Distribution Liability',
+    'dist_phone': 'Test Distribution Phone',
+    'dist_postal': '12345',
+    'dist_state': 'OR',
+    'larger_works': {
+        'publish_place': 'Larger Works Place',
+        'publish_info': 'Larger Works Info',
+        'other_citation': 'Larger Works Other Citation',
+        'online_linkage': 'http://test.largerworks.online.linkage.com',
+        'publish_date': 'Larger Works Date',
+        'title': 'Larger Works Title',
+        'edition': 'Larger Works Edition',
+        'origin': 'Larger Works Originator'
+    },
+    'online_linkages': 'http://test.onlinelinkages.org',
+    'originators': 'Test Originators',
+    'other_citation_info': 'Test Other Citation Info',
+    'place_keywords': ['Oregon', 'Washington'],
+    'process_steps': [{
+        'sources': ['Process Step Sources 1.1', 'Process Step Sources 1.2'],
+        'description': 'Process Step Description 1',
+        'date': 'Process Step Date 1'
+    }, {
+        'sources': '',
+        'description': 'Process Step Description 2',
+        'date': ''
+    }, {
+        'sources': '', 'description': '', 'date': 'Process Step Date 3'
+    }, {
+        'sources': ['Process Step Sources 4.1', 'Process Step Sources 4.2'],
+        'description': 'Process Step Description 4',
+        'date': ''
+    }],
+    'processing_fees': 'Test Processing Fees',
+    'processing_instrs': 'Test Processing Instructions',
+    'purpose': 'Test Purpose',
+    'publish_date': 'Test Publish Date',
+    'resource_desc': 'Test Resource Description',
+    'supplementary_info': 'Test Supplementary Info',
+    'tech_prerequisites': 'Test Technical Prerequisites',
+    'thematic_keywords': ['Ecoregion', 'Risk', 'Threat', 'Habitat'],
+    'title': 'Test Title',
+    'use_constraints': 'Test Use Constraints'
 }
 
 
@@ -110,7 +197,6 @@ class MetadataParserTestCase(unittest.TestCase):
                             parser_name, '{0}.{1}'.format(prop, key), val, target[idx].get(key, u'')
                         )
 
-
     def assert_reparsed_simple_for(self, parser, props, value, target):
 
         for prop in props:
@@ -160,9 +246,7 @@ class MetadataParserTestCase(unittest.TestCase):
         # Update each value and read the file in again
         for prop in get_supported_props():
 
-            if isinstance(parser, IsoParser) and prop == ATTRIBUTES:
-                val = []  # The ISO standard stores attributes in an external file
-            elif prop in (ATTRIBUTES, CONTACTS, DIGITAL_FORMS, PROCESS_STEPS):
+            if prop in (ATTRIBUTES, CONTACTS, DIGITAL_FORMS, PROCESS_STEPS):
                 val = [
                     {}.fromkeys(complex_defs[prop], 'test'),
                     {}.fromkeys(complex_defs[prop], prop)
@@ -229,7 +313,7 @@ class MetadataParserTemplateTests(MetadataParserTestCase):
         parser = parser_type(out_file_or_path=out_file_path)
 
         # Reverse each value and read the file in again
-        for prop, val in iteritems(TEST_TEMPLATE_CONSTANTS):
+        for prop, val in iteritems(TEST_TEMPLATE_VALUES):
             setattr(parser, prop, val[::-1])
 
         parser.write()
@@ -246,17 +330,17 @@ class MetadataParserTemplateTests(MetadataParserTestCase):
         self.assertIsNotNone(parser._xml_tree)
         self.assertEqual(parser._xml_tree.getroot().tag, parser._xml_root)
 
-        for prop, val in iteritems(TEST_TEMPLATE_CONSTANTS):
+        for prop, val in iteritems(TEST_TEMPLATE_VALUES):
             parsed_val = getattr(parser, prop)
             self.assertEqual(parsed_val, val, (
                 '{0} property {1}, "{2}", does not equal "{3}"'.format(parser_type, prop, parsed_val, val)
             ))
 
     def test_fgdc_template_values(self):
-        self.assert_valid_template(FgdcParser(**TEST_TEMPLATE_CONSTANTS), root='metadata')
+        self.assert_valid_template(FgdcParser(**TEST_TEMPLATE_VALUES), root='metadata')
 
     def test_iso_template_values(self):
-        self.assert_valid_template(IsoParser(**TEST_TEMPLATE_CONSTANTS), root='MD_Metadata')
+        self.assert_valid_template(IsoParser(**TEST_TEMPLATE_VALUES), root='MD_Metadata')
 
     def test_template_conversion(self):
         fgdc_template = FgdcParser()
@@ -421,7 +505,7 @@ class MetadataParserTests(MetadataParserTestCase):
 
         # Remove the attribute details linkage attribute
         iso_element = get_remote_element(self.iso_file)
-        for linkage_element in get_elements(iso_element, _iso_tag_formats['_attr_url']):
+        for linkage_element in get_elements(iso_element, _iso_tag_formats['_attr_contact_url']):
             removed = get_element_text(linkage_element)
             clear_element(linkage_element)
 
@@ -441,7 +525,9 @@ class MetadataParserTests(MetadataParserTestCase):
         iso_parser = IsoParser(element_to_string(iso_element))
         attributes = iso_parser.attributes
         self.assertIsNone(iso_parser._attr_details_file_url, 'Invalid URL stored with parser')
-        self.assertEqual(attributes, [], 'Invalid parsed attributes: {0}'.format(attributes))
+        self.assertEqual(
+            attributes, TEST_METADATA_VALUES[ATTRIBUTES], 'Invalid parsed attributes: {0}'.format(attributes)
+        )
 
     def test_parser_conversion(self):
         fgdc_parser = FgdcParser(self.fgdc_metadata)
@@ -494,19 +580,14 @@ class MetadataParserTests(MetadataParserTestCase):
                 complex_list = []
 
                 for val in self.valid_complex_values:
-                    # The ISO standard stores attributes in an external file
-                    wont_parse = isinstance(parser, IsoParser) and prop == ATTRIBUTES
 
                     # Test with single unwrapped value
                     next_complex = {}.fromkeys(complex_defs[prop], val)
-                    target_list = [] if wont_parse else wrap_value(next_complex)
-                    self.assert_reparsed_complex_for(parser, prop, next_complex, target_list)
+                    self.assert_reparsed_complex_for(parser, prop, next_complex, wrap_value(next_complex))
 
                     # Test with accumulated list of values
                     complex_list.append({}.fromkeys(complex_defs[prop], val))
-                    target_list = [] if wont_parse else wrap_value(complex_list)
-
-                    self.assert_reparsed_complex_for(parser, prop, complex_list, target_list)
+                    self.assert_reparsed_complex_for(parser, prop, complex_list, wrap_value(complex_list))
 
     def test_reparse_complex_structs(self):
         complex_defs = get_complex_definitions()

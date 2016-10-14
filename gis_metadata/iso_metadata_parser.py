@@ -6,10 +6,8 @@ from collections import OrderedDict
 from six import iteritems, string_types
 
 from parserutils.collections import reduce_value, wrap_value
-from parserutils.elements import set_element_attributes
-from parserutils.elements import clear_element, insert_element, remove_element
-from parserutils.elements import get_element, get_elements, get_remote_element
-from parserutils.elements import get_element_attributes, get_element_name, get_element_text, get_elements_text
+from parserutils.elements import get_element_name, get_element_text, get_elements_text
+from parserutils.elements import get_elements, get_remote_element, insert_element, remove_element
 from parserutils.elements import XPATH_DELIM
 
 from gis_metadata.metadata_parser import MetadataParser
@@ -40,6 +38,11 @@ KEYWORD_TYPE_PLACE = 'place'
 KEYWORD_TYPE_THEME = 'theme'
 
 _iso_definitions = get_complex_definitions()
+_iso_definitions[ATTRIBUTES].update({
+    '_definition_source': '{_definition_src}',
+    '__definition_source': '{__definition_src}',
+    '___definition_source': '{___definition_src}',
+})
 
 _iso_tag_roots = OrderedDict((
     # First process private dependency tags (order enforced by key sorting)
@@ -65,13 +68,18 @@ _iso_tag_roots = OrderedDict((
     ('_idinfo_resp', '{_idinfo}/pointOfContact/CI_ResponsibleParty'),
     ('_idinfo_resp_contact', '{_idinfo_resp}/contactInfo/CI_Contact'),
 
-    # Supported in separate file ISO-19110
+    # Supported in separate file ISO-19110: FC_FeatureCatalog
     ('_attr_root', 'FC_FeatureCatalogue'),
-    ('_attr_base', 'featureType/FC_FeatureType'),
-    ('_attr_ref', '{_attr_base}/definitionReference/FC_DefinitionReference'),
+    ('_attr_base', 'featureType/FC_FeatureType/carrierOfCharacteristics/FC_FeatureAttribute'),
+    ('_attr_def', '{_attr_base}/definitionReference/FC_DefinitionReference/definitionSource/FC_DefinitionSource'),
+    ('_attr_src', '{_attr_def}/source/CI_Citation/citedResponsibleParty/CI_ResponsibleParty'),
+
+    # References to separate file ISO-19110 from: MD_Metadata
     ('_attr_citation', '{_contentinfo}/MD_FeatureCatalogueDescription/featureCatalogueCitation'),
-    ('_attr_contact', '{_attr_citation}/CI_Citation/citedResponsibleParty/CI_ResponsibleParty/contactInfo/CI_Contact')
+    ('_attr_contact', '{_attr_citation}/CI_Citation/citedResponsibleParty/CI_ResponsibleParty/contactInfo/CI_Contact'),
+    ('_attr_contact_url', '{_attr_contact}/onlineResource/CI_OnlineResource/linkage/URL')
 ))
+
 
 # Two passes required because of self references within roots dict
 _iso_tag_roots.update(format_xpaths(_iso_tag_roots, **_iso_tag_roots))
@@ -79,6 +87,7 @@ _iso_tag_roots.update(format_xpaths(_iso_tag_roots, **_iso_tag_roots))
 
 _iso_tag_formats = {
     # Property-specific xpath roots: the base from which each element repeats
+    '_attributes_root': 'featureType/FC_FeatureType/carrierOfCharacteristics',
     '_bounding_box_root': '{_idinfo_extent}/geographicElement',
     '_contacts_root': '{_idinfo_resp}',
     '_dates_root': '{_idinfo_extent}/temporalElement',
@@ -116,10 +125,9 @@ _iso_tag_formats = {
     'processing_instrs': '{_distinfo_proc}/orderingInstructions/CharacterString',
     'resource_desc': '{_idinfo_citation}/identifier/MD_Identifier/code/CharacterString',
     'tech_prerequisites': '{_idinfo}/environmentDescription/CharacterString',
-    ATTRIBUTES: '{_attr_base}/carrierOfCharacteristics/FC_FeatureAttribute/{{ad_path}}',
-    '_attr_alias': '{_attr_base}/{{ad_path}}',
-    '_attr_src': '{_attr_ref}/definitionSource/FC_DefinitionSource/source/{{ad_path}}',
-    '_attr_url': '{_attr_contact}/onlineResource/CI_OnlineResource/linkage/URL',
+    ATTRIBUTES: '{_attr_base}/{{ad_path}}',
+    '_attributes_file': '{_attr_citation}/@href',
+    '__attributes_file': '{_attr_contact_url}',  # If not in above: "_attr_citation/@href"
     'attribute_accuracy': '{_dataqual_report}/DQ_QuantitativeAttributeAccuracy/measureDescription/CharacterString',
     BOUNDING_BOX: '{_idinfo_extent}/geographicElement/EX_GeographicBoundingBox/{{bbox_path}}',
     'dataset_completeness': '{_dataqual_report}/DQ_CompletenessOmission/measureDescription/CharacterString',
@@ -181,14 +189,21 @@ class IsoParser(MetadataParser):
         # Capture and format complex XPATHs
 
         ad_format = iso_data_map[ATTRIBUTES]
+        ft_source = iso_data_map['_attr_src'].replace('/carrierOfCharacteristics/FC_FeatureAttribute', '')
+
         iso_data_structures[ATTRIBUTES] = format_xpaths(
             _iso_definitions[ATTRIBUTES],
             label=ad_format.format(ad_path='memberName/LocalName'),
-            aliases=iso_data_map['_attr_alias'].format(ad_path='aliases/LocalName'),
+            aliases=ad_format.format(ad_path='aliases/LocalName'),  # Not in spec
             definition=ad_format.format(ad_path='definition/CharacterString'),
-            definition_src=iso_data_map['_attr_src'].format(
-                ad_path='CI_Citation/organisationName/CharacterString'
-            )
+
+            # First try to populate attribute definition source from FC_FeatureAttribute
+            definition_src=iso_data_map['_attr_src'] + '/organisationName/CharacterString',
+            _definition_src=iso_data_map['_attr_src'] + '/individualName/CharacterString',
+
+            # Then assume feature type source is the same as attribute: populate from FC_FeatureType
+            __definition_src=ft_source + '/organisationName/CharacterString',
+            ___definition_src=ft_source + '/individualName/CharacterString'
         )
 
         bb_format = iso_data_map[BOUNDING_BOX]
@@ -296,83 +311,39 @@ class IsoParser(MetadataParser):
     def _parse_attribute_details(self, prop=ATTRIBUTES):
         """ Concatenates a list of Attribute Details data structures parsed from a remote file """
 
+        parsed_attributes = self._parse_attribute_details_file(prop)
+        if parsed_attributes is None:
+            # If not in the (official) remote location, try the tree itself
+            parsed_attributes = self._parse_complex_list(prop)
+
+        for attribute in (a for a in parsed_attributes if not a['aliases']):
+            # Aliases are not in ISO standard: default to label
+            attribute['aliases'] = attribute['label']
+
+        return parsed_attributes
+
+    def _parse_attribute_details_file(self, prop=ATTRIBUTES):
+        """ Concatenates a list of Attribute Details data structures parsed from a remote file """
+
         # Parse content from remote file URL, which may be stored in one of two places:
         #    Starting at: contentInfo/MD_FeatureCatalogueDescription/featureCatalogueCitation
         #    ATTRIBUTE: href
         #    ELEMENT TEXT: CI_Citation/.../CI_Contact/onlineResource/CI_OnlineResource/linkage
 
-        attrib_details = []
+        self._attr_details_file_url = self._parse_property('_attributes_file')
+        if not self._attr_details_file_url:
+            return None
 
-        file_element = get_element(self._xml_tree, self._data_map['_attr_citation'])
-        file_location = None
-
-        if file_element is not None:
-            # First try the href attribute for a URL reference to ISO attributes
-            file_location = get_element_attributes(file_element).get('href')
-
-            if not file_location:
-                # Then try the deeper location for the ISO attributes URL
-                file_location = get_element_text(self._xml_tree, self._data_map['_attr_url'])
-
-        if not file_location:
+        try:
+            tree_to_parse = get_remote_element(self._attr_details_file_url)
+        except:
             self._attr_details_file_url = None
-        else:
-            # Definition Source location in the remote file:
-            #    Starting at: FC_FeatureCatalogue/featureType/FC_FeatureType/definitionReference/FC_DefinitionReference
-            #        source/CI_Citation/.../organisationName (Default)
-            #        source/CI_Citation/.../individualName
-            #        sourceIdentifier (if nowhere else)
+            return None
 
-            self._attr_details_file_url = file_location
+        xpath_map = self._data_structures[ATTRIBUTES]
+        xpath_root = self._get_xroot_for(prop)
 
-            xpath_map = dict(self._data_structures[ATTRIBUTES])
-            xpath_root = 'featureType'
-
-            try:
-                remote_xtree = get_remote_element(file_location)
-            except:
-                self._attr_details_file_url = None
-                return attrib_details  # Nothing to parse
-
-            def_src_xpath = xpath_map['definition_source']
-
-            if not get_element_text(remote_xtree, def_src_xpath):
-                def_src_xpath = def_src_xpath.replace('organisationName', 'individualName')
-
-                if not get_element_text(remote_xtree, def_src_xpath):
-                    def_src_xpath = self._data_map['_attr_ref'] + '/sourceIdentifier/CharacterString'
-
-            xpath_map['definition_source'] = def_src_xpath
-
-            parsed_details = parse_complex_list(remote_xtree, xpath_root, xpath_map, prop)
-
-            # There may be more than one carrierOfCharacteristics element per featureType
-            # If so, create a new attribute detail for each one with copies of the other properties
-
-            for parsed_detail in parsed_details:
-                attrib_detail = dict(parsed_detail)
-
-                attrib_detail['label'] = u''
-                attrib_detail['definition'] = u''
-
-                parsed_defs = wrap_value(parsed_detail['definition'])
-                parsed_lbls = wrap_value(parsed_detail['label'])
-
-                len_defs = len(parsed_defs)
-                len_lbls = len(parsed_lbls)
-                limit = max(len_defs, len_lbls)
-
-                if not limit:
-                    attrib_details.append(dict(attrib_detail))
-                else:
-                    for idx in xrange(0, limit):
-
-                        attrib_detail['label'] = parsed_lbls[idx] if idx < len_lbls else u''
-                        attrib_detail['definition'] = parsed_defs[idx] if idx < len_defs else u''
-
-                        attrib_details.append(dict(attrib_detail))
-
-        return attrib_details
+        return parse_complex_list(tree_to_parse, xpath_root, xpath_map, prop)
 
     def _parse_digital_forms(self, prop=DIGITAL_FORMS):
         """ Concatenates a list of Digital Form data structures parsed from the metadata """
@@ -450,35 +421,17 @@ class IsoParser(MetadataParser):
         return keywords
 
     def _update_attribute_details(self, **update_props):
-        """ Update operation for ISO Attribute Details metadata (standard 19110) """
-
-        attributes = []
+        """ Update operation for ISO Attribute Details metadata: write to "MD_Metadata/featureType" """
 
         tree_to_update = update_props['tree_to_update']
-        prop = update_props['prop']
         xpath = self._data_map['_attr_citation']
 
-        if not getattr(self, prop):
-            # Property cleared: remove the featureCatalogueCitation element altogether
+        # Cannot write to remote file: remove the featureCatalogueCitation element
 
-            self._attr_details_file_url = None
-            attributes = [remove_element(tree_to_update, xpath)]
+        self._attr_details_file_url = None
+        remove_element(tree_to_update, xpath, True)
 
-        if self._attr_details_file_url:
-            # Clear all the irrelevant feature attribute data, and write just the reference
-
-            attrib_element = get_element(tree_to_update, xpath)
-
-            if attrib_element is None:
-                attrib_element = insert_element(tree_to_update, 0, xpath)
-            else:
-                clear_element(attrib_element)
-
-            set_element_attributes(attrib_element, href=self._attr_details_file_url)
-
-            attributes = [attrib_element]
-
-        return attributes
+        return self._update_complex_list(**update_props)
 
     def _update_dates(self, **update_props):
         """

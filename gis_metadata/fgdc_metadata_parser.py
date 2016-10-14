@@ -126,10 +126,13 @@ class FgdcParser(MetadataParser):
         ct_format = _fgdc_tag_formats[CONTACTS]
         fgdc_data_structures[CONTACTS] = format_xpaths(
             _fgdc_definitions[CONTACTS],
+
             name=ct_format.format(ct_path='cntperp/cntper'),
-            _name=ct_format.format(ct_path='cntorgp/cntper'),
+            _name=ct_format.format(ct_path='cntorgp/cntper'),  # If not in cntperp
+
             organization=ct_format.format(ct_path='cntperp/cntorg'),
-            _organization=ct_format.format(ct_path='cntorgp/cntorg'),
+            _organization=ct_format.format(ct_path='cntorgp/cntorg'),  # If not in cntperp
+
             position=ct_format.format(ct_path='cntpos'),
             email=ct_format.format(ct_path='cntemail')
         )

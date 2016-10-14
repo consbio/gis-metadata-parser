@@ -10,7 +10,7 @@ from parserutils.strings import DEFAULT_ENCODING
 
 from gis_metadata.utils import DATES, DATE_TYPE, DATE_VALUES
 from gis_metadata.utils import DATE_TYPE_RANGE, DATE_TYPE_RANGE_BEGIN, DATE_TYPE_RANGE_END
-from gis_metadata.utils import _supported_props, parse_complex, parse_complex_list, parse_dates, parse_property
+from gis_metadata.utils import _supported_props, has_element, parse_complex, parse_complex_list, parse_dates, parse_property
 from gis_metadata.utils import update_complex, update_complex_list, update_property, validate_any, validate_properties
 from gis_metadata.utils import ParserError
 
@@ -260,6 +260,11 @@ class MetadataParser(object):
         """ :return: the configured root for a given property based on the property name """
 
         return self._get_xpath_for('_{prop}_root'.format(prop=prop))
+
+    def _has_element(self, prop):
+        """ :return: True if the data map property exists in the XML tree, False otherwise """
+
+        return has_element(self._xml_tree, self._get_xpath_for(prop))
 
     def _parse_complex(self, prop):
         """ Default parsing operation for a complex struct """

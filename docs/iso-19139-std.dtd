@@ -39,8 +39,9 @@
 
 
 <!-- Root Level Elements: MD_Metadata or MI_Metadata -->
-<!ELEMENT gmd:MD_Metadata (gmd:fileIdentifier, gmd:language, gmd:characterSet, gmd:parentIdentifier?, gmd:hierarchyLevel, gmd:hierarchyLevelName?, gmd:contact+, gmd:dateStamp, gmd:metadataStandardName, gmd:metadataStandardVersion?, gmd:dataSetURI?, gmd:locale*, gmd:identificationInfo+, gmd:contentInfo?, gmd:spatialRepresentationInfo?, gmd:referenceSystemInfo?, gmd:distributionInfo?, gmd:dataQualityInfo?, gmd:metadataConstraints?, gmd:metadataMaintenance?)>
-<!ELEMENT gmi:MI_Metadata (gmd:fileIdentifier, gmd:language, gmd:characterSet, gmd:parentIdentifier?, gmd:hierarchyLevel, gmd:hierarchyLevelName?, gmd:contact+, gmd:dateStamp, gmd:metadataStandardName, gmd:metadataStandardVersion?, gmd:dataSetURI?, gmd:locale*, gmd:identificationInfo+, gmd:contentInfo?, gmd:spatialRepresentationInfo?, gmd:referenceSystemInfo?, gmd:distributionInfo?, gmd:dataQualityInfo?, gmd:metadataConstraints?, gmd:metadataMaintenance?, gmi:acquisitionInformation)>
+<!ELEMENT gmd:MD_Metadata (gmd:fileIdentifier, gmd:language, gmd:characterSet, gmd:parentIdentifier?, gmd:hierarchyLevel, gmd:hierarchyLevelName?, gmd:contact+, gmd:dateStamp, gmd:metadataStandardName, gmd:metadataStandardVersion?, gmd:dataSetURI?, gmd:locale*, gmd:spatialRepresentationInfo?, gmd:referenceSystemInfo?, gmd:identificationInfo+, gmd:contentInfo?, gmd:distributionInfo?, gmd:dataQualityInfo?, gmd:metadataConstraints?, gmd:metadataMaintenance?, gfc:featureType*)>
+<!ELEMENT gmi:MI_Metadata (gmd:fileIdentifier, gmd:language, gmd:characterSet, gmd:parentIdentifier?, gmd:hierarchyLevel, gmd:hierarchyLevelName?, gmd:contact+, gmd:dateStamp, gmd:metadataStandardName, gmd:metadataStandardVersion?, gmd:dataSetURI?, gmd:locale*, gmd:spatialRepresentationInfo?, gmd:referenceSystemInfo?, gmd:identificationInfo+, gmd:contentInfo?, gmd:distributionInfo?, gmd:dataQualityInfo?, gmd:metadataConstraints?, gmd:metadataMaintenance?, gfc:featureType*, gmi:acquisitionInformation)>
+
 
 <!-- MD_Metadata.fileIdentifier -->
 <!ELEMENT gmd:fileIdentifier (gco:CharacterString)>
@@ -198,7 +199,7 @@
 <!ELEMENT gmd:MD_FeatureCatalogueDescription (gmd:complianceCode, gmd:language, gmd:includedWithDataset, gmd:featureTypes+, gmd:featureCatalogueCitation)>
 <!ELEMENT gmd:complianceCode (gco:Boolean)>
 <!ELEMENT gmd:includedWithDataset (gco:Boolean)>
-<!ELEMENT gmd:featureTypes (gco:LocalName)>
+<!ELEMENT gmd:featureTypes (gco:LocalName|gco:ScopedName)>
 <!ELEMENT gmd:featureCatalogueCitation (gmd:CI_Citation)>
 <!ELEMENT gmd:MD_ImageDescription (gmd:attributeDescription, gmd:contentType, gmd:dimension*)>
 <!ELEMENT gmd:MD_CoverageDescription (gmd:attributeDescription, gmd:contentType, gmd:dimension*)>
@@ -583,6 +584,10 @@
 <!ATTLIST gco:LocalName codeList CDATA>
 <!ATTLIST gco:LocalName codeSpace CDATA>
 <!ELEMENT gco:MemberName (gco:aName, gco:attributeType)>
+<!ELEMENT gco:ScopedName (#PCDATA)>
+<!ATTLIST gco:ScopedName codeListValue CDATA>
+<!ATTLIST gco:ScopedName codeList CDATA>
+<!ATTLIST gco:ScopedName codeSpace CDATA>
 <!ELEMENT gco:TypeName (gco:aName)>
 <!ELEMENT gco:aName (gco:CharacterString)>
 
