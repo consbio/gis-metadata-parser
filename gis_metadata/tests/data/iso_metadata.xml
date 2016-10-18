@@ -1,20 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <MD_Metadata xmlns:gml="http://www.opengis.net/gml" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:gco="http://www.isotc211.org/2005/gco" xmlns:gmd="http://www.isotc211.org/2005/gmd" xmlns:gfc="http://www.isotc211.org/2005/gfc" xmlns:gts="http://www.isotc211.org/2005/gts" xmlns:srv="http://www.isotc211.org/2005/srv" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.isotc211.org/2005/gmd">
     <gmd:contentInfo>
-        <gmd:MD_CoverageDescription>
-            <attributeDescription>
-                <RecordType>Digital Form Content 1</RecordType>
-            </attributeDescription>
-        </gmd:MD_CoverageDescription>
-    </gmd:contentInfo>
-    <gmd:contentInfo>
-        <gmd:MD_CoverageDescription>
-            <attributeDescription>
-                <RecordType>Digital Form Content 2</RecordType>
-            </attributeDescription>
-        </gmd:MD_CoverageDescription>
-    </gmd:contentInfo>
-    <gmd:contentInfo>
         <gmd:MD_FeatureCatalogueDescription>
             <gmd:featureCatalogueCitation href="http://www.isotc211.org/2005/gfc/resources/example/G_3.xml">
                 <gmd:CI_Citation>
@@ -423,7 +409,11 @@
                         <CharacterString>Digital Form Decompression 1</CharacterString>
                     </fileDecompressionTechnique>
                     <specification>
-                        <CharacterString>Digital Form Specification 1</CharacterString>
+                        <CharacterString>
+                        Digital Form Specification 1
+                        @------------------------------@
+                        Digital Form Content 1
+                        </CharacterString>
                     </specification>
                     <version>
                         <CharacterString>Digital Form Version 1</CharacterString>
@@ -439,7 +429,13 @@
                         <CharacterString>Digital Form Decompression 2</CharacterString>
                     </fileDecompressionTechnique>
                     <specification>
-                        <CharacterString>Digital Form Specification 2</CharacterString>
+                        <CharacterString>
+                        Digital Form Specification 2
+
+                        @------------------------------@
+
+                        Digital Form Content 2
+                        </CharacterString>
                     </specification>
                     <version>
                         <CharacterString>Digital Form Version 2</CharacterString>
@@ -454,11 +450,25 @@
                                 <CharacterString>Digital Form Access Instructions 1</CharacterString>
                             </protocol>
                             <linkage>
-                                <URL>digitalform.network.resource.one.com</URL>
+                                <URL>Digital Form 1 Resource 1</URL>
                             </linkage>
                             <description>
                                 <CharacterString>Digital Form Access Description 1</CharacterString>
                             </description>
+                        </CI_OnlineResource>
+                    </onLine>
+                    <onLine>
+                        <CI_OnlineResource>
+                            <linkage>
+                                <URL>Digital Form 1 Resource 2</URL>
+                            </linkage>
+                        </CI_OnlineResource>
+                    </onLine>
+                    <onLine>
+                        <CI_OnlineResource>
+                            <linkage>
+                                <URL>Digital Form 1 Resource 3</URL>
+                            </linkage>
                         </CI_OnlineResource>
                     </onLine>
                 </MD_DigitalTransferOptions>
@@ -467,15 +477,33 @@
                 <MD_DigitalTransferOptions>
                     <onLine>
                         <CI_OnlineResource>
+                            <linkage>
+                                <URL>Digital Form 2 Resource 1</URL>
+                            </linkage>
+                        </CI_OnlineResource>
+                    </onLine>
+                    <onLine>
+                        <CI_OnlineResource>
                             <protocol>
                                 <CharacterString>Digital Form Access Instructions 2</CharacterString>
                             </protocol>
-                            <linkage>
-                                <URL>digitalform.network.resource.two.com</URL>
-                            </linkage>
                             <description>
                                 <CharacterString>Digital Form Access Description 2</CharacterString>
                             </description>
+                        </CI_OnlineResource>
+                    </onLine>
+                    <onLine>
+                        <CI_OnlineResource>
+                            <linkage>
+                                <URL>Digital Form 2 Resource 2</URL>
+                            </linkage>
+                        </CI_OnlineResource>
+                    </onLine>
+                    <onLine>
+                        <CI_OnlineResource>
+                            <linkage>
+                                <URL>Digital Form 2 Resource 3</URL>
+                            </linkage>
                         </CI_OnlineResource>
                     </onLine>
                 </MD_DigitalTransferOptions>

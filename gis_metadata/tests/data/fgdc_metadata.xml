@@ -130,28 +130,19 @@
                     <onlineopt>
                         <computer>
                             <networka>
-                                <networkr>FL1 A B C1 Network Resource</networkr>
-                                <networkr>FL1 A B C2 Network Resource</networkr>
+                                <networkr>Digital Form 1 Resource 1</networkr>
                             </networka>
                         </computer>
                         <computer>
                             <networka>
-                                <networkr>FL1 A B1 C1 Network Resource</networkr>
-                                <networkr>FL1 A B1 C2 Network Resource</networkr>
+                                <networkr>Digital Form 1 Resource 2</networkr>
                             </networka>
                         </computer>
                     </onlineopt>
                     <onlineopt>
                         <computer>
                             <networka>
-                                <networkr>FL1 A1 B2 C1 Network Resource</networkr>
-                                <networkr>FL1 A1 B2 C2 Network Resource</networkr>
-                            </networka>
-                        </computer>
-                        <computer>
-                            <networka>
-                                <networkr>FL1 A2 B3 C1 Network Resource</networkr>
-                                <networkr>FL1 A2 B3 C2 Network Resource</networkr>
+                                <networkr>Digital Form 1 Resource 3</networkr>
                             </networka>
                         </computer>
                     </onlineopt>
@@ -180,28 +171,9 @@
                     <onlineopt>
                         <computer>
                             <networka>
-                                <networkr>FL2 AA B C1 Network Resource</networkr>
-                                <networkr>FL2 AA B C2 Network Resource</networkr>
-                            </networka>
-                        </computer>
-                        <computer>
-                            <networka>
-                                <networkr>FL2 AA B1 C1 Network Resource</networkr>
-                                <networkr>FL2 AA B1 C2 Network Resource</networkr>
-                            </networka>
-                        </computer>
-                    </onlineopt>
-                    <onlineopt>
-                        <computer>
-                            <networka>
-                                <networkr>FL2 AA1 B2 C1 Network Resource</networkr>
-                                <networkr>FL2 AA1 B2 C2 Network Resource</networkr>
-                            </networka>
-                        </computer>
-                        <computer>
-                            <networka>
-                                <networkr>FL2 AA2 B3 C1 Network Resource</networkr>
-                                <networkr>FL2 AA2 B3 C2 Network Resource</networkr>
+                                <networkr>Digital Form 2 Resource 1</networkr>
+                                <networkr>Digital Form 2 Resource 2</networkr>
+                                <networkr>Digital Form 2 Resource 3</networkr>
                             </networka>
                         </computer>
                     </onlineopt>

@@ -10,9 +10,9 @@ from parserutils.strings import DEFAULT_ENCODING
 
 from gis_metadata.utils import DATES, DATE_TYPE, DATE_VALUES
 from gis_metadata.utils import DATE_TYPE_RANGE, DATE_TYPE_RANGE_BEGIN, DATE_TYPE_RANGE_END
-from gis_metadata.utils import _supported_props, has_element, parse_complex, parse_complex_list, parse_dates, parse_property
+from gis_metadata.utils import has_element, parse_complex, parse_complex_list, parse_dates, parse_property
 from gis_metadata.utils import update_complex, update_complex_list, update_property, validate_any, validate_properties
-from gis_metadata.utils import ParserError
+from gis_metadata.utils import _supported_props, ParserError
 
 
 # Place holders for lazy, one-time FGDC & ISO imports
@@ -244,8 +244,9 @@ class MetadataParser(object):
         template_tree = self._xml_tree = create_element_tree(root)
 
         for prop, val in iteritems(metadata_defaults):
-            path = self._get_xpath_for(prop)
+            path = self._data_map.get(prop)
             if path and val:
+                setattr(self, prop, val)
                 update_property(template_tree, None, path, prop, val)
 
         return template_tree

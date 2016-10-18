@@ -3,7 +3,7 @@
 from copy import deepcopy
 from six import iteritems, string_types
 
-from parserutils.collections import filter_empty, reduce_value, wrap_value
+from parserutils.collections import filter_empty, flatten_items, reduce_value, wrap_value
 from parserutils.elements import get_element, get_elements, get_element_attributes, get_elements_text
 from parserutils.elements import element_exists, insert_element, remove_element_attributes, remove_element
 from parserutils.elements import XPATH_DELIM
@@ -28,8 +28,18 @@ PROCESS_STEPS = 'process_steps'
 
 # Grouping property name constants for complex definitions
 
+_COMPLEX_DELIM = '\n'
 _COMPLEX_LISTS = {ATTRIBUTES, CONTACTS, DIGITAL_FORMS, KEYWORDS_PLACE, KEYWORDS_THEME, PROCESS_STEPS}
 _COMPLEX_STRUCTS = {BOUNDING_BOX, DATES, LARGER_WORKS}
+_COMPLEX_WITH_MULTI = {
+    DATES: {'values'},
+    DIGITAL_FORMS: {'network_resource'},
+    LARGER_WORKS: {'origin'},
+    PROCESS_STEPS: {'sources'}
+}
+
+_join_complex_attr = ','.join
+_join_complex_prop = _COMPLEX_DELIM.join
 
 # A set of identifying property names that must be supported by all parsers
 
@@ -193,6 +203,20 @@ def get_default_for(prop, value):
         return u'' if val is None else val
 
 
+def get_default_for_complex(prop, subprop, value, xpath=''):
+
+    # Handle alternate props (leading underscores)
+    prop = prop.strip('_')
+    subprop = subprop.strip('_')
+
+    value = wrap_value(value)
+
+    if subprop in _COMPLEX_WITH_MULTI.get(prop, ''):
+        return value
+
+    return _join_complex_attr(value) if '@' in xpath else _join_complex_prop(value)
+
+
 def has_element(elem_to_parse, xpath):
     """
     Parse xpath for any attribute reference "path/@attr" and check for root and presence of attribute.
@@ -221,7 +245,10 @@ def parse_complex(tree_to_parse, xpath_root, xpath_map, complex_key):
     complex_struct = {}
 
     for prop in _complex_definitions[complex_key]:
-        complex_struct[prop] = parse_property(tree_to_parse, xpath_root, xpath_map, prop)
+        parsed = parse_property(tree_to_parse, xpath_root, xpath_map, prop)
+        complex_struct[prop] = reduce_value(
+            flatten_items(v.split(_COMPLEX_DELIM) for v in wrap_value(parsed))
+        )
 
     return complex_struct if any(complex_struct.values()) else {}
 
@@ -445,10 +472,13 @@ def update_complex(tree_to_update, xpath_root, xpath_map, prop, values):
     values = reduce_value(values, {})
 
     if not values:
+        # Returns the elements corresponding to property removed from the tree
         updated = update_property(tree_to_update, xpath_root, xpath_root, prop, values)
     else:
-        for subprop, val in iteritems(values):
-            update_property(tree_to_update, None, xpath_map[subprop], subprop, val)
+        for subprop, value in iteritems(values):
+            xpath = xpath_map[subprop]
+            value = get_default_for_complex(prop, subprop, value, xpath)
+            update_property(tree_to_update, None, xpath, subprop, value)
         updated = get_element(tree_to_update, xpath_root)
 
     return updated
@@ -468,14 +498,19 @@ def update_complex_list(tree_to_update, xpath_root, xpath_map, prop, values):
 
     remove_element(tree_to_update, xpath_root, True)
 
-    for idx, complex_struct in enumerate(wrap_value(values)):
+    if not values:
+        # Returns the elements corresponding to property removed from the tree
+        complex_list.append(update_property(tree_to_update, xpath_root, xpath_root, prop, values))
+    else:
+        for idx, complex_struct in enumerate(wrap_value(values)):
 
-        # Insert a new complex element root for each dict in the list
-        complex_element = insert_element(tree_to_update, idx, xpath_root)
+            # Insert a new complex element root for each dict in the list
+            complex_element = insert_element(tree_to_update, idx, xpath_root)
 
-        for subprop, value in iteritems(complex_struct):
-            xpath = get_xpath_branch(xpath_root, xpath_map[subprop])
-            complex_list.append(update_property(complex_element, None, xpath, subprop, value))
+            for subprop, value in iteritems(complex_struct):
+                xpath = get_xpath_branch(xpath_root, xpath_map[subprop])
+                value = get_default_for_complex(prop, subprop, value, xpath)
+                complex_list.append(update_property(complex_element, None, xpath, subprop, value))
 
     return complex_list
 

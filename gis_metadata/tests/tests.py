@@ -6,7 +6,7 @@ from six import iteritems
 from parserutils.collections import wrap_value
 from parserutils.elements import element_exists, element_to_dict, element_to_string
 from parserutils.elements import get_element_text, get_elements, get_remote_element
-from parserutils.elements import clear_element, remove_element_attributes, set_element_attributes
+from parserutils.elements import clear_element, remove_element, remove_element_attributes, set_element_attributes
 
 from gis_metadata.fgdc_metadata_parser import FgdcParser, FGDC_ROOT
 from gis_metadata.iso_metadata_parser import IsoParser, ISO_ROOTS, _iso_tag_formats
@@ -70,6 +70,25 @@ TEST_METADATA_VALUES = {
     'dataset_completeness': 'Test Dataset Completeness',
     'data_credits': 'Test Data Credits',
     'dates': {'type': 'multiple', 'values': ['Multiple Date 1', 'Multiple Date 2', 'Multiple Date 3']},
+    'digital_forms': [{
+        'access_desc': 'Digital Form Access Description 1',
+        'version': 'Digital Form Version 1',
+        'specification': 'Digital Form Specification 1',
+        'access_instrs': 'Digital Form Access Instructions 1',
+        'name': 'Digital Form Name 1',
+        'network_resource': ['Digital Form 1 Resource 1', 'Digital Form 1 Resource 2', 'Digital Form 1 Resource 3'],
+        'content': 'Digital Form Content 1',
+        'decompression': 'Digital Form Decompression 1'
+    }, {
+        'access_desc': 'Digital Form Access Description 2',
+        'version': 'Digital Form Version 2',
+        'specification': 'Digital Form Specification 2',
+        'access_instrs': 'Digital Form Access Instructions 2',
+        'name': 'Digital Form Name 2',
+        'network_resource': ['Digital Form 2 Resource 1', 'Digital Form 2 Resource 2', 'Digital Form 2 Resource 3'],
+        'content': 'Digital Form Content 2',
+        'decompression': 'Digital Form Decompression 2'
+    }],
     'dist_address': 'Test Distribution Address',
     'dist_address_type': 'Test Distribution Address Type',
     'dist_city': 'Test Distribution City',
@@ -125,7 +144,7 @@ TEST_METADATA_VALUES = {
 
 class MetadataParserTestCase(unittest.TestCase):
 
-    valid_complex_values = ('one', ['before', 'after'], ['first', 'next', 'last'])
+    valid_complex_values = (u'one', [u'before', u'after'], [u'first', u'next', u'last'])
 
     def setUp(self):
         sep = os.path.sep
@@ -197,9 +216,13 @@ class MetadataParserTestCase(unittest.TestCase):
                             parser_name, '{0}.{1}'.format(prop, key), val, target[idx].get(key, u'')
                         )
 
-    def assert_reparsed_simple_for(self, parser, props, value, target):
+    def assert_reparsed_simple_for(self, parser, props, value=None, target=None):
+
+        use_props = isinstance(props, dict)
 
         for prop in props:
+            if use_props:
+                value = props[prop]
             setattr(parser, prop, value)
 
         parser_type = type(parser)
@@ -207,6 +230,8 @@ class MetadataParserTestCase(unittest.TestCase):
         reparsed = parser_type(parser.serialize())
 
         for prop in props:
+            if use_props:
+                target = props[prop]
             self.assert_equal_for(parser_name, prop, getattr(reparsed, prop), target)
 
     def assert_parser_conversion(self, content_parser, target_parser, comparison_type=''):
@@ -337,10 +362,16 @@ class MetadataParserTemplateTests(MetadataParserTestCase):
             ))
 
     def test_fgdc_template_values(self):
-        self.assert_valid_template(FgdcParser(**TEST_TEMPLATE_VALUES), root='metadata')
+        fgdc_template = FgdcParser(**TEST_TEMPLATE_VALUES)
+
+        self.assert_valid_template(fgdc_template, root='metadata')
+        self.assert_reparsed_simple_for(fgdc_template, TEST_TEMPLATE_VALUES)
 
     def test_iso_template_values(self):
-        self.assert_valid_template(IsoParser(**TEST_TEMPLATE_VALUES), root='MD_Metadata')
+        iso_template = IsoParser(**TEST_TEMPLATE_VALUES)
+
+        self.assert_valid_template(iso_template, root='MD_Metadata')
+        self.assert_reparsed_simple_for(iso_template, TEST_TEMPLATE_VALUES)
 
     def test_template_conversion(self):
         fgdc_template = FgdcParser()
@@ -529,6 +560,34 @@ class MetadataParserTests(MetadataParserTestCase):
             attributes, TEST_METADATA_VALUES[ATTRIBUTES], 'Invalid parsed attributes: {0}'.format(attributes)
         )
 
+    def test_parser_values(self):
+        """ Tests that parsers are populated with the expected values """
+
+        fgdc_element = get_remote_element(self.fgdc_file)
+        fgdc_parser = FgdcParser(element_to_string(fgdc_element))
+        fgdc_new = FgdcParser(**TEST_METADATA_VALUES)
+
+        # Test that the two FGDC parsers have the same data given the same input file
+        self.assert_parsers_are_equal(fgdc_parser, fgdc_new)
+
+        iso_element = get_remote_element(self.iso_file)
+        remove_element(iso_element, _iso_tag_formats['_attr_citation'], True)
+        iso_parser = IsoParser(element_to_string(iso_element))
+        iso_new = IsoParser(**TEST_METADATA_VALUES)
+
+        # Test that the two ISO parsers have the same data given the same input file
+        self.assert_parsers_are_equal(iso_parser, iso_new)
+
+        # Test that two distinct parsers have the same data given equivalent input files
+        self.assert_parsers_are_equal(fgdc_parser, iso_parser)
+
+        # Test that each parser's values correspond to the target values
+        for parser in (fgdc_parser, iso_parser):
+            parser_type = type(parser)
+
+            for prop, target in TEST_METADATA_VALUES.items():
+                self.assert_equal_for(parser_type, prop, getattr(parser, prop), target)
+
     def test_parser_conversion(self):
         fgdc_parser = FgdcParser(self.fgdc_metadata)
         iso_parser = IsoParser(self.iso_metadata)
@@ -676,13 +735,13 @@ class MetadataParserTests(MetadataParserTestCase):
         iso_parser = IsoParser(self.iso_metadata)
 
         simple_empty_vals = ('', u'', [])
-        simple_valid_vals = ('value', ['item', 'list'])
+        simple_valid_vals = (u'value', [u'item', u'list'])
 
         for parser in (fgdc_parser, iso_parser):
 
             # Test reparsed empty values
             for val in simple_empty_vals:
-                self.assert_reparsed_simple_for(parser, simple_props, val, '')
+                self.assert_reparsed_simple_for(parser, simple_props, val, u'')
 
             # Test reparsed valid values
             for val in simple_valid_vals:

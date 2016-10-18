@@ -5,7 +5,7 @@ import six
 from collections import OrderedDict
 from six import iteritems, string_types
 
-from parserutils.collections import reduce_value, wrap_value
+from parserutils.collections import filter_empty, reduce_value, wrap_value
 from parserutils.elements import get_element_name, get_element_text, get_elements_text
 from parserutils.elements import get_elements, get_remote_element, insert_element, remove_element
 from parserutils.elements import XPATH_DELIM
@@ -25,7 +25,7 @@ from gis_metadata.utils import LARGER_WORKS
 from gis_metadata.utils import PROCESS_STEPS
 from gis_metadata.utils import ParserProperty
 
-from gis_metadata.utils import format_xpaths, get_complex_definitions, get_xpath_branch
+from gis_metadata.utils import format_xpaths, get_complex_definitions
 from gis_metadata.utils import parse_complex_list, update_complex_list, update_property
 
 
@@ -37,6 +37,9 @@ ISO_ROOTS = ('MD_Metadata', 'MI_Metadata')
 KEYWORD_TYPE_PLACE = 'place'
 KEYWORD_TYPE_THEME = 'theme'
 
+_DIGITAL_FORMS_CONTENT_DELIM = '@------------------------------@'
+
+
 _iso_definitions = get_complex_definitions()
 _iso_definitions[ATTRIBUTES].update({
     '_definition_source': '{_definition_src}',
@@ -46,8 +49,7 @@ _iso_definitions[ATTRIBUTES].update({
 
 _iso_tag_roots = OrderedDict((
     # First process private dependency tags (order enforced by key sorting)
-    ('_contentinfo', 'contentInfo'),
-    ('_contentinfo_coverage', '{_contentinfo}/MD_CoverageDescription'),
+    ('_content_coverage', 'contentInfo/MD_CoverageDescription'),
     ('_dataqual', 'dataQualityInfo/DQ_DataQuality'),
     ('_dataqual_lineage', '{_dataqual}/lineage/LI_Lineage'),
     ('_dataqual_report', '{_dataqual}/report'),
@@ -75,7 +77,7 @@ _iso_tag_roots = OrderedDict((
     ('_attr_src', '{_attr_def}/source/CI_Citation/citedResponsibleParty/CI_ResponsibleParty'),
 
     # References to separate file ISO-19110 from: MD_Metadata
-    ('_attr_citation', '{_contentinfo}/MD_FeatureCatalogueDescription/featureCatalogueCitation'),
+    ('_attr_citation', 'contentInfo/MD_FeatureCatalogueDescription/featureCatalogueCitation'),
     ('_attr_contact', '{_attr_citation}/CI_Citation/citedResponsibleParty/CI_ResponsibleParty/contactInfo/CI_Contact'),
     ('_attr_contact_url', '{_attr_contact}/onlineResource/CI_OnlineResource/linkage/URL')
 ))
@@ -91,8 +93,7 @@ _iso_tag_formats = {
     '_bounding_box_root': '{_idinfo_extent}/geographicElement',
     '_contacts_root': '{_idinfo_resp}',
     '_dates_root': '{_idinfo_extent}/temporalElement',
-    '_digital_form_content_root': '{_contentinfo_coverage}',
-    '_distribution_format_root': '{_distinfo}/distributionFormat',
+    '_digital_forms_root': '{_distinfo}/distributionFormat',
     '_transfer_options_root': '{_distinfo}/transferOptions',
     '_keywords_root': '{_idinfo}/descriptiveKeywords',
     '_larger_works_root': '{_idinfo_aggregate_citation}',
@@ -135,7 +136,6 @@ _iso_tag_formats = {
     '_access_desc': '{_distinfo_rsrc}/description/CharacterString',
     '_access_instrs': '{_distinfo_rsrc}/protocol/CharacterString',
     '_network_resource': '{_distinfo_rsrc}/linkage/URL',
-    '_digital_form_content': '{_contentinfo_coverage}/attributeDescription/RecordType',
     PROCESS_STEPS: '{_dataqual_lineage}/processStep/LI_ProcessStep',
     LARGER_WORKS: '{_idinfo_aggregate_citation}/{{lw_path}}',
     '_lw_citation': '{_idinfo_aggregate_contact}/{{lw_path}}',
@@ -238,13 +238,13 @@ class IsoParser(MetadataParser):
         iso_data_structures[DIGITAL_FORMS] = format_xpaths(
             _iso_definitions[DIGITAL_FORMS],
             name=df_format.format(df_path='name/CharacterString'),
-            content='',  # Not supported in ISO-19115 (using coverage description)
+            content='',  # Not supported in ISO-19115 (appending to spec)
             decompression=df_format.format(df_path='fileDecompressionTechnique/CharacterString'),
             version=df_format.format(df_path='version/CharacterString'),
             specification=df_format.format(df_path='specification/CharacterString'),
-            access_desc='',  # Placeholder for later assignment
-            access_instrs='',  # Placeholder for later assignment
-            network_resource=''  # Placeholder for later assignment
+            access_desc=iso_data_map['_access_desc'],
+            access_instrs=iso_data_map['_access_instrs'],
+            network_resource=iso_data_map['_network_resource']
         )
 
         keywords_structure = {
@@ -348,54 +348,58 @@ class IsoParser(MetadataParser):
     def _parse_digital_forms(self, prop=DIGITAL_FORMS):
         """ Concatenates a list of Digital Form data structures parsed from the metadata """
 
-        xpath_root = self._data_map['_distribution_format_root']
         xpath_map = self._data_structures[prop]
 
-        transopt_root = self._data_map['_transfer_options_root']
-        acdesc_xpath = get_xpath_branch(transopt_root, self._data_map['_access_desc'])
-        acinstr_xpath = get_xpath_branch(transopt_root, self._data_map['_access_instrs'])
-        netrsrc_xpath = get_xpath_branch(transopt_root, self._data_map['_network_resource'])
-
+        # Parse base digital form fields: 'name', 'content', 'decompression', 'version', 'specification'
+        xpath_root = self._data_map['_digital_forms_root']
         digital_forms = parse_complex_list(self._xml_tree, xpath_root, xpath_map, prop)
-        digital_form_content = self._parse_form_content()
-        transfer_opts = get_elements(self._xml_tree, transopt_root)
 
-        dist_format_len = len(digital_forms)
-        trans_option_len = len(transfer_opts)
+        # Parse digital form transfer option fields: 'access_desc', 'access_instrs', 'network_resource'
+        xpath_root = self._data_map['_transfer_options_root']
+        transfer_opts = parse_complex_list(self._xml_tree, xpath_root, xpath_map, prop)
 
-        combined = []
+        # Split out digital form content that has been appended to specifications
 
-        for idx in xrange(0, max(dist_format_len, trans_option_len)):
-            if idx < dist_format_len:
-                digital_form = digital_forms[idx]
-            else:
-                digital_form = {}.fromkeys(_iso_definitions[prop], u'')
+        content_delim = _DIGITAL_FORMS_CONTENT_DELIM
 
-            digital_form['content'] = digital_form_content
+        for digital_form in digital_forms:
+            specifications = wrap_value(s.strip() for s in digital_form['specification'])
 
-            if idx < trans_option_len:
-                transopt = transfer_opts[idx]
+            digital_form['content'] = []
+            digital_form['specification'] = []
+            has_content = False
 
-                digital_form['access_desc'] = reduce_value(get_elements_text(transopt, acdesc_xpath))
-                digital_form['access_instrs'] = reduce_value(get_elements_text(transopt, acinstr_xpath))
-                digital_form['network_resource'] = reduce_value(get_elements_text(transopt, netrsrc_xpath))
+            # For each specification, insert delim before appending content
+            for spec in specifications:
+                has_content = has_content or spec == content_delim
+
+                if not has_content:
+                    digital_form['specification'].append(spec)
+                elif spec != content_delim:
+                    digital_form['content'].append(spec)
+
+            # Reduce spec and content to single string values if possible
+            for form_prop in ('content', 'specification'):
+                digital_form[form_prop] = reduce_value(filter_empty(digital_form[form_prop], u''))
+
+        # Combine digital forms and transfer options into a single complex struct
+
+        df_len = len(digital_forms)
+        to_len = len(transfer_opts)
+        parsed_forms = []
+
+        for idx in xrange(0, max(df_len, to_len)):
+            digital_form = {}.fromkeys(_iso_definitions[prop], u'')
+
+            if idx < df_len:
+                digital_form.update(i for i in digital_forms[idx].items() if i[1])
+            if idx < to_len:
+                digital_form.update(i for i in transfer_opts[idx].items() if i[1])
 
             if any(digital_form.values()):
-                combined.append(digital_form)
+                parsed_forms.append(digital_form)
 
-        return combined
-
-    def _parse_form_content(self, form_content=None):
-        """ :return: the form_content filtered down to a single value (only one supported) """
-
-        if form_content is not None:
-            content_value = form_content
-        elif getattr(self, '_digital_form_content', None):
-            content_value = self._digital_form_content
-        else:
-            content_value = self._parse_property('_digital_form_content')
-
-        return (wrap_value(content_value) or [u''])[0]
+        return parsed_forms
 
     def _parse_keywords(self, prop):
         """ Parse type-specific keywords from the metadata: Theme or Place """
@@ -463,36 +467,25 @@ class IsoParser(MetadataParser):
 
         digital_forms = wrap_value(update_props['values'])
 
-        # Capture last altered form content for all digital forms
-
-        original_form_content = self._parse_form_content()
-        digital_form_content = original_form_content
-
-        for digital_form in digital_forms:
-            next_form_content = self._parse_form_content(digital_form.get('content') or u'')
-            if next_form_content != original_form_content:
-                digital_form_content = next_form_content
-
-        # Update digital form content: contentInfo/MD_CoverageDescription*
-
-        tree_to_update = update_props['tree_to_update']
-        xpaths = self._data_map['_digital_form_content']
-        xroot = self._data_map['_digital_form_content_root']
-
-        coverage_desc = update_property(tree_to_update, xroot, xpaths, DIGITAL_FORMS, digital_form_content)
-
         # Update all Digital Form properties: distributionFormat*
 
         xpath_map = self._data_structures[update_props['prop']]
 
         dist_format_props = ('name', 'decompression', 'version', 'specification')
-        dist_format_xroot = self._data_map['_distribution_format_root']
+        dist_format_xroot = self._data_map['_digital_forms_root']
         dist_format_xmap = {prop: xpath_map[prop] for prop in dist_format_props}
-
         dist_formats = []
+
         for digital_form in digital_forms:
-            dist_formats.append({prop: digital_form[prop] for prop in dist_format_props})
-            digital_form['content'] = digital_form_content
+            dist_format = {prop: digital_form[prop] for prop in dist_format_props}
+
+            if digital_form.get('content'):
+                dist_spec = wrap_value(digital_form.get('specification'))
+                dist_spec.append(_DIGITAL_FORMS_CONTENT_DELIM)
+                dist_spec.extend(wrap_value(digital_form['content']))
+                dist_format['specification'] = dist_spec
+
+            dist_formats.append(dist_format)
 
         update_props['values'] = dist_formats
         dist_formats = update_complex_list(
@@ -515,7 +508,6 @@ class IsoParser(MetadataParser):
         )
 
         return {
-            'coverage_desc': coverage_desc,
             'distribution_formats': dist_formats,
             'transfer_options': trans_options
         }
