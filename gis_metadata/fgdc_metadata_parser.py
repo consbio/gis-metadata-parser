@@ -205,6 +205,7 @@ class FgdcParser(MetadataParser):
         :see: gis_metadata.utils._complex_definitions[DATES]
         """
 
+        tree_to_update = update_props['tree_to_update']
         xpath_root = self._data_map['_dates_root']
 
         if self.dates:
@@ -215,6 +216,6 @@ class FgdcParser(MetadataParser):
 
             elif date_type == DATE_TYPE_RANGE:
                 xpath_root = ''  # /rngdates/begdate and enddate are siblings, not cousins
-                remove_element(update_props['tree_to_update'], self._data_map['_dates_root'])
+                remove_element(tree_to_update, self._data_map['_dates_root'])
 
         return super(FgdcParser, self)._update_dates(xpath_root, **update_props)

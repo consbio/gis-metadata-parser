@@ -26,7 +26,7 @@ from gis_metadata.utils import PROCESS_STEPS
 from gis_metadata.utils import ParserProperty
 
 from gis_metadata.utils import format_xpaths, get_complex_definitions
-from gis_metadata.utils import parse_complex_list, update_complex_list, update_property
+from gis_metadata.utils import parse_complex_list, parse_property, update_complex_list, update_property
 
 
 xrange = getattr(six.moves, 'xrange')
@@ -89,9 +89,11 @@ _iso_tag_roots.update(format_xpaths(_iso_tag_roots, **_iso_tag_roots))
 
 _iso_tag_formats = {
     # Property-specific xpath roots: the base from which each element repeats
+    '_attribute_accuracy_root': '{_dataqual_report}',
     '_attributes_root': 'featureType/FC_FeatureType/carrierOfCharacteristics',
     '_bounding_box_root': '{_idinfo_extent}/geographicElement',
     '_contacts_root': '{_idinfo_resp}',
+    '_dataset_completeness_root': '{_dataqual_report}',
     '_dates_root': '{_idinfo_extent}/temporalElement',
     '_digital_forms_root': '{_distinfo}/distributionFormat',
     '_transfer_options_root': '{_distinfo}/transferOptions',
@@ -136,7 +138,7 @@ _iso_tag_formats = {
     '_access_desc': '{_distinfo_rsrc}/description/CharacterString',
     '_access_instrs': '{_distinfo_rsrc}/protocol/CharacterString',
     '_network_resource': '{_distinfo_rsrc}/linkage/URL',
-    PROCESS_STEPS: '{_dataqual_lineage}/processStep/LI_ProcessStep',
+    PROCESS_STEPS: '{_dataqual_lineage}/processStep/LI_ProcessStep/{{ps_path}}',
     LARGER_WORKS: '{_idinfo_aggregate_citation}/{{lw_path}}',
     '_lw_citation': '{_idinfo_aggregate_contact}/{{lw_path}}',
     '_lw_collective': '{_idinfo_citation}/collectiveTitle/CharacterString',
@@ -268,7 +270,7 @@ class IsoParser(MetadataParser):
             info=iso_data_map['_lw_citation'].format(lw_path='organisationName/CharacterString')
         )
 
-        ps_format = iso_data_map[PROCESS_STEPS] + '/{ps_path}'
+        ps_format = iso_data_map[PROCESS_STEPS]
         iso_data_structures[PROCESS_STEPS] = format_xpaths(
             _iso_definitions[PROCESS_STEPS],
             description=ps_format.format(ps_path='description/CharacterString'),
@@ -278,14 +280,11 @@ class IsoParser(MetadataParser):
             )
         )
 
-        # Assign XPATHS and gis_metadata.utils.ParserProperties to fgdc_data_map
+        # Assign XPATHS and gis_metadata.utils.ParserProperties to data map
 
         for prop, xpath in iteritems(dict(iso_data_map)):
             if prop == ATTRIBUTES:
                 iso_data_map[prop] = ParserProperty(self._parse_attribute_details, self._update_attribute_details)
-
-            elif prop in ('attribute_accuracy', 'dataset_completeness'):
-                iso_data_map[prop] = ParserProperty(self._parse_property, self._update_report_item, xpath=xpath)
 
             elif prop in (CONTACTS, PROCESS_STEPS):
                 iso_data_map[prop] = ParserProperty(self._parse_complex_list, self._update_complex_list)
@@ -330,7 +329,9 @@ class IsoParser(MetadataParser):
         #    ATTRIBUTE: href
         #    ELEMENT TEXT: CI_Citation/.../CI_Contact/onlineResource/CI_OnlineResource/linkage
 
-        self._attr_details_file_url = self._parse_property('_attributes_file')
+        self._attr_details_file_url = parse_property(
+            self._xml_tree, None, self._data_map, '_attributes_file'
+        )
         if not self._attr_details_file_url:
             return None
 
@@ -546,11 +547,6 @@ class IsoParser(MetadataParser):
 
         return keywords
 
-    def _update_report_item(self, **update_props):
-        """ Update operation for ISO Attribute Accuracy metadata """
-
-        return update_property(xpath_root=self._data_map['_dataqual_report'], **update_props)
-
     def update(self, use_template=False, **metadata_defaults):
         """ OVERRIDDEN: Prevents writing multiple CharacterStrings per XPATH property """
 
@@ -568,21 +564,21 @@ class IsoParser(MetadataParser):
         for prop, xpath in iteritems(self._data_map):
             if not prop.startswith('_') or prop.strip('_') in supported_props:
                 # Send only public or alternate properties
-                xroot = self._trim_xpath(xpath)
+                xroot = self._trim_xpath(xpath, prop)
                 values = getattr(self, prop, u'')
                 update_property(tree_to_update, xroot, xpath, prop, values, supported_props)
 
         return tree_to_update
 
-    def _trim_xpath(self, xpath, default_value=None):
+    def _trim_xpath(self, xpath, prop):
         """ Removes primitive type tags from an XPATH """
 
-        if isinstance(xpath, string_types):
+        xroot = self._get_xroot_for(prop)
+
+        if xroot is None and isinstance(xpath, string_types):
             xtags = xpath.split(XPATH_DELIM)
 
             if xtags[-1] in _iso_tag_primitives:
-                xpath = XPATH_DELIM.join(xtags[:-1])
-            else:
-                xpath = default_value
+                xroot = XPATH_DELIM.join(xtags[:-1])
 
-        return default_value
+        return xroot

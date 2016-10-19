@@ -695,7 +695,9 @@ class ParserProperty(object):
 
         if hasattr(prop_parser, '__call__'):
             self._parser = prop_parser
-        elif xpath is None:
+        elif xpath is not None:
+            self._parser = None
+        else:
             raise ParserError(
                 'Invalid property getter:\n\tpassed in: {param}\n\texpected: {expected}',
                 param=type(prop_parser), expected='<type "callable"> or provide XPATH'
@@ -713,6 +715,10 @@ class ParserProperty(object):
 
     def get_prop(self, prop):
         """ Calls the getter with no arguments and returns its value """
+
+        if self._parser is None:
+            raise ParserError('Cannot call ParserProperty."get_prop" with no parser configured')
+
         return self._parser(prop) if prop else self._parser()
 
     def set_prop(self, **setter_args):

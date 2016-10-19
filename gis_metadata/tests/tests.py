@@ -186,15 +186,7 @@ class MetadataParserTestCase(unittest.TestCase):
         parser_name = parser_type.__name__
         reparsed = getattr(parser_type(parser.serialize()), prop)
 
-        if not isinstance(reparsed, (dict, list)):
-            # Reparsed should not be a collection: do a single value comparison
-            self.assert_equal_for(parser_name, prop, reparsed, target)
-
-        elif isinstance(reparsed, type(target)) and len(target) != len(reparsed):
-            # Reparsed and target equal in type, but lengths differ: do a single value comparison
-            self.assert_equal_for(parser_name, prop, reparsed, target)
-
-        elif isinstance(reparsed, dict):
+        if isinstance(reparsed, dict):
             # Reparsed is a dict: compare each value with corresponding in target
             for key, val in iteritems(reparsed):
                 self.assert_equal_for(

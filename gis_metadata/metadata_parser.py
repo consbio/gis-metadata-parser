@@ -296,19 +296,6 @@ class MetadataParser(object):
 
         return parsed if attr is None else parsed.get(attr)
 
-    def _parse_property(self, prop):
-        """ :return: a value for a property parsed the default way """
-
-        xpath_root = None
-        xpath_map = {k: v for k, v in iteritems(self._data_map) if k.strip('_') == prop.strip('_')}
-        xpath_parser = getattr(xpath_map[prop], '_parser', None)
-
-        # Prevents infinite recursion: use XPATH instead
-        if xpath_parser == self._parse_property:
-            xpath_map[prop] = xpath_map[prop].xpath
-
-        return parse_property(self._xml_tree, xpath_root, xpath_map, prop)
-
     def _update_complex(self, **update_props):
         """ Default update operation for a complex struct """
 
@@ -398,7 +385,9 @@ class MetadataParser(object):
         for prop, xpath in iteritems(self._data_map):
             if not prop.startswith('_') or prop.strip('_') in supported_props:
                 # Send only public or alternate properties
-                update_property(tree_to_update, None, xpath, prop, getattr(self, prop, u''), supported_props)
+                update_property(
+                    tree_to_update, self._get_xroot_for(prop), xpath, prop, getattr(self, prop, u''), supported_props
+                )
 
         return tree_to_update
 
