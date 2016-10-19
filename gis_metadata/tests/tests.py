@@ -76,7 +76,7 @@ TEST_METADATA_VALUES = {
         'specification': 'Digital Form Specification 1',
         'access_instrs': 'Digital Form Access Instructions 1',
         'name': 'Digital Form Name 1',
-        'network_resource': ['Digital Form 1 Resource 1', 'Digital Form 1 Resource 2', 'Digital Form 1 Resource 3'],
+        'network_resource': 'Digital Form Resource 1',
         'content': 'Digital Form Content 1',
         'decompression': 'Digital Form Decompression 1'
     }, {
@@ -85,7 +85,7 @@ TEST_METADATA_VALUES = {
         'specification': 'Digital Form Specification 2',
         'access_instrs': 'Digital Form Access Instructions 2',
         'name': 'Digital Form Name 2',
-        'network_resource': ['Digital Form 2 Resource 1', 'Digital Form 2 Resource 2', 'Digital Form 2 Resource 3'],
+        'network_resource': 'Digital Form Resource 2',
         'content': 'Digital Form Content 2',
         'decompression': 'Digital Form Decompression 2'
     }],

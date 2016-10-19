@@ -155,7 +155,7 @@ class FgdcParser(MetadataParser):
             specification=df_format.format(df_path='digtinfo/formspec'),
             access_desc=df_format.format(df_path='digtopt/onlinopt/oncomp'),
             access_instrs=df_format.format(df_path='digtopt/onlinopt/accinstr'),
-            network_resource=df_format.format(df_path='digtopt/onlineopt/computer/networka/networkr')
+            network_resource=df_format.format(df_path='digtopt/onlinopt/computer/networka/networkr')
         )
 
         lw_format = _fgdc_tag_formats[LARGER_WORKS]

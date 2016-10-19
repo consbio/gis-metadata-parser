@@ -141,6 +141,9 @@
                             <otherCitationDetails>
                                 <CharacterString>Larger Works Other Citation</CharacterString>
                             </otherCitationDetails>
+                            <collectiveTitle>
+                                <CharacterString>Larger Works Collective Title (not currently used)</CharacterString>
+                            </collectiveTitle>
                             <edition>
                                 <CharacterString>Larger Works Edition</CharacterString>
                             </edition>
@@ -184,16 +187,6 @@
                     <title>
                         <CharacterString>Test Title</CharacterString>
                     </title>
-                    <collectiveTitle>
-                        <CharacterString>Larger Works Collective Title (not currently used)</CharacterString>
-                    </collectiveTitle>
-                    <identifier>
-                        <MD_Identifier>
-                            <code>
-                                <CharacterString>Test Resource Description</CharacterString>
-                            </code>
-                        </MD_Identifier>
-                    </identifier>
                     <otherCitationDetails>
                         <CharacterString>Test Other Citation Info</CharacterString>
                     </otherCitationDetails>
@@ -265,6 +258,8 @@
                         </CI_Contact>
                     </contactInfo>
                 </CI_ResponsibleParty>
+            </pointOfContact>
+            <pointOfContact>
                 <CI_ResponsibleParty>
                     <individualName>
                         <CharacterString>Contact Name 2</CharacterString>
@@ -294,12 +289,21 @@
                         <CharacterString>Test Use Constraints</CharacterString>
                     </useLimitation>
                 </MD_Constraints>
+            </resourceConstraints>
+            <resourceConstraints>
                 <MD_LegalConstraints>
                     <otherConstraints>
                         <CharacterString>Test Distribution Liability</CharacterString>
                     </otherConstraints>
                 </MD_LegalConstraints>
             </resourceConstraints>
+            <resourceSpecificUsage>
+                <MD_Usage>
+                    <specificUsage>
+                        <CharacterString>Test Resource Description</CharacterString>
+                    </specificUsage>
+                </MD_Usage>
+            </resourceSpecificUsage>
             <descriptiveKeywords>
                 <MD_Keywords>
                     <keyword>
@@ -450,7 +454,7 @@
                                 <CharacterString>Digital Form Access Instructions 1</CharacterString>
                             </protocol>
                             <linkage>
-                                <URL>Digital Form 1 Resource 1</URL>
+                                <URL>Digital Form Resource 1</URL>
                             </linkage>
                             <description>
                                 <CharacterString>Digital Form Access Description 1</CharacterString>
@@ -460,50 +464,14 @@
                     <onLine>
                         <CI_OnlineResource>
                             <linkage>
-                                <URL>Digital Form 1 Resource 2</URL>
+                                <URL>Digital Form Resource 2</URL>
                             </linkage>
-                        </CI_OnlineResource>
-                    </onLine>
-                    <onLine>
-                        <CI_OnlineResource>
-                            <linkage>
-                                <URL>Digital Form 1 Resource 3</URL>
-                            </linkage>
-                        </CI_OnlineResource>
-                    </onLine>
-                </MD_DigitalTransferOptions>
-            </transferOptions>
-            <transferOptions>
-                <MD_DigitalTransferOptions>
-                    <onLine>
-                        <CI_OnlineResource>
-                            <linkage>
-                                <URL>Digital Form 2 Resource 1</URL>
-                            </linkage>
-                        </CI_OnlineResource>
-                    </onLine>
-                    <onLine>
-                        <CI_OnlineResource>
                             <protocol>
                                 <CharacterString>Digital Form Access Instructions 2</CharacterString>
                             </protocol>
                             <description>
                                 <CharacterString>Digital Form Access Description 2</CharacterString>
                             </description>
-                        </CI_OnlineResource>
-                    </onLine>
-                    <onLine>
-                        <CI_OnlineResource>
-                            <linkage>
-                                <URL>Digital Form 2 Resource 2</URL>
-                            </linkage>
-                        </CI_OnlineResource>
-                    </onLine>
-                    <onLine>
-                        <CI_OnlineResource>
-                            <linkage>
-                                <URL>Digital Form 2 Resource 3</URL>
-                            </linkage>
                         </CI_OnlineResource>
                     </onLine>
                 </MD_DigitalTransferOptions>

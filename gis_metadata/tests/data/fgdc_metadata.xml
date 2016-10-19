@@ -126,27 +126,6 @@
         <distliab>Test Distribution Liability</distliab>
         <stdorder>
             <digform>
-                <digtopt>
-                    <onlineopt>
-                        <computer>
-                            <networka>
-                                <networkr>Digital Form 1 Resource 1</networkr>
-                            </networka>
-                        </computer>
-                        <computer>
-                            <networka>
-                                <networkr>Digital Form 1 Resource 2</networkr>
-                            </networka>
-                        </computer>
-                    </onlineopt>
-                    <onlineopt>
-                        <computer>
-                            <networka>
-                                <networkr>Digital Form 1 Resource 3</networkr>
-                            </networka>
-                        </computer>
-                    </onlineopt>
-                </digtopt>
                 <digtinfo>
                     <formname>Digital Form Name 1</formname>
                     <formvern>Digital Form Version 1</formvern>
@@ -158,7 +137,7 @@
                     <onlinopt>
                         <computer>
                             <networka>
-                                <networkr>http://digitalform.network.resource.one</networkr>
+                                <networkr>Digital Form Resource 1</networkr>
                             </networka>
                         </computer>
                         <accinstr>Digital Form Access Instructions 1</accinstr>
@@ -167,17 +146,6 @@
                 </digtopt>
             </digform>
             <digform>
-                <digtopt>
-                    <onlineopt>
-                        <computer>
-                            <networka>
-                                <networkr>Digital Form 2 Resource 1</networkr>
-                                <networkr>Digital Form 2 Resource 2</networkr>
-                                <networkr>Digital Form 2 Resource 3</networkr>
-                            </networka>
-                        </computer>
-                    </onlineopt>
-                </digtopt>
                 <digtinfo>
                     <formname>Digital Form Name 2</formname>
                     <formvern>Digital Form Version 2</formvern>
@@ -189,7 +157,7 @@
                     <onlinopt>
                         <computer>
                             <networka>
-                                <networkr>http://digitalform.network.resource.two</networkr>
+                                <networkr>Digital Form Resource 2</networkr>
                             </networka>
                         </computer>
                         <accinstr>Digital Form Access Instructions 2</accinstr>
@@ -230,12 +198,12 @@
     <dataqual>
         <lineage>
             <procstep>
-                <date Sync="TRUE">20070210</date>
-                <time Sync="TRUE">15093700</time>
+                <date>20070210</date>
+                <time>15093700</time>
             </procstep>
             <procstep>
-                <date Sync="TRUE">20070418</date>
-                <time Sync="TRUE">10392700</time>
+                <date>20070418</date>
+                <time>10392700</time>
             </procstep>
             <procstep>
                 <procdesc>Process Step Description 1</procdesc>

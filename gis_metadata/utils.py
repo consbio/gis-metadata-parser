@@ -33,7 +33,6 @@ _COMPLEX_LISTS = {ATTRIBUTES, CONTACTS, DIGITAL_FORMS, KEYWORDS_PLACE, KEYWORDS_
 _COMPLEX_STRUCTS = {BOUNDING_BOX, DATES, LARGER_WORKS}
 _COMPLEX_WITH_MULTI = {
     DATES: {'values'},
-    DIGITAL_FORMS: {'network_resource'},
     LARGER_WORKS: {'origin'},
     PROCESS_STEPS: {'sources'}
 }
@@ -111,7 +110,7 @@ _complex_definitions = {
         'specification': '{specification}',       # Text
         'access_desc': '{access_desc}',           # Text
         'access_instrs': '{access_instrs}',       # Text
-        'network_resource': '{network_resource}'  # Text []
+        'network_resource': '{network_resource}'  # Text
     },
     LARGER_WORKS: {
         'title': '{title}',                       # Text
