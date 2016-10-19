@@ -121,7 +121,7 @@
 
 <!-- MD_Metadata.identificationInfo -->
 <!ELEMENT gmd:identificationInfo (gmd:MD_DataIdentification | srv:SV_ServiceIdentification)>
-<!ELEMENT gmd:MD_DataIdentification (gmd:citation, gmd:abstract, gmd:purpose, gmd:credit+, gmd:status, gmd:pointOfContact, gmd:resourceMaintenance+, gmd:graphicOverview?, gmd:descriptiveKeywords+, gmd:resourceSpecificUsage*, gmd:resourceConstraints*, gmd:aggregationInfo?, gmd:spatialRepresentationType, gmd:spatialResolution*, gmd:language+, gmd:characterSet?, gmd:topicCategory, gmd:environmentDescription?, gmd:extent+, gmd:supplementalInformation?)>
+<!ELEMENT gmd:MD_DataIdentification (gmd:citation, gmd:abstract, gmd:purpose, gmd:credit+, gmd:status, gmd:pointOfContact*, gmd:resourceMaintenance+, gmd:graphicOverview?, gmd:descriptiveKeywords+, gmd:resourceSpecificUsage*, gmd:resourceConstraints*, gmd:aggregationInfo?, gmd:spatialRepresentationType, gmd:spatialResolution*, gmd:language+, gmd:characterSet?, gmd:topicCategory, gmd:environmentDescription?, gmd:extent+, gmd:supplementalInformation?)>
 <!ELEMENT gmd:purpose (gco:CharacterString)>
 <!ELEMENT gmd:credit (gco:CharacterString)>
 <!ELEMENT gmd:pointOfContact (gmd:CI_ResponsibleParty+)>
@@ -485,7 +485,7 @@
 <!ELEMENT gmd:scaleDenominator (gmd:MD_RepresentativeFraction)>
 <!ELEMENT gmd:MD_RepresentativeFraction (gmd:denominator)>
 
-<!ELEMENT gmd:EX_Extent (gmd:description?, gmd:temporalElement?, gmd:geographicElement*)>
+<!ELEMENT gmd:EX_Extent (gmd:description?, gmd:temporalElement*, gmd:geographicElement*)>
 <!ELEMENT gmd:geographicElement (gmd:EX_BoundingPolygon | gmd:EX_GeographicBoundingBox | gmd:EX_GeographicDescription)>
 <!ELEMENT gmd:EX_BoundingPolygon (gmd:extentTypeCode?, gmd:polygon+)>
 <!ELEMENT gmd:polygon (gml:LineString|gml:Point)>
