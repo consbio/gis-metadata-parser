@@ -32,7 +32,7 @@ xrange = getattr(six.moves, 'xrange')
 
 
 ARCGIS_ROOTS = ('metadata', 'Metadata')
-ARCGIS_NODES = ('dataIdInfo', 'distInfo', 'dqInfo')
+ARCGIS_NODES = ('dataIdInfo', 'distInfo', 'dqInfo', 'Esri')
 
 _agis_definitions = get_complex_definitions()
 
@@ -261,12 +261,12 @@ class ArcGISParser(MetadataParser):
     def _parse_report_item(self, prop):
         """ :return: the text for each element at the configured path if type attribute matches"""
 
+        item_type = None
+
         if prop == 'attribute_accuracy':
             item_type = 'DQQuanAttAcc'
         elif prop == 'dataset_completeness':
             item_type = 'DQCompOm'
-        else:
-            return u''
 
         xroot = self._get_xroot_for(prop)
 
@@ -351,13 +351,12 @@ class ArcGISParser(MetadataParser):
         xroot = self._get_xroot_for(prop)
 
         attr_key = 'type'
+        attr_val = u''
 
         if prop == 'attribute_accuracy':
             attr_val = 'DQQuanAttAcc'
         elif prop == 'dataset_completeness':
             attr_val = 'DQCompOm'
-        else:
-            return []
 
         # Clear (make empty) all elements of the appropriate type
         for elem in get_elements(tree_to_update, xroot):

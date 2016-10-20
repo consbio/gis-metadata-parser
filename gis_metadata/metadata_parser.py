@@ -60,17 +60,19 @@ def get_metadata_parser(metadata_container, **metadata_defaults):
 
     # The get_parsed_content method ensures only these roots will be returned
 
+    parser = None
+
     if xml_root in ISO_ROOTS:
-        return IsoParser(xml_tree, **metadata_defaults)
+        parser = IsoParser(xml_tree, **metadata_defaults)
     else:
         has_arcgis_data = any(element_exists(xml_tree, e) for e in ARCGIS_NODES)
 
         if xml_root == FGDC_ROOT and not has_arcgis_data:
-            return FgdcParser(xml_tree, **metadata_defaults)
+            parser = FgdcParser(xml_tree, **metadata_defaults)
         elif xml_root in ARCGIS_ROOTS:
-            return ArcGISParser(xml_tree, **metadata_defaults)
+            parser = ArcGISParser(xml_tree, **metadata_defaults)
 
-    return None
+    return parser
 
 
 def get_parsed_content(metadata_content):

@@ -5,8 +5,8 @@ from six import iteritems
 
 from parserutils.collections import wrap_value
 from parserutils.elements import element_exists, element_to_dict, element_to_string
-from parserutils.elements import get_element_text, get_elements, get_remote_element
-from parserutils.elements import clear_element, remove_element, remove_element_attributes, set_element_attributes
+from parserutils.elements import clear_element, get_element_text, get_elements, get_remote_element
+from parserutils.elements import insert_element, remove_element, remove_element_attributes, set_element_attributes
 
 from gis_metadata.arcgis_metadata_parser import ArcGISParser, ARCGIS_NODES, ARCGIS_ROOTS
 from gis_metadata.fgdc_metadata_parser import FgdcParser, FGDC_ROOT
@@ -288,14 +288,11 @@ class MetadataParserTestCase(unittest.TestCase):
         with open(out_file_path) as out_file:
             self.assert_parsers_are_equal(parser, parser_type(out_file))
 
-    def assert_valid_parser(self, parser, root=None):
+    def assert_valid_parser(self, parser):
 
         parser_type = type(parser.validate()).__name__
 
         self.assertIsNotNone(parser._xml_root, '{0} root not set'.format(parser_type))
-
-        if root is not None:
-            self.assertEqual(parser._xml_root, root)
 
         self.assertIsNotNone(parser._xml_tree)
         self.assertEqual(parser._xml_tree.getroot().tag, parser._xml_root)
@@ -517,12 +514,30 @@ class MetadataParserTests(MetadataParserTestCase):
         """ Covers code that enforces certain behaviors for custom parsers """
 
         parser = MetadataParser()
+        prop_get = '{0}'.format
+        prop_set = '{xpaths}'.format
 
         with self.assertRaises(ParserError):
-            ParserProperty(None, None)  # Un-callable property parser
+            # Un-callable property parser (no xpath)
+            ParserProperty(None, None)
 
         with self.assertRaises(ParserError):
-            ParserProperty(list, None)  # Un-callable property updater
+            # Un-callable property parser (no xpath)
+            ParserProperty(None, prop_set)
+
+        with self.assertRaises(ParserError):
+            # Un-callable property updater
+            ParserProperty(prop_get, None)
+
+        parser_prop = ParserProperty(None, prop_set, 'path')
+        with self.assertRaises(ParserError):
+            # Un-callable property parser with xpath
+            parser_prop.get_prop('prop')
+
+        parser_prop = ParserProperty(prop_get, prop_set, 'path')
+        self.assertEqual(parser_prop.get_prop('prop'), 'prop')
+        self.assertEqual(parser_prop.set_prop(), 'path')
+        self.assertEqual(parser_prop.set_prop(xpaths='diff'), 'path')
 
         data_map_1 = parser._data_map
         parser._init_data_map()
@@ -564,6 +579,25 @@ class MetadataParserTests(MetadataParserTestCase):
         # Assert that the backup dates are read in successfully
         arcgis_parser = ArcGISParser(element_to_string(arcgis_element))
         self.assertEqual(arcgis_parser.dates, {'type': 'range', 'values': ['Date Range Start', 'Date Range End']})
+
+        # Remove one of the date range values and assert that only the end date is read in as a single
+        remove_element(arcgis_element, 'dataIdInfo/dataExt/tempEle/TempExtent/exTemp/TM_Period/tmBegin', True)
+        arcgis_parser = ArcGISParser(element_to_string(arcgis_element))
+        self.assertEqual(arcgis_parser.dates, {'type': 'single', 'values': ['Date Range End']})
+
+        # Remove the last of the date range values and assert that no dates are read in
+        remove_element(arcgis_element, 'dataIdInfo/dataExt/tempEle/TempExtent/exTemp/TM_Period', True)
+        arcgis_parser = ArcGISParser(element_to_string(arcgis_element))
+        self.assertEqual(arcgis_parser.dates, {})
+
+        # Insert a single date value and assert that only it is read in
+
+        single_path = 'dataIdInfo/dataExt/tempEle/TempExtent/exTemp/TM_Instant/tmPosition'
+        single_text = 'Single Date'
+        insert_element(arcgis_element, 0, single_path, single_text)
+
+        arcgis_parser = ArcGISParser(element_to_string(arcgis_element))
+        self.assertEqual(arcgis_parser.dates, {'type': 'single', 'values': [single_text]})
 
     def test_fgdc_parser(self):
         """ Tests behavior unique to the FGDC parser """
