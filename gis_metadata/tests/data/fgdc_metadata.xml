@@ -50,9 +50,6 @@
                         <caldate>Multiple Date 3</caldate>
                     </sngdate>
                 </mdattim>
-                <sngdate>
-                    <caldate>Single Date</caldate>
-                </sngdate>
                 <current />
             </timeinfo>
         </timeperd>

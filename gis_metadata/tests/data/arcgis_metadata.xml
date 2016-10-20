@@ -1,0 +1,310 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<metadata xml:lang="en">
+    <eainfo>
+        <detailed>
+            <attr>
+                <attrlabl>Attributes Label 1</attrlabl>
+                <attalias>Attributes Alias 1</attalias>
+                <attrdef>Attributes Definition 1</attrdef>
+                <attrdefs>Attributes Definition Source 1</attrdefs>
+                <attrdomv />
+            </attr>
+            <attr>
+                <attrlabl>Attributes Label 2</attrlabl>
+                <attalias>Attributes Alias 2</attalias>
+                <attrdef>Attributes Definition 2</attrdef>
+                <attrdefs>Attributes Definition Source 2</attrdefs>
+                <attrdomv />
+            </attr>
+            <attr>
+                <attrlabl>Attributes Label 3</attrlabl>
+                <attalias>Attributes Alias 3</attalias>
+                <attrdef>Attributes Definition 3</attrdef>
+                <attrdefs>Attributes Definition Source 3</attrdefs>
+                <attrdomv />
+            </attr>
+        </detailed>
+    </eainfo>
+    <Esri>
+        <DataProperties>
+            <lineage/>
+            <itemProps/>
+            <coordRef/>
+        </DataProperties>
+        <ArcGISstyle>FGDC CSDGM Metadata</ArcGISstyle>
+        <ArcGISFormat>1.0</ArcGISFormat>
+    </Esri>
+    <mdLang>
+        <languageCode value="eng"/>
+        <countryCode value="USA"/>
+    </mdLang>
+    <mdChar/>
+    <mdHrLv/>
+    <mdContact/>
+    <mdDateSt/>
+    <mdStanName>ArcGIS Metadata</mdStanName>
+    <mdStanVer>1.0</mdStanVer>
+    <distInfo>
+        <distributor>
+            <distorCont>
+                <rpOrgName>Test Distribution Org</rpOrgName>
+                <rpIndName>Test Distribution Person</rpIndName>
+                <rpCntInfo>
+                    <cntPhone>
+                        <voiceNum>Test Distribution Phone</voiceNum>
+                    </cntPhone>
+                    <cntAddress addressType="Test Distribution Address Type">
+                        <delPoint>Test Distribution Address</delPoint>
+                        <city>Test Distribution City</city>
+                        <adminArea>OR</adminArea>
+                        <postCode>12345</postCode>
+                        <country>US</country>
+                        <eMailAdd>Test Distribution Email</eMailAdd>
+                    </cntAddress>
+                    <cntHours>8:00 AM - 5:00 PM PST</cntHours>
+                    <voiceNum>Backup Distribution Phone</voiceNum>
+                </rpCntInfo>
+                <role/>
+            </distorCont>
+            <distorOrdPrc>
+                <resFees>Test Processing Fees</resFees>
+                <planAvDtTm/>
+                <ordInstr>Test Processing Instructions</ordInstr>
+                <ordTurn/>
+            </distorOrdPrc>
+        </distributor>
+        <distFormat>
+            <formatName>Digital Form Name 1</formatName>
+            <formatVer>Digital Form Version 1</formatVer>
+            <formatInfo>Digital Form Content 1</formatInfo>
+            <formatSpec>Digital Form Specification 1</formatSpec>
+            <fileDecmTech>Digital Form Decompression 1</fileDecmTech>
+        </distFormat>
+        <distTranOps>
+            <onLineSrc>
+                <linkage>Digital Form Resource 1</linkage>
+                <protocol>Digital Form Access Instructions 1</protocol>
+                <orDesc>Digital Form Access Description 1</orDesc>
+            </onLineSrc>
+        </distTranOps>
+        <distFormat>
+            <formatName>Digital Form Name 2</formatName>
+            <formatVer>Digital Form Version 2</formatVer>
+            <formatInfo>Digital Form Content 2</formatInfo>
+            <formatSpec>Digital Form Specification 2</formatSpec>
+            <fileDecmTech>Digital Form Decompression 2</fileDecmTech>
+        </distFormat>
+        <distTranOps>
+            <onLineSrc>
+                <linkage>Digital Form Resource 2</linkage>
+                <protocol>Digital Form Access Instructions 2</protocol>
+                <orDesc>Digital Form Access Description 2</orDesc>
+            </onLineSrc>
+        </distTranOps>
+    </distInfo>
+    <dataIdInfo>
+        <aggrInfo>
+            <aggrDSName>
+                <resTitle>Larger Works Title</resTitle>
+                <resEd>Larger Works Edition</resEd>
+                <otherCitDet>Larger Works Other Citation</otherCitDet>
+                <citRespParty>
+                    <rpIndName>Larger Works Originator</rpIndName>
+                    <rpOrgName>Larger Works Info</rpOrgName>
+                    <rpCntInfo>
+                        <cntAddress>
+                            <city>Larger Works Place</city>
+                        </cntAddress>
+                        <cntOnlineRes>
+                            <linkage>http://test.largerworks.online.linkage.com</linkage>
+                        </cntOnlineRes>
+                    </rpCntInfo>
+                </citRespParty>
+                <date>
+                    <pubDate>Larger Works Date</pubDate>
+                </date>
+            </aggrDSName>
+        </aggrInfo>
+        <idCitation>
+            <resTitle>Test Title</resTitle>
+            <citRespParty>
+                <rpOrgName>Test Originators</rpOrgName>
+                <role/>
+            </citRespParty>
+            <otherCitDet>Test Other Citation Info</otherCitDet>
+            <citRespParty>
+                <rpCntInfo>
+                    <cntOnlineRes>
+                        <linkage>http://test.onlinelinkages.org</linkage>
+                    </cntOnlineRes>
+                </rpCntInfo>
+                <role/>
+            </citRespParty>
+            <citOnlineRes>
+                <linkage>http://backup.onlinelinkages.org</linkage>
+            </citOnlineRes>
+            <citId>
+                <identCode>Test Resource Description</identCode>
+            </citId>
+            <date>
+                <pubDate>Test Publish Date</pubDate>
+            </date>
+            <presForm>
+                <fgdcGeoform>vector digital data</fgdcGeoform>
+            </presForm>
+        </idCitation>
+        <idAbs>Test Abstract</idAbs>
+        <idPurp>Test Purpose</idPurp>
+        <idCredit>Test Data Credits</idCredit>
+        <idSpecUse>
+            <specUsage>Test Resource Description</specUsage>
+        </idSpecUse>
+        <idStatus/>
+        <idPoC>
+            <rpIndName>Contact Name 1</rpIndName>
+            <rpOrgName>Contact Organization 1</rpOrgName>
+            <rpPosName>Contact Position 1</rpPosName>
+            <rpCntInfo>
+                <cntAddress addressType="postal">
+                    <eMailAdd>Contact Email 1</eMailAdd>
+                </cntAddress>
+            </rpCntInfo>
+            <role/>
+        </idPoC>
+        <idPoC>
+            <rpIndName>Contact Name 2</rpIndName>
+            <rpOrgName>Contact Organization 2</rpOrgName>
+            <rpPosName>Contact Position 2</rpPosName>
+            <rpCntInfo>
+                <cntAddress addressType="postal">
+                    <eMailAdd>Contact Email 2</eMailAdd>
+                </cntAddress>
+            </rpCntInfo>
+            <role/>
+        </idPoC>
+        <resMaint>
+            <maintFreq/>
+        </resMaint>
+        <placeKeys>
+            <keyword>Oregon</keyword>
+            <keyword>Washington</keyword>
+        </placeKeys>
+        <themeKeys>
+            <keyword>Ecoregion</keyword>
+        </themeKeys>
+        <themeKeys>
+            <keyword>Risk</keyword>
+            <keyword>Threat</keyword>
+            <keyword>Habitat</keyword>
+        </themeKeys>
+        <searchKeys>
+            <keyword>Not Used</keyword>
+        </searchKeys>
+        <resConst>
+            <LegConsts>
+                <othConsts>Test Distribution Liability</othConsts>
+            </LegConsts>
+        </resConst>
+        <resConst>
+            <Consts>
+                <useLimit>Test Use Constraints</useLimit>
+            </Consts>
+        </resConst>
+        <dataLang>
+            <languageCode value="eng"/>
+            <countryCode value="USA"/>
+        </dataLang>
+        <dataExt>
+            <tempEle>
+                <TempExtent>
+                    <exTemp>
+                        <TM_Instant>
+                            <tmPosition>Multiple Date 1</tmPosition>
+                        </TM_Instant>
+                    </exTemp>
+                </TempExtent>
+            </tempEle>
+            <tempEle>
+                <TempExtent>
+                    <exTemp>
+                        <TM_Instant>
+                            <tmPosition>Multiple Date 2</tmPosition>
+                        </TM_Instant>
+                    </exTemp>
+                </TempExtent>
+            </tempEle>
+            <tempEle>
+                <TempExtent>
+                    <exTemp>
+                        <TM_Instant>
+                            <tmPosition>Multiple Date 3</tmPosition>
+                        </TM_Instant>
+                        <TM_Period>
+                            <tmBegin date="Date Range Start"/>
+                            <tmEnd date="Date Range End"></tmEnd>
+                        </TM_Period>
+                    </exTemp>
+                </TempExtent>
+            </tempEle>
+            <geoEle/>
+        </dataExt>
+        <suppInfo>Test Supplementary Info</suppInfo>
+        <envirDesc>Test Technical Prerequisites</envirDesc>
+        <spatRpType/>
+        <dataExt>
+            <geoEle>
+                <GeoBndBox esriExtentType="search">
+                    <exTypeCode>1</exTypeCode>
+                    <westBL>-179.99999999998656</westBL>
+                    <eastBL>179.99999999998656</eastBL>
+                    <northBL>87.81211601444309</northBL>
+                    <southBL>-86.78249642712764</southBL>
+                </GeoBndBox>
+            </geoEle>
+        </dataExt>
+    </dataIdInfo>
+    <dqInfo>
+        <dataLineage>
+            <prcStep>
+                <stepDesc>Process Step Description 1</stepDesc>
+                <stepDateTm>Process Step Date 1</stepDateTm>
+                <stepSrc>
+                    <srcDesc>Process Step Sources 1.1</srcDesc>
+                </stepSrc>
+                <stepSrc>
+                    <srcDesc>Process Step Sources 1.2</srcDesc>
+                </stepSrc>
+            </prcStep>
+            <prcStep>
+                <stepDesc>Process Step Description 2</stepDesc>
+            </prcStep>
+            <prcStep>
+                <stepDateTm>
+Process Step Date 3
+                </stepDateTm>
+            </prcStep>
+            <prcStep>
+                <stepDesc>Process Step Description 4</stepDesc>
+                <stepSrc>
+                    <srcDesc>Process Step Sources 4.1</srcDesc>
+                </stepSrc>
+                <stepSrc>
+                    <srcDesc>Process Step Sources 4.2</srcDesc>
+                </stepSrc>
+            </prcStep>
+        </dataLineage>
+        <report type="DQQuanAttAcc">
+            <measDesc>Test Attribute Accuracy</measDesc>
+        </report>
+        <report type="DQCompOm">
+            <measDesc>Test Dataset Completeness</measDesc>
+        </report>
+    </dqInfo>
+    <mdHrLvName>dataset</mdHrLvName>
+    <refSysInfo>
+        <RefSystem/>
+    </refSysInfo>
+    <spatRepInfo>
+        <VectSpatRep/>
+    </spatRepInfo>
+</metadata>

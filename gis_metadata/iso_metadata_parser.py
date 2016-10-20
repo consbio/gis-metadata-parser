@@ -237,6 +237,10 @@ class IsoParser(MetadataParser):
             DATE_TYPE_RANGE_END: dt_format.format(type_path='TimePeriod/end/TimeInstant/timePosition'),
             DATE_TYPE_SINGLE: dt_format.format(type_path='TimeInstant/timePosition')  # Same as multiple
         }
+        iso_data_structures[DATES][DATE_TYPE_RANGE] = [
+            iso_data_structures[DATES][DATE_TYPE_RANGE_BEGIN],
+            iso_data_structures[DATES][DATE_TYPE_RANGE_END]
+        ]
 
         df_format = iso_data_map[DIGITAL_FORMS]
         iso_data_structures[DIGITAL_FORMS] = format_xpaths(

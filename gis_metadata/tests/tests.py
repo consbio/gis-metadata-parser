@@ -8,6 +8,7 @@ from parserutils.elements import element_exists, element_to_dict, element_to_str
 from parserutils.elements import get_element_text, get_elements, get_remote_element
 from parserutils.elements import clear_element, remove_element, remove_element_attributes, set_element_attributes
 
+from gis_metadata.arcgis_metadata_parser import ArcGISParser, ARCGIS_NODES, ARCGIS_ROOTS
 from gis_metadata.fgdc_metadata_parser import FgdcParser, FGDC_ROOT
 from gis_metadata.iso_metadata_parser import IsoParser, ISO_ROOTS, _iso_tag_formats
 from gis_metadata.metadata_parser import MetadataParser, get_metadata_parser, get_parsed_content
@@ -151,11 +152,13 @@ class MetadataParserTestCase(unittest.TestCase):
         dir_name = os.path.dirname(os.path.abspath(__file__))
 
         self.data_dir = sep.join((dir_name, 'data'))
+        self.arcgis_file = sep.join((self.data_dir, 'arcgis_metadata.xml'))
         self.fgdc_file = sep.join((self.data_dir, 'fgdc_metadata.xml'))
         self.iso_file = sep.join((self.data_dir, 'iso_metadata.xml'))
 
         # Initialize metadata files
 
+        self.arcgis_metadata = open(self.arcgis_file)
         self.fgdc_metadata = open(self.fgdc_file)
         self.iso_metadata = open(self.iso_file)
 
@@ -163,6 +166,7 @@ class MetadataParserTestCase(unittest.TestCase):
 
         # Define test file paths
 
+        self.test_arcgis_file_path = '/'.join((self.data_dir, 'test_arcgis.xml'))
         self.test_fgdc_file_path = '/'.join((self.data_dir, 'test_fgdc.xml'))
         self.test_iso_file_path = '/'.join((self.data_dir, 'test_iso.xml'))
 
@@ -353,6 +357,12 @@ class MetadataParserTemplateTests(MetadataParserTestCase):
                 '{0} property {1}, "{2}", does not equal "{3}"'.format(parser_type, prop, parsed_val, val)
             ))
 
+    def test_arcgis_template_values(self):
+        arcgis_template = ArcGISParser(**TEST_TEMPLATE_VALUES)
+
+        self.assert_valid_template(arcgis_template, root='metadata')
+        self.assert_reparsed_simple_for(arcgis_template, TEST_TEMPLATE_VALUES)
+
     def test_fgdc_template_values(self):
         fgdc_template = FgdcParser(**TEST_TEMPLATE_VALUES)
 
@@ -366,11 +376,18 @@ class MetadataParserTemplateTests(MetadataParserTestCase):
         self.assert_reparsed_simple_for(iso_template, TEST_TEMPLATE_VALUES)
 
     def test_template_conversion(self):
+        arcgis_template = ArcGISParser()
         fgdc_template = FgdcParser()
         iso_template = IsoParser()
 
+        self.assert_parser_conversion(arcgis_template, fgdc_template, 'template')
+        self.assert_parser_conversion(arcgis_template, iso_template, 'template')
+
         self.assert_parser_conversion(fgdc_template, iso_template, 'template')
+        self.assert_parser_conversion(fgdc_template, arcgis_template, 'template')
+
         self.assert_parser_conversion(iso_template, fgdc_template, 'template')
+        self.assert_parser_conversion(iso_template, arcgis_template, 'template')
 
     def test_template_conversion_bad_roots(self):
 
@@ -385,57 +402,111 @@ class MetadataParserTemplateTests(MetadataParserTestCase):
                     IsoParser(bad_root)
                 with self.assertRaises(ParserError):
                     FgdcParser(bad_root)
+                with self.assertRaises(ParserError):
+                    ArcGISParser(bad_root)
 
         with self.assertRaises(ParserError):
             IsoParser(FGDC_ROOT.join(('<', '></', '>')))
 
         for iso_root in ISO_ROOTS:
             with self.assertRaises(ParserError):
+                ArcGISParser(iso_root.join(('<', '></', '>')))
+            with self.assertRaises(ParserError):
                 FgdcParser(iso_root.join(('<', '></', '>')))
+
+        for arcgis_root in ARCGIS_ROOTS:
+
+            with self.assertRaises(ParserError):
+                IsoParser(arcgis_root.join(('<', '></', '>')))
+
+            if arcgis_root != FGDC_ROOT:
+                with self.assertRaises(ParserError):
+                    FgdcParser(arcgis_root.join(('<', '></', '>')))
 
     def test_template_conversion_from_dict(self):
 
+        for arcgis_root in ARCGIS_ROOTS:
+            for arcgis_node in ARCGIS_NODES:
+
+                data = {'name': arcgis_root, 'children': [{'name': arcgis_node}]}
+                self.assert_parser_conversion(
+                    FgdcParser(), get_metadata_parser(data), 'dict-based template'
+                )
+                self.assert_parser_conversion(
+                    IsoParser(), get_metadata_parser(data), 'dict-based template'
+                )
+
+        self.assert_parser_conversion(
+            ArcGISParser(), get_metadata_parser({'name': FGDC_ROOT}), 'dict-based template'
+        )
         self.assert_parser_conversion(
             IsoParser(), get_metadata_parser({'name': FGDC_ROOT}), 'dict-based template'
         )
 
-        fgdc_template = FgdcParser()
-        fgdc_template.dist_address_type = u''  # Address type not supported for ISO
-
         for iso_root in ISO_ROOTS:
             self.assert_parser_conversion(
-                fgdc_template, get_metadata_parser({'name': iso_root}), 'dict-based template'
+                ArcGISParser(), get_metadata_parser({'name': iso_root}), 'dict-based template'
+            )
+            self.assert_parser_conversion(
+                FgdcParser(), get_metadata_parser({'name': iso_root}), 'dict-based template'
             )
 
     def test_template_conversion_from_str(self):
 
+        for arcgis_root in ARCGIS_ROOTS:
+            for arcgis_node in ARCGIS_NODES:
+
+                data = arcgis_node.join(('<', '></', '>'))
+                data = arcgis_root.join(('<', '>{0}</', '>')).format(data)
+
+                self.assert_parser_conversion(
+                    FgdcParser(), get_metadata_parser(data), 'dict-based template'
+                )
+                self.assert_parser_conversion(
+                    IsoParser(), get_metadata_parser(data), 'dict-based template'
+                )
+
+        self.assert_parser_conversion(
+            ArcGISParser(), get_metadata_parser(FGDC_ROOT.join(('<', '></', '>'))), 'str-based template'
+        )
         self.assert_parser_conversion(
             IsoParser(), get_metadata_parser(FGDC_ROOT.join(('<', '></', '>'))), 'str-based template'
         )
 
-        fgdc_template = FgdcParser()
-        fgdc_template.dist_address_type = u''  # Address type not supported for ISO
-
         for iso_root in ISO_ROOTS:
             self.assert_parser_conversion(
-                fgdc_template, get_metadata_parser(iso_root.join(('<', '></', '>'))), 'str-based template'
+                ArcGISParser(), get_metadata_parser(iso_root.join(('<', '></', '>'))), 'str-based template'
+            )
+            self.assert_parser_conversion(
+                FgdcParser(), get_metadata_parser(iso_root.join(('<', '></', '>'))), 'str-based template'
             )
 
     def test_template_conversion_from_type(self):
 
         self.assert_parser_conversion(
+            ArcGISParser(), get_metadata_parser(FgdcParser), 'type-based template'
+        )
+        self.assert_parser_conversion(
+            ArcGISParser(), get_metadata_parser(IsoParser), 'type-based template'
+        )
+
+        self.assert_parser_conversion(
+            IsoParser(), get_metadata_parser(ArcGISParser), 'type-based template'
+        )
+        self.assert_parser_conversion(
             IsoParser(), get_metadata_parser(FgdcParser), 'type-based template'
         )
 
-        fgdc_template = FgdcParser()
-        fgdc_template.dist_address_type = u''  # Address type not supported for ISO
-
         self.assert_parser_conversion(
-            fgdc_template, get_metadata_parser(IsoParser), 'type-based template'
+            FgdcParser(), get_metadata_parser(ArcGISParser), 'type-based template'
+        )
+        self.assert_parser_conversion(
+            FgdcParser(), get_metadata_parser(IsoParser), 'type-based template'
         )
 
     def test_write_template(self):
 
+        self.assert_template_after_write(ArcGISParser, self.test_arcgis_file_path)
         self.assert_template_after_write(FgdcParser, self.test_fgdc_file_path)
         self.assert_template_after_write(IsoParser, self.test_iso_file_path)
 
@@ -465,7 +536,7 @@ class MetadataParserTests(MetadataParserTestCase):
     def test_specific_parsers(self):
         """ Ensures code enforces certain behaviors for existing parsers """
 
-        for parser_type in (FgdcParser, IsoParser):
+        for parser_type in (ArcGISParser, FgdcParser, IsoParser):
             parser = parser_type()
 
             data_map_1 = parser._data_map
@@ -481,8 +552,33 @@ class MetadataParserTests(MetadataParserTestCase):
                 parser._data_map.clear()
                 parser.validate()
 
+    def test_arcgis_parser(self):
+        """ Tests behavior unique to the FGDC parser """
+
+        # Test dates structure defaults
+
+        # Remove multiple dates to ensure range is queried
+        arcgis_element = get_remote_element(self.arcgis_file)
+        remove_element(arcgis_element, 'dataIdInfo/dataExt/tempEle/TempExtent/exTemp/TM_Instant', True)
+
+        # Assert that the backup dates are read in successfully
+        arcgis_parser = ArcGISParser(element_to_string(arcgis_element))
+        self.assertEqual(arcgis_parser.dates, {'type': 'range', 'values': ['Date Range Start', 'Date Range End']})
+
     def test_fgdc_parser(self):
         """ Tests behavior unique to the FGDC parser """
+
+        # Test dates structure defaults
+
+        # Remove multiple dates to ensure range is queried
+        fgdc_element = get_remote_element(self.fgdc_file)
+        remove_element(fgdc_element, 'idinfo/timeperd/timeinfo/mdattim', True)
+
+        # Assert that the backup dates are read in successfully
+        fgdc_parser = FgdcParser(element_to_string(fgdc_element))
+        self.assertEqual(fgdc_parser.dates, {'type': 'range', 'values': ['Date Range Start', 'Date Range End']})
+
+        # Test contact data structure defaults
 
         contacts_def = get_complex_definitions()[CONTACTS]
 
@@ -555,6 +651,13 @@ class MetadataParserTests(MetadataParserTestCase):
     def test_parser_values(self):
         """ Tests that parsers are populated with the expected values """
 
+        arcgis_element = get_remote_element(self.arcgis_file)
+        arcgis_parser = ArcGISParser(element_to_string(arcgis_element))
+        arcgis_new = ArcGISParser(**TEST_METADATA_VALUES)
+
+        # Test that the two ArcGIS parsers have the same data given the same input file
+        self.assert_parsers_are_equal(arcgis_parser, arcgis_new)
+
         fgdc_element = get_remote_element(self.fgdc_file)
         fgdc_parser = FgdcParser(element_to_string(fgdc_element))
         fgdc_new = FgdcParser(**TEST_METADATA_VALUES)
@@ -570,56 +673,94 @@ class MetadataParserTests(MetadataParserTestCase):
         # Test that the two ISO parsers have the same data given the same input file
         self.assert_parsers_are_equal(iso_parser, iso_new)
 
-        # Test that two distinct parsers have the same data given equivalent input files
+        # Test that all distinct parsers have the same data given equivalent input files
+
+        self.assert_parsers_are_equal(arcgis_parser, fgdc_parser)
         self.assert_parsers_are_equal(fgdc_parser, iso_parser)
+        self.assert_parsers_are_equal(iso_parser, arcgis_parser)
 
         # Test that each parser's values correspond to the target values
-        for parser in (fgdc_parser, iso_parser):
+        for parser in (arcgis_parser, fgdc_parser, iso_parser):
             parser_type = type(parser)
 
             for prop, target in TEST_METADATA_VALUES.items():
                 self.assert_equal_for(parser_type, prop, getattr(parser, prop), target)
 
     def test_parser_conversion(self):
+        arcgis_parser = ArcGISParser(self.arcgis_metadata)
         fgdc_parser = FgdcParser(self.fgdc_metadata)
         iso_parser = IsoParser(self.iso_metadata)
 
+        self.assert_parser_conversion(arcgis_parser, fgdc_parser, 'file')
+        self.assert_parser_conversion(arcgis_parser, iso_parser, 'file')
+
+        self.assert_parser_conversion(fgdc_parser, arcgis_parser, 'file')
         self.assert_parser_conversion(fgdc_parser, iso_parser, 'file')
+
+        self.assert_parser_conversion(iso_parser, arcgis_parser, 'file')
         self.assert_parser_conversion(iso_parser, fgdc_parser, 'file')
 
     def test_conversion_from_dict(self):
+        arcgis_parser = ArcGISParser(self.arcgis_metadata)
         fgdc_parser = FgdcParser(self.fgdc_metadata)
         iso_parser = IsoParser(self.iso_metadata)
 
-        fgdc_parser.dist_address_type = u''  # Address type not supported for ISO
-
         self.assert_parser_conversion(
-            iso_parser, get_metadata_parser(element_to_dict(fgdc_parser._xml_tree, recurse=True)), 'dict-based'
+            arcgis_parser, get_metadata_parser(element_to_dict(fgdc_parser._xml_tree, recurse=True)), 'dict-based'
+        )
+        self.assert_parser_conversion(
+            arcgis_parser, get_metadata_parser(element_to_dict(iso_parser._xml_tree, recurse=True)), 'dict-based'
         )
 
+        self.assert_parser_conversion(
+            fgdc_parser, get_metadata_parser(element_to_dict(arcgis_parser._xml_tree, recurse=True)), 'dict-based'
+        )
         self.assert_parser_conversion(
             fgdc_parser, get_metadata_parser(element_to_dict(iso_parser._xml_tree, recurse=True)), 'dict-based'
         )
 
+        self.assert_parser_conversion(
+            iso_parser, get_metadata_parser(element_to_dict(arcgis_parser._xml_tree, recurse=True)), 'dict-based'
+        )
+        self.assert_parser_conversion(
+            iso_parser, get_metadata_parser(element_to_dict(fgdc_parser._xml_tree, recurse=True)), 'dict-based'
+        )
+
     def test_conversion_from_str(self):
+        arcgis_parser = ArcGISParser(self.arcgis_metadata)
         fgdc_parser = FgdcParser(self.fgdc_metadata)
         iso_parser = IsoParser(self.iso_metadata)
 
-        fgdc_parser.dist_address_type = u''  # Address type not supported for ISO
-
         self.assert_parser_conversion(
-            iso_parser, get_metadata_parser(fgdc_parser.serialize()), 'str-based'
+            arcgis_parser, get_metadata_parser(fgdc_parser.serialize()), 'str-based'
+        )
+        self.assert_parser_conversion(
+            arcgis_parser, get_metadata_parser(iso_parser.serialize()), 'str-based'
         )
 
         self.assert_parser_conversion(
+            fgdc_parser, get_metadata_parser(arcgis_parser.serialize()), 'str-based'
+        )
+        self.assert_parser_conversion(
             fgdc_parser, get_metadata_parser(iso_parser.serialize()), 'str-based'
+        )
+
+        self.assert_parser_conversion(
+            iso_parser, get_metadata_parser(arcgis_parser.serialize()), 'str-based'
+        )
+        self.assert_parser_conversion(
+            iso_parser, get_metadata_parser(fgdc_parser.serialize()), 'str-based'
         )
 
     def test_reparse_complex_lists(self):
         complex_defs = get_complex_definitions()
         complex_lists = (ATTRIBUTES, CONTACTS, DIGITAL_FORMS)
 
-        for parser in (FgdcParser(self.fgdc_metadata), IsoParser(self.iso_metadata)):
+        arcgis_parser = ArcGISParser(self.arcgis_metadata)
+        fgdc_parser = FgdcParser(self.fgdc_metadata)
+        iso_parser = IsoParser(self.iso_metadata)
+
+        for parser in (arcgis_parser, fgdc_parser, iso_parser):
 
             # Test reparsed empty complex lists
             for prop in complex_lists:
@@ -644,7 +785,11 @@ class MetadataParserTests(MetadataParserTestCase):
         complex_defs = get_complex_definitions()
         complex_structs = (BOUNDING_BOX, LARGER_WORKS)
 
-        for parser in (FgdcParser(self.fgdc_metadata), IsoParser(self.iso_metadata)):
+        arcgis_parser = ArcGISParser(self.arcgis_metadata)
+        fgdc_parser = FgdcParser(self.fgdc_metadata)
+        iso_parser = IsoParser(self.iso_metadata)
+
+        for parser in (arcgis_parser, fgdc_parser, iso_parser):
 
             # Test reparsed empty complex structures
             for prop in complex_structs:
@@ -664,7 +809,11 @@ class MetadataParserTests(MetadataParserTestCase):
             (DATE_TYPE_MULTIPLE, ['first', 'next', 'last'])
         )
 
-        for parser in (FgdcParser(self.fgdc_metadata), IsoParser(self.iso_metadata)):
+        arcgis_parser = ArcGISParser(self.arcgis_metadata)
+        fgdc_parser = FgdcParser(self.fgdc_metadata)
+        iso_parser = IsoParser(self.iso_metadata)
+
+        for parser in (arcgis_parser, fgdc_parser, iso_parser):
 
             # Test reparsed empty dates
             for empty in (None, {}, {DATE_TYPE: u'', DATE_VALUES: []}):
@@ -679,7 +828,11 @@ class MetadataParserTests(MetadataParserTestCase):
 
     def test_reparse_keywords(self):
 
-        for parser in (FgdcParser(self.fgdc_metadata), IsoParser(self.iso_metadata)):
+        arcgis_parser = ArcGISParser(self.arcgis_metadata)
+        fgdc_parser = FgdcParser(self.fgdc_metadata)
+        iso_parser = IsoParser(self.iso_metadata)
+
+        for parser in (arcgis_parser, fgdc_parser, iso_parser):
 
             # Test reparsed empty keywords
             for keywords in ('', u'', []):
@@ -694,7 +847,11 @@ class MetadataParserTests(MetadataParserTestCase):
     def test_reparse_process_steps(self):
         proc_step_def = get_complex_definitions()[PROCESS_STEPS]
 
-        for parser in (FgdcParser(self.fgdc_metadata), IsoParser(self.iso_metadata)):
+        arcgis_parser = ArcGISParser(self.arcgis_metadata)
+        fgdc_parser = FgdcParser(self.fgdc_metadata)
+        iso_parser = IsoParser(self.iso_metadata)
+
+        for parser in (arcgis_parser, fgdc_parser, iso_parser):
 
             # Test reparsed empty process steps
             for empty in (None, [], [{}], [{}.fromkeys(proc_step_def, u'')]):
@@ -723,13 +880,14 @@ class MetadataParserTests(MetadataParserTestCase):
         simple_props = required_props.difference(complex_props)
         simple_props = simple_props.difference({KEYWORDS_PLACE, KEYWORDS_THEME})
 
-        fgdc_parser = FgdcParser(self.fgdc_metadata)
-        iso_parser = IsoParser(self.iso_metadata)
-
         simple_empty_vals = ('', u'', [])
         simple_valid_vals = (u'value', [u'item', u'list'])
 
-        for parser in (fgdc_parser, iso_parser):
+        arcgis_parser = ArcGISParser(self.arcgis_metadata)
+        fgdc_parser = FgdcParser(self.fgdc_metadata)
+        iso_parser = IsoParser(self.iso_metadata)
+
+        for parser in (arcgis_parser, fgdc_parser, iso_parser):
 
             # Test reparsed empty values
             for val in simple_empty_vals:
@@ -744,7 +902,7 @@ class MetadataParserTests(MetadataParserTestCase):
 
         invalid_values = ('', u'', {'x': 'xxx'}, [{'x': 'xxx'}], set(), tuple())
 
-        for parser in (FgdcParser().validate(), IsoParser().validate()):
+        for parser in (ArcGISParser().validate(), FgdcParser().validate(), IsoParser().validate()):
             for prop in complex_props:
                 for invalid in invalid_values:
                     self.assert_validates_for(parser, prop, invalid)
@@ -754,7 +912,7 @@ class MetadataParserTests(MetadataParserTestCase):
 
         invalid_values = ('', u'', {'x': 'xxx'}, list(), set(), tuple())
 
-        for parser in (FgdcParser().validate(), IsoParser().validate()):
+        for parser in (ArcGISParser().validate(), FgdcParser().validate(), IsoParser().validate()):
             for prop in complex_props:
                 for invalid in invalid_values:
                     self.assert_validates_for(parser, prop, invalid)
@@ -771,7 +929,11 @@ class MetadataParserTests(MetadataParserTestCase):
             ('unknown', ['unknown'])
         )
 
-        for parser in (FgdcParser(self.fgdc_metadata), IsoParser(self.iso_metadata)):
+        arcgis_parser = ArcGISParser(self.arcgis_metadata)
+        fgdc_parser = FgdcParser(self.fgdc_metadata)
+        iso_parser = IsoParser(self.iso_metadata)
+
+        for parser in (arcgis_parser, fgdc_parser, iso_parser):
             for val in invalid_values:
                 self.assert_validates_for(parser, DATES, {DATE_TYPE: val[0], DATE_VALUES: val[1]})
 
@@ -781,17 +943,19 @@ class MetadataParserTests(MetadataParserTestCase):
 
         invalid_values = (None, [None], dict(), [dict()], set(), [set()], tuple(), [tuple()])
 
-        for parser in (FgdcParser().validate(), IsoParser().validate()):
+        for parser in (ArcGISParser().validate(), FgdcParser().validate(), IsoParser().validate()):
             for prop in simple_props:
                 for invalid in invalid_values:
                     self.assert_validates_for(parser, prop, invalid)
 
     def test_write_values(self):
 
+        self.assert_parser_after_write(ArcGISParser, self.arcgis_metadata, self.test_arcgis_file_path)
         self.assert_parser_after_write(FgdcParser, self.fgdc_metadata, self.test_fgdc_file_path)
         self.assert_parser_after_write(IsoParser, self.iso_metadata, self.test_iso_file_path)
 
     def test_write_values_to_template(self):
 
+        self.assert_parser_after_write(ArcGISParser, self.arcgis_metadata, self.test_arcgis_file_path, True)
         self.assert_parser_after_write(FgdcParser, self.fgdc_metadata, self.test_fgdc_file_path, True)
         self.assert_parser_after_write(IsoParser, self.iso_metadata, self.test_iso_file_path, True)

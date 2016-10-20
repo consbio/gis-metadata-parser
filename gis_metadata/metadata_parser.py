@@ -3,21 +3,21 @@
 from copy import deepcopy
 from six import iteritems
 
-from parserutils.elements import create_element_tree, element_to_dict, element_to_string
+from parserutils.elements import create_element_tree, element_exists, element_to_string
 from parserutils.elements import remove_element, write_element, strip_namespaces
-from parserutils.elements import get_element_name, get_element_tree, get_elements
+from parserutils.elements import get_element_name, get_element_tree
 from parserutils.strings import DEFAULT_ENCODING
 
 from gis_metadata.utils import DATES, DATE_TYPE, DATE_VALUES
 from gis_metadata.utils import DATE_TYPE_RANGE, DATE_TYPE_RANGE_BEGIN, DATE_TYPE_RANGE_END
-from gis_metadata.utils import has_element, parse_complex, parse_complex_list, parse_dates, parse_property
+from gis_metadata.utils import parse_complex, parse_complex_list, parse_dates, parse_property
 from gis_metadata.utils import update_complex, update_complex_list, update_property, validate_any, validate_properties
 from gis_metadata.utils import _supported_props, ParserError
 
 
 # Place holders for lazy, one-time FGDC & ISO imports
 
-ArcGISParser, ARCGIS_ROOTS = None, None
+ArcGISParser, ARCGIS_ROOTS, ARCGIS_NODES = None, None, None
 FgdcParser, FGDC_ROOT = None, None
 IsoParser, ISO_ROOTS = None, None
 VALID_ROOTS = None
@@ -60,10 +60,17 @@ def get_metadata_parser(metadata_container, **metadata_defaults):
 
     # The get_parsed_content method ensures only these roots will be returned
 
-    if xml_root == FGDC_ROOT:
-        return FgdcParser(xml_tree, **metadata_defaults)
-    elif xml_root in ISO_ROOTS:
+    if xml_root in ISO_ROOTS:
         return IsoParser(xml_tree, **metadata_defaults)
+    else:
+        has_arcgis_data = any(element_exists(xml_tree, e) for e in ARCGIS_NODES)
+
+        if xml_root == FGDC_ROOT and not has_arcgis_data:
+            return FgdcParser(xml_tree, **metadata_defaults)
+        elif xml_root in ARCGIS_ROOTS:
+            return ArcGISParser(xml_tree, **metadata_defaults)
+
+    return None
 
 
 def get_parsed_content(metadata_content):
@@ -114,6 +121,7 @@ def get_parsed_content(metadata_content):
 def _import_parsers():
     """ Lazy imports to prevent circular dependencies between this module and utils """
 
+    global ARCGIS_NODES
     global ARCGIS_ROOTS
     global ArcGISParser
 
@@ -125,10 +133,10 @@ def _import_parsers():
 
     global VALID_ROOTS
 
-    if ARCGIS_ROOTS is None or ArcGISParser is None:
-        ARCGIS_ROOTS = tuple()
-        # from gis_metadata.arcgis_metadata_parser import ARCGIS_ROOTS
-        # from gis_metadata.arcgis_metadata_parser import ArcGISParser
+    if ARCGIS_NODES is None or ARCGIS_ROOTS is None or ArcGISParser is None:
+        from gis_metadata.arcgis_metadata_parser import ARCGIS_NODES
+        from gis_metadata.arcgis_metadata_parser import ARCGIS_ROOTS
+        from gis_metadata.arcgis_metadata_parser import ArcGISParser
 
     if FGDC_ROOT is None or FgdcParser is None:
         from gis_metadata.fgdc_metadata_parser import FGDC_ROOT
@@ -262,11 +270,6 @@ class MetadataParser(object):
 
         return self._get_xpath_for('_{prop}_root'.format(prop=prop))
 
-    def _has_element(self, prop):
-        """ :return: True if the data map property exists in the XML tree, False otherwise """
-
-        return has_element(self._xml_tree, self._get_xpath_for(prop))
-
     def _parse_complex(self, prop):
         """ Default parsing operation for a complex struct """
 
@@ -287,14 +290,6 @@ class MetadataParser(object):
         """ Creates and returns a Date Types data structure parsed from the metadata """
 
         return parse_dates(self._xml_tree, self._data_structures[prop])
-
-    def _parse_elements(self, prop, attr=None):
-        """ :return: the element for the XPATH corresponding to prop as a dict """
-
-        xpath = self._get_xpath_for(prop)
-        parsed = [element_to_dict(e, recurse=False) for e in get_elements(self._xml_tree, xpath)]
-
-        return parsed if attr is None else parsed.get(attr)
 
     def _update_complex(self, **update_props):
         """ Default update operation for a complex struct """

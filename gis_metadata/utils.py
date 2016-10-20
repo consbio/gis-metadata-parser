@@ -5,7 +5,7 @@ from six import iteritems, string_types
 
 from parserutils.collections import filter_empty, flatten_items, reduce_value, wrap_value
 from parserutils.elements import get_element, get_elements, get_element_attributes, get_elements_text
-from parserutils.elements import element_exists, insert_element, remove_element_attributes, remove_element
+from parserutils.elements import insert_element, remove_element_attributes, remove_element
 from parserutils.elements import XPATH_DELIM
 
 from gis_metadata.exceptions import ParserError
@@ -216,7 +216,7 @@ def get_default_for_complex(prop, subprop, value, xpath=''):
     return _join_complex_attr(value) if '@' in xpath else _join_complex_prop(value)
 
 
-def has_element(elem_to_parse, xpath):
+def has_property(elem_to_parse, xpath):
     """
     Parse xpath for any attribute reference "path/@attr" and check for root and presence of attribute.
     :return: True if xpath is present in the element along with any attribute referenced, otherwise False
@@ -227,9 +227,9 @@ def has_element(elem_to_parse, xpath):
     if not xroot:
         return False
     elif not attr:
-        return element_exists(elem_to_parse, xroot)
+        return bool(get_elements_text(elem_to_parse, xroot))
     else:
-        return attr in get_element_attributes(elem_to_parse, xroot)
+        return bool(get_element_attributes(elem_to_parse, xroot).get(attr))
 
 
 def parse_complex(tree_to_parse, xpath_root, xpath_map, complex_key):
@@ -271,57 +271,40 @@ def parse_complex_list(tree_to_parse, xpath_root, xpath_map, complex_key):
     return complex_list
 
 
-def parse_dates(tree_to_parse, date_xpath_map, date_type=None, date_xpaths=None, date_values=None):
+def parse_dates(tree_to_parse, xpath_map):
     """
     Creates and returns a Dates Dictionary data structure given the parameters provided
     :param tree_to_parse: the XML tree from which to construct the Dates data structure
-    :param date_xpath_map: a map containing the following type-specific XPATHs:
-        multiple, range_begin, range_end, and single
-    :param date_type: if type is known, use it to determine which XPATHs to parse values
-    :param date_xpaths: if an array of XPATHs is provided, use them to parse values from tree_to_parse
-    :param date_values: if values are already parsed, use them to construct a Dates data structure
+    :param xpath_map: a map containing the following type-specific XPATHs:
+        multiple, range, range_begin, range_end, and single
     """
 
-    if date_type is None or date_xpaths is None:
-        # Pull the intended XPATHs out of the map
+    # Determine dates to query based on metadata elements
 
-        dt_multiple_xpath = date_xpath_map[DATE_TYPE_MULTIPLE]
-        dt_range_beg_xpath = date_xpath_map[DATE_TYPE_RANGE_BEGIN]
-        dt_range_end_xpath = date_xpath_map[DATE_TYPE_RANGE_END]
-        dt_single_xpath = date_xpath_map[DATE_TYPE_SINGLE]
+    values = wrap_value(parse_property(tree_to_parse, None, xpath_map, DATE_TYPE_SINGLE))
+    if len(values) == 1:
+        return {DATE_TYPE: DATE_TYPE_SINGLE, DATE_VALUES: values}
+    elif len(values) > 1:
+        return {DATE_TYPE: DATE_TYPE_MULTIPLE, DATE_VALUES: values}
 
-    if date_type is None:
-        # Determine dates type based on metadata elements
+    values = wrap_value(parse_property(tree_to_parse, None, xpath_map, DATE_TYPE_MULTIPLE))
+    if len(values) == 1:
+        return {DATE_TYPE: DATE_TYPE_SINGLE, DATE_VALUES: values}
+    elif len(values) > 1:
+        return {DATE_TYPE: DATE_TYPE_MULTIPLE, DATE_VALUES: values}
 
-        if element_exists(tree_to_parse, dt_multiple_xpath):
-            date_type = DATE_TYPE_MULTIPLE
-        elif (element_exists(tree_to_parse, dt_range_beg_xpath) and
-              element_exists(tree_to_parse, dt_range_end_xpath)):
-            date_type = DATE_TYPE_RANGE
-        elif element_exists(tree_to_parse, dt_single_xpath):
-            date_type = DATE_TYPE_SINGLE
-        else:
-            return {}
+    values = flatten_items(
+        d for x in (DATE_TYPE_RANGE_BEGIN, DATE_TYPE_RANGE_END)
+        for d in wrap_value(parse_property(tree_to_parse, None, xpath_map, x))
+    )
+    if len(values) == 1:
+        return {DATE_TYPE: DATE_TYPE_SINGLE, DATE_VALUES: values}
+    elif len(values) == 2:
+        return {DATE_TYPE: DATE_TYPE_RANGE, DATE_VALUES: values}
+    elif len(values) > 2:
+        return {DATE_TYPE: DATE_TYPE_MULTIPLE, DATE_VALUES: values}
 
-    if date_xpaths is None:
-        # Determine XPATHs from dates type
-
-        if date_type == DATE_TYPE_MULTIPLE:
-            date_xpaths = [dt_multiple_xpath]
-        elif date_type == DATE_TYPE_RANGE:
-            date_xpaths = [dt_range_beg_xpath, dt_range_end_xpath]
-        elif date_type == DATE_TYPE_SINGLE:
-            date_xpaths = [dt_single_xpath]
-
-        date_xpaths = filter_empty(date_xpaths, [])
-
-    if date_values is None:
-        date_values = [text for xpath in date_xpaths for text in get_elements_text(tree_to_parse, xpath)]
-
-    if len(date_values) == 1:
-        date_type = DATE_TYPE_SINGLE
-
-    return {DATE_TYPE: date_type, DATE_VALUES: date_values}
+    return {}
 
 
 def parse_property(tree_to_parse, xpath_root, xpath_map, prop):
@@ -330,7 +313,7 @@ def parse_property(tree_to_parse, xpath_root, xpath_map, prop):
     :param tree_to_parse: the XML tree compatible with element_utils to be parsed
     :param xpath_root: used to determine the relative XPATH location within the parent element
     :param xpath_map: a dict of XPATHs that may contain alternate locations for a property
-    :param complex_key: indicates which complex definition describes the structure
+    :param prop: the property to parse: corresponds to a key in xpath_map
     """
 
     xpath = xpath_map[prop]
@@ -346,8 +329,8 @@ def parse_property(tree_to_parse, xpath_root, xpath_map, prop):
 
     parsed = None
 
-    if not has_element(tree_to_parse, xpath):
-        # Element is not present in tree: try next alternate location
+    if not has_property(tree_to_parse, xpath):
+        # Element has no text: try next alternate location
 
         alternate = '_' + prop
         if alternate in xpath_map:
@@ -408,12 +391,12 @@ def _update_property(tree_to_update, xpath_root, xpaths, prop, values):
     def update_element(elem, idx, root, path, vals):
         """ Internal helper function to encapsulate single item update """
 
-        has_root = (root and len(path) > len(root) and path.startswith(root))
+        has_root = bool(root and len(path) > len(root) and path.startswith(root))
         path, attr = get_xpath_tuple(path)  # 'path/@attr' to ('path', 'attr')
 
         if attr:
             removed = [get_element(elem, path)]
-            remove_element_attributes(removed, attr)
+            remove_element_attributes(removed[0], attr)
         elif not has_root:
             removed = wrap_value(remove_element(elem, path))
         else:

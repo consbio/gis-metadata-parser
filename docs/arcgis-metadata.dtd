@@ -71,8 +71,8 @@
 <!ELEMENT dataSetFn (OnFunctCd)>
 
 <!-- Metadata.dataIdInfo: Resource identification information (data identification elements) -->
-<!ELEMENT dataIdInfo (DataIdent | (aggrInfo?, dataChar?, dataExt+, dataLang+, dataScale*, spatRpType, (deFormat | dsFormat), envirDesc?, idAbs, idCitation, idCredit*, idPoC, idPurp, idSpecUse?, idStatus, graphOver?, resConst*, resMaint*, suppInfo?, descKeys*, discKeys*, otherKeys*, placeKeys*, productKeys*, searchKeys*, stratKeys*, subTopicCatKeys*, tempKeys*, themeKeys*, tpCat, svAccProps?, svCouplRes?, svCoupleType?, svOper?, svOperOn?, svType?, svTypeVer?))>
-<!ELEMENT DataIdent (aggrInfo?, dataChar?, dataExt+, dataLang+, dataScale*, spatRpType, (deFormat | dsFormat), envirDesc?, idAbs, idCitation, idCredit*, idPoC, idPurp, idSpecUse?, idStatus, graphOver?, resConst*, resMaint*, suppInfo?, descKeys*, discKeys*, otherKeys*, placeKeys*, productKeys*, searchKeys*, stratKeys*, subTopicCatKeys*, tempKeys*, themeKeys*, tpCat, svAccProps?, svCouplRes?, svCoupleType?, svOper?, svOperOn?, svType?, svTypeVer?)>
+<!ELEMENT dataIdInfo (DataIdent | (aggrInfo?, dataChar?, dataExt+, dataLang+, dataScale*, spatRpType, (deFormat | dsFormat), envirDesc?, idAbs, idCitation, idCredit*, idPoC*, idPurp, idSpecUse?, idStatus, graphOver?, resConst*, resMaint*, suppInfo?, descKeys*, discKeys*, otherKeys*, placeKeys*, productKeys*, searchKeys*, stratKeys*, subTopicCatKeys*, tempKeys*, themeKeys*, tpCat, svAccProps?, svCouplRes?, svCoupleType?, svOper?, svOperOn?, svType?, svTypeVer?))>
+<!ELEMENT DataIdent (aggrInfo?, dataChar?, dataExt+, dataLang+, dataScale*, spatRpType, (deFormat | dsFormat), envirDesc?, idAbs, idCitation, idCredit*, idPoC*, idPurp, idSpecUse?, idStatus, graphOver?, resConst*, resMaint*, suppInfo?, descKeys*, discKeys*, otherKeys*, placeKeys*, productKeys*, searchKeys*, stratKeys*, subTopicCatKeys*, tempKeys*, themeKeys*, tpCat, svAccProps?, svCouplRes?, svCoupleType?, svOper?, svOperOn?, svType?, svTypeVer?)>
 
 <!-- Metadata.contInfo: Remotely sensed image content -->
 <!ELEMENT contInfo (FetCatDesc | ImgDesc)>
@@ -435,7 +435,7 @@
 <!-- DataIdentification.svOperOn: Service method description (service operation elements) -->
 <!ELEMENT svOper (svOpName, svDCP?, svDesc, svInvocName, svParams*, svConPt, svOper)>
 <!-- DataIdentification.svOperOn: Citation for a resource on which the service operates (data identification elements) -->
-<!ELEMENT svOperOn (aggrInfo?, dataChar?, dataExt+, dataLang+, dataScale*, spatRpType, dsFormat, envirDesc?, idAbs, idCitation, idCredit+, idPoC, idPurp, idSpecUse, idStatus, graphOver?, resConst*, resMaint+, suppInfo?, discKeys*, otherKeys*, placeKeys+, productKeys*, searchKeys*, stratKeys*, subTopicCatKeys*, tempKeys*, themeKeys+, tpCat, svAccProps?, svCouplRes, svCoupleType, svOper, svOperOn, svType, svTypeVer?)>
+<!ELEMENT svOperOn (aggrInfo?, dataChar?, dataExt+, dataLang+, dataScale*, spatRpType, dsFormat, envirDesc?, idAbs, idCitation, idCredit+, idPoC*, idPurp, idSpecUse, idStatus, graphOver?, resConst*, resMaint+, suppInfo?, discKeys*, otherKeys*, placeKeys+, productKeys*, searchKeys*, stratKeys*, subTopicCatKeys*, tempKeys*, themeKeys+, tpCat, svAccProps?, svCouplRes, svCoupleType, svOper, svOperOn, svType, svTypeVer?)>
 <!ELEMENT svType (#PCDATA)>
 <!ATTLIST svType codeSpace CDATA>
 <!ELEMENT svTypeVer (#PCDATA)>
@@ -690,7 +690,7 @@
 
 <!-- Data Source Elements -->
 
-<!ELEMENT stepDesc (#PCDATA)>
+<!ELEMENT srcDesc (#PCDATA)>
 <!ELEMENT srcMedName (MedNameCd)>
 <!ELEMENT MedNameCd (#PCDATA)>
 <!ATTLIST MedNameCd value CDATA>
@@ -768,7 +768,7 @@
 
 <!ELEMENT unitsODist (#PCDATA)>
 <!ELEMENT transSize (#PCDATA)>
-<!ELEMENT onLineSrc (linkage | #PCDATA)>
+<!ELEMENT onLineSrc (linkage, protocol?, appProfile?, orName?, orDesc?, orFunct?)>
 <!ELEMENT offLineMed (medName, medDensity*, medDenUnits?, medVol?, medFormat*, medNote?)>
 <!ELEMENT medName (medNameCd)>
 <!ELEMENT medNameCd (#PCDATA)>

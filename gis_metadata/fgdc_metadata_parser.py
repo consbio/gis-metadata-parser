@@ -144,6 +144,10 @@ class FgdcParser(MetadataParser):
             DATE_TYPE_RANGE_END: dt_format.format(type_path='rngdates/enddate'),
             DATE_TYPE_SINGLE: dt_format.format(type_path='sngdate/caldate')
         }
+        fgdc_data_structures[DATES][DATE_TYPE_RANGE] = [
+            fgdc_data_structures[DATES][DATE_TYPE_RANGE_BEGIN],
+            fgdc_data_structures[DATES][DATE_TYPE_RANGE_END]
+        ]
 
         df_format = _fgdc_tag_formats[DIGITAL_FORMS]
         fgdc_data_structures[DIGITAL_FORMS] = format_xpaths(
