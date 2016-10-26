@@ -110,7 +110,7 @@ def get_parsed_content(metadata_content):
     if xml_tree is None:
         raise ParserError(
             'Cannot instantiate a {parser_type} parser with invalid content to parse',
-            parser_type=type(metadata_content)
+            parser_type=type(metadata_content).__name__
         )
 
     xml_root = get_element_name(xml_tree)

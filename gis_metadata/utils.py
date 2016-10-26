@@ -639,14 +639,17 @@ def validate_properties(props, required):
     required = set(required or _supported_props)
 
     if len(required.intersection(props)) < len(required):
-        raise ParserError('Missing property names: {props}', props=','.join(required - props))
+        missing = required - props
+        raise ParserError(
+            'Missing property names: {props}', props=','.join(missing), missing=missing
+        )
 
 
 def validate_type(prop, value, expected):
     """ Default validation for all types """
 
     if not isinstance(value, expected):
-        _validation_error(prop, type(value), None, expected)
+        _validation_error(prop, type(value).__name__, None, expected)
 
 
 def _validation_error(prop, prop_type, prop_value, expected):
@@ -661,7 +664,8 @@ def _validation_error(prop, prop_type, prop_value, expected):
 
     raise ParserError(
         'Invalid property {attrib} for {prop}:\n\t{attrib}: {assigned}\n\texpected: {expected}',
-        attrib=attrib, prop=prop, assigned=assigned, expected=expected
+        attrib=attrib, prop=prop, assigned=assigned, expected=expected,
+        invalid={prop: prop_value} if attrib == 'value' else {}
     )
 
 
