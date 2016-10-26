@@ -162,7 +162,7 @@ class MetadataParserTestCase(unittest.TestCase):
         self.fgdc_metadata = open(self.fgdc_file)
         self.iso_metadata = open(self.iso_file)
 
-        self.metadata_files = (self.fgdc_metadata, self.iso_metadata)
+        self.metadata_files = (self.arcgis_metadata, self.fgdc_metadata, self.iso_metadata)
 
         # Define test file paths
 
@@ -170,7 +170,7 @@ class MetadataParserTestCase(unittest.TestCase):
         self.test_fgdc_file_path = '/'.join((self.data_dir, 'test_fgdc.xml'))
         self.test_iso_file_path = '/'.join((self.data_dir, 'test_iso.xml'))
 
-        self.test_file_paths = (self.test_fgdc_file_path, self.test_iso_file_path)
+        self.test_file_paths = (self.test_arcgis_file_path, self.test_fgdc_file_path, self.test_iso_file_path)
 
     def assert_equal_for(self, parser_type, prop, value, target):
         self.assertEqual(
