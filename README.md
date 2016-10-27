@@ -113,41 +113,45 @@ class CustomIsoParser(IsoParser):
     def _init_data_map(self):
         super(CustomIsoParser, self)._init_data_map()
 
-        # Basic property: text or list (with default location)
+        # Basic property: text or list (with backup location referencing codeListValue attribute)
+
         lang_prop = 'metadata_language'
-        self._data_map[lang_prop] = 'language/CharacterString'
-        self._data_map['_' + lang_prop] = 'language/LanguageCode/@codeListValue'
+        self._data_map[lang_prop] = 'language/CharacterString'                     # Parse from here if present
+        self._data_map['_' + lang_prop] = 'language/LanguageCode/@codeListValue'   # Otherwise, try from here
 
         # Complex structure (reuse of contacts structure plus phone)
+
+        # Define some basic variables
         ct_prop = 'metadata_contacts'
-        ct_format = 'contact/CI_ResponsibleParty/{ct_path}'
+        ct_xpath = 'contact/CI_ResponsibleParty/{ct_path}'
         ct_defintion = get_complex_definitions()[CONTACTS]
         ct_defintion['phone'] = '{phone}'
 
-        # Reusing CONTACT structure definition to specify locations per prop
+        # Reuse CONTACT structure to specify locations per prop (adapted only slightly from parent)
         self._data_structures[ct_prop] = format_xpaths(
             ct_defintion,
-            name=ct_format.format(ct_path='individualName/CharacterString'),
-            organization=ct_format.format(ct_path='organisationName/CharacterString'),
-            position=ct_format.format(ct_path='positionName/CharacterString'),
-            phone=ct_format.format(
+            name=ct_xpath.format(ct_path='individualName/CharacterString'),
+            organization=ct_xpath.format(ct_path='organisationName/CharacterString'),
+            position=ct_xpath.format(ct_path='positionName/CharacterString'),
+            phone=ct_xpath.format(
                 ct_path='contactInfo/CI_Contact/phone/CI_Telephone/voice/CharacterString'
             ),
-            email=ct_format.format(
+            email=ct_xpath.format(
                 ct_path='contactInfo/CI_Contact/address/CI_Address/electronicMailAddress/CharacterString'
             )
         )
 
-        # Set the root: elements will be inserted at "contact" level
-        # By default we would get multiple "CI_ResponsibleParty" elements
-        # This way we get multiple "contact" elements, each with a "CI_ResponsibleParty"
+        # Set the contact root to insert new elements at "contact" level given the defined path:
+        #   'contact/CI_ResponsibleParty/...'
+        # By default we would get multiple "CI_ResponsibleParty" elements under a single "contact"
+        # This way we get multiple "contact" elements, each with its own single "CI_ResponsibleParty"
         self._data_map['_{prop}_root'.format(prop=ct_prop)] = 'contact'
 
         # Use the built-in support for parsing complex properties (or customize a parser/updater)
         self._data_map[ct_prop] = ParserProperty(self._parse_complex_list, self._update_complex_list)
-        self._metadata_props.add(lang_prop)
 
-        # Ensure the parent logic knows about the two custom properties
+        # And finally, let the parent validation logic know about the two new custom properties
+
         self._metadata_props.add(lang_prop)
         self._metadata_props.add(ct_prop)
 

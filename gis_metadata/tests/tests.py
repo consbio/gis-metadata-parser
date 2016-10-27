@@ -11,7 +11,7 @@ from parserutils.elements import insert_element, remove_element, remove_element_
 from gis_metadata.arcgis_metadata_parser import ArcGISParser, ARCGIS_NODES, ARCGIS_ROOTS
 from gis_metadata.fgdc_metadata_parser import FgdcParser, FGDC_ROOT
 from gis_metadata.iso_metadata_parser import IsoParser, ISO_ROOTS, _iso_tag_formats
-from gis_metadata.metadata_parser import MetadataParser, get_metadata_parser, get_parsed_content, convert_parser_to
+from gis_metadata.metadata_parser import MetadataParser, get_metadata_parser, get_parsed_content
 
 from gis_metadata.exceptions import ParserError
 from gis_metadata.utils import format_xpaths, get_complex_definitions, get_supported_props
@@ -532,10 +532,17 @@ class MetadataParserTests(MetadataParserTestCase):
         self.assert_reparsed_complex_for(custom_parser, 'metadata_contacts', complex_val, [complex_val])
         self.assert_reparsed_simple_for(custom_parser, ['metadata_language'], 'es', 'es')
 
-        supported_props = get_supported_props().update(target_values.keys())
-        converted_parser = convert_parser_to(custom_parser, CustomIsoParser, supported_props)
+        # Test conversion with custom props
+        converted_parser = custom_parser.convert_to(CustomIsoParser)
 
         self.assert_parsers_are_equal(custom_parser, converted_parser)
+        self.assertEqual(converted_parser.metadata_contacts, custom_parser.metadata_contacts)
+        self.assertEqual(converted_parser.metadata_language, custom_parser.metadata_language)
+
+        # Test conversion that must ignore custom props
+        agis_parser = custom_parser.convert_to(ArcGISParser)
+        fgdc_parser = custom_parser.convert_to(FgdcParser)
+        self.assert_parsers_are_equal(agis_parser, fgdc_parser)
 
         # Test invalid custom complex structure value
 
@@ -1047,34 +1054,39 @@ class CustomIsoParser(IsoParser):
     def _init_data_map(self):
         super(CustomIsoParser, self)._init_data_map()
 
-        # Basic property: text or list (with default location)
+        # Basic property: text or list (with backup location referencing codeListValue attribute)
+
         lang_prop = 'metadata_language'
-        self._data_map[lang_prop] = 'language/CharacterString'
-        self._data_map['_' + lang_prop] = 'language/LanguageCode/@codeListValue'
+        self._data_map[lang_prop] = 'language/CharacterString'                     # Parse from here if present
+        self._data_map['_' + lang_prop] = 'language/LanguageCode/@codeListValue'   # Otherwise, try from here
 
         # Complex structure (reuse of contacts structure plus phone)
+
+        # Define some basic variables
         ct_prop = 'metadata_contacts'
-        ct_format = 'contact/CI_ResponsibleParty/{ct_path}'
+        ct_xpath = 'contact/CI_ResponsibleParty/{ct_path}'
         ct_defintion = get_complex_definitions()[CONTACTS]
         ct_defintion['phone'] = '{phone}'
 
+        # Reuse CONTACT structure to specify locations per prop (adapted only slightly from parent)
         self._data_structures[ct_prop] = format_xpaths(
             ct_defintion,
-            name=ct_format.format(ct_path='individualName/CharacterString'),
-            organization=ct_format.format(ct_path='organisationName/CharacterString'),
-            position=ct_format.format(ct_path='positionName/CharacterString'),
-            phone=ct_format.format(
+            name=ct_xpath.format(ct_path='individualName/CharacterString'),
+            organization=ct_xpath.format(ct_path='organisationName/CharacterString'),
+            position=ct_xpath.format(ct_path='positionName/CharacterString'),
+            phone=ct_xpath.format(
                 ct_path='contactInfo/CI_Contact/phone/CI_Telephone/voice/CharacterString'
             ),
-            email=ct_format.format(
+            email=ct_xpath.format(
                 ct_path='contactInfo/CI_Contact/address/CI_Address/electronicMailAddress/CharacterString'
             )
         )
 
+        # Set the root and add getter/setter (parser/updater) to the data map
         self._data_map['_{prop}_root'.format(prop=ct_prop)] = 'contact'
         self._data_map[ct_prop] = ParserProperty(self._parse_complex_list, self._update_complex_list)
-        self._metadata_props.add(lang_prop)
 
-        # Ensure the parent logic knows about the two new properties
+        # And finally, let the parent validation logic know about the two new custom properties
+
         self._metadata_props.add(lang_prop)
         self._metadata_props.add(ct_prop)
