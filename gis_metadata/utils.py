@@ -243,7 +243,7 @@ def parse_complex(tree_to_parse, xpath_root, xpath_map, complex_key):
 
     complex_struct = {}
 
-    for prop in _complex_definitions[complex_key]:
+    for prop in _complex_definitions.get(complex_key, xpath_map):
         parsed = parse_property(tree_to_parse, xpath_root, xpath_map, prop)
         complex_struct[prop] = reduce_value(
             flatten_items(v.split(_COMPLEX_DELIM) for v in wrap_value(parsed))
@@ -497,18 +497,18 @@ def update_complex_list(tree_to_update, xpath_root, xpath_map, prop, values):
     return complex_list
 
 
-def validate_any(prop, value):
+def validate_any(prop, value, xpath_map=None):
     """ Validates any metadata property, complex or simple (string or array) """
 
     if value is not None:
-        if prop in [ATTRIBUTES, CONTACTS, DIGITAL_FORMS]:
-            validate_complex_list(prop, value)
+        if prop in (ATTRIBUTES, CONTACTS, DIGITAL_FORMS):
+            validate_complex_list(prop, value, xpath_map)
 
-        elif prop in [BOUNDING_BOX, LARGER_WORKS]:
-            validate_complex(prop, value)
+        elif prop in (BOUNDING_BOX, LARGER_WORKS):
+            validate_complex(prop, value, xpath_map)
 
         elif prop == DATES:
-            validate_dates(prop, value)
+            validate_dates(prop, value, xpath_map)
 
         elif prop == PROCESS_STEPS:
             validate_process_steps(prop, value)
@@ -518,13 +518,18 @@ def validate_any(prop, value):
                 validate_type(prop, val, string_types)
 
 
-def validate_complex(prop, value):
+def validate_complex(prop, value, xpath_map=None):
     """ Default validation for single complex data structure """
 
     if value is not None:
         validate_type(prop, value, dict)
 
-        complex_keys = set(_complex_definitions[prop])
+        if prop in _complex_definitions:
+            complex_keys = _complex_definitions[prop]
+        elif xpath_map is None:
+            complex_keys = {}
+        else:
+            complex_keys = xpath_map
 
         for complex_prop, complex_val in iteritems(value):
             complex_key = '.'.join((prop, complex_prop))
@@ -535,13 +540,18 @@ def validate_complex(prop, value):
             validate_type(complex_key, complex_val, (string_types, list))
 
 
-def validate_complex_list(prop, value):
+def validate_complex_list(prop, value, xpath_map=None):
     """ Default validation for Attribute Details data structure """
 
     if value is not None:
         validate_type(prop, value, (dict, list))
 
-        complex_keys = set(_complex_definitions[prop])
+        if prop in _complex_definitions:
+            complex_keys = _complex_definitions[prop]
+        elif xpath_map is None:
+            complex_keys = {}
+        else:
+            complex_keys = xpath_map
 
         for idx, complex_struct in enumerate(wrap_value(value)):
             cs_idx = prop + '[' + str(idx) + ']'
@@ -561,7 +571,7 @@ def validate_complex_list(prop, value):
                         validate_type(list_prop, list_val, string_types)
 
 
-def validate_dates(prop, value):
+def validate_dates(prop, value, xpath_map=None):
     """ Default validation for Date Types data structure """
 
     if value is not None:
@@ -571,7 +581,14 @@ def validate_dates(prop, value):
 
         if date_keys:
             if DATE_TYPE not in date_keys or DATE_VALUES not in date_keys:
-                _validation_error(prop, None, value, ('keys: {0}'.format(','.join(_complex_definitions[prop]))))
+                if prop in _complex_definitions:
+                    complex_keys = _complex_definitions[prop]
+                elif xpath_map is None:
+                    complex_keys = _complex_definitions[DATES]
+                else:
+                    complex_keys = xpath_map
+
+                _validation_error(prop, None, value, ('keys: {0}'.format(','.join(complex_keys))))
 
             date_type = value[DATE_TYPE]
 

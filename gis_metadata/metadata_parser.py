@@ -11,8 +11,9 @@ from parserutils.strings import DEFAULT_ENCODING
 from gis_metadata.utils import DATES, DATE_TYPE, DATE_VALUES
 from gis_metadata.utils import DATE_TYPE_RANGE, DATE_TYPE_RANGE_BEGIN, DATE_TYPE_RANGE_END
 from gis_metadata.utils import parse_complex, parse_complex_list, parse_dates, parse_property
-from gis_metadata.utils import update_complex, update_complex_list, update_property, validate_any, validate_properties
-from gis_metadata.utils import _supported_props, ParserError
+from gis_metadata.utils import update_complex, update_complex_list, update_property
+from gis_metadata.utils import validate_any, validate_complex_list, validate_properties
+from gis_metadata.utils import _complex_definitions, _supported_props, ParserError
 
 
 # Place holders for lazy, one-time FGDC & ISO imports
@@ -394,6 +395,15 @@ class MetadataParser(object):
         validate_properties(self._data_map, self._metadata_props)
 
         for prop in self._data_map:
-            validate_any(prop, getattr(self, prop))
+            try:
+                validate_any(prop, getattr(self, prop))
+            except ParserError:
+                if prop in _complex_definitions:
+                    raise  # Enforce basic validation for established structures
+                if prop not in self._data_structures:
+                    raise  # Enforce validation for simple properties
+
+                # Validate custom data structures according to configured structure
+                validate_complex_list(prop, getattr(self, prop), self._data_structures[prop])
 
         return self
