@@ -26,6 +26,8 @@ from gis_metadata.utils import format_xpaths, get_complex_definitions
 FGDC_ROOT = 'metadata'
 
 _fgdc_definitions = get_complex_definitions()
+
+# Define backup locations for contact sub-properties
 _fgdc_definitions[CONTACTS].update({
     '_name': '{_name}',
     '_organization': '{_organization}'
@@ -50,9 +52,9 @@ _fgdc_tag_formats = {
     'data_credits': 'idinfo/datacred',
     CONTACTS: 'idinfo/ptcontac/cntinfo/{ct_path}',
     'dist_contact_org': 'distinfo/distrib/cntinfo/cntperp/cntorg',
-    '_dist_contact_org': 'distinfo/distrib/cntinfo/cntorgp/cntorg',
+    '_dist_contact_org': 'distinfo/distrib/cntinfo/cntorgp/cntorg',  # If not in cntperp
     'dist_contact_person': 'distinfo/distrib/cntinfo/cntperp/cntper',
-    '_dist_contact_person': 'distinfo/distrib/cntinfo/cntorgp/cntper',
+    '_dist_contact_person': 'distinfo/distrib/cntinfo/cntorgp/cntper',  # If not in cntperp
     'dist_address_type': 'distinfo/distrib/cntinfo/cntaddr/addrtype',
     'dist_address': 'distinfo/distrib/cntinfo/cntaddr/address',
     'dist_city': 'distinfo/distrib/cntinfo/cntaddr/city',

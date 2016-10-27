@@ -41,10 +41,12 @@ _DIGITAL_FORMS_CONTENT_DELIM = '@------------------------------@'
 
 
 _iso_definitions = get_complex_definitions()
+
+# Define backup locations for attribute sub-properties
 _iso_definitions[ATTRIBUTES].update({
     '_definition_source': '{_definition_src}',
     '__definition_source': '{__definition_src}',
-    '___definition_source': '{___definition_src}',
+    '___definition_source': '{___definition_src}'
 })
 
 _iso_tag_roots = OrderedDict((

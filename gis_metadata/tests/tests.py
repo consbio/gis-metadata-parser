@@ -1057,8 +1057,8 @@ class CustomIsoParser(IsoParser):
         # Basic property: text or list (with backup location referencing codeListValue attribute)
 
         lang_prop = 'metadata_language'
-        self._data_map[lang_prop] = 'language/CharacterString'                     # Parse from here if present
-        self._data_map['_' + lang_prop] = 'language/LanguageCode/@codeListValue'   # Otherwise, try from here
+        self._data_map[lang_prop] = 'language/CharacterString'                    # Parse from here if present
+        self._data_map['_' + lang_prop] = 'language/LanguageCode/@codeListValue'  # Otherwise, try from here
 
         # Complex structure (reuse of contacts structure plus phone)
 
