@@ -96,3 +96,56 @@ fgdc_from_file.write()                                         # Output updated 
 fgdc_from_file.write(out_file_or_path='/path/to/updated.xml')  # Output updated XML to new file
 ```
 
+#Extending and Customizing#
+
+Any of the supported parsers can be extended to include more of a standard's supported data.
+```python
+from gis_metadata.iso_metadata_parser import IsoParser
+from gis_metadata.utils import CONTACTS, format_xpaths, get_complex_definitions, ParserProperty
+
+
+class CustomIsoParser(IsoParser):
+
+    def _init_data_map(self):
+        super(CustomIsoParser, self)._init_data_map()
+
+        # Basic property: text or list (with default location)
+        lang_prop = 'metadata_language'
+        self._data_map[lang_prop] = 'language/CharacterString'
+        self._data_map['_' + lang_prop] = 'language/LanguageCode/@codeListValue'
+
+        # Complex structure (reuse of contacts structure)
+        ct_prop = 'metadata_contacts'
+        ct_format = 'contact/CI_ResponsibleParty/{ct_path}'
+
+        # Reusing CONTACT structure definition to specify locations per prop
+        self._data_structures[ct_prop] = format_xpaths(
+            get_complex_definitions()[CONTACTS],
+            name=ct_format.format(ct_path='individualName/CharacterString'),
+            organization=ct_format.format(ct_path='organisationName/CharacterString'),
+            position=ct_format.format(ct_path='positionName/CharacterString'),
+            email=ct_format.format(
+                ct_path='contactInfo/CI_Contact/address/CI_Address/electronicMailAddress/CharacterString'
+            )
+        )
+
+        # Set the root: elements will be inserted at "contact" level
+        # By default we would get multiple "CI_ResponsibleParty" elements
+        # This way we get multiple "contact" elements, each with a "CI_ResponsibleParty"
+        self._data_map['_{prop}_root'.format(prop=ct_prop)] = 'contact'
+
+        # Use the built-in support for parsing complex properties (or customize a parser/updater)
+        self._data_map[ct_prop] = ParserProperty(self._parse_complex_list, self._update_complex_list)
+        self._metadata_props.add(lang_prop)
+
+        # Ensure the parent logic knows about the two custom properties
+        self._metadata_props.add(lang_prop)
+        self._metadata_props.add(ct_prop)
+
+
+with open(r'C:\Users\Daniel\Docs\Desktop\iso_test_contacts.xml') as metadata:
+    iso_from_file = CustomIsoParser(metadata)
+
+iso_from_file.metadata_language
+iso_from_file.metadata_contacts
+```
