@@ -195,7 +195,7 @@ def get_default_for(prop, value):
     val = reduce_value(value)  # Filtering of value happens here
 
     if prop in _COMPLEX_LISTS:
-        return wrap_value(val) or []
+        return wrap_value(val)
     elif prop in _COMPLEX_STRUCTS:
         return val or {}
     else:
@@ -209,10 +209,10 @@ def get_default_for_complex(prop, subprop, value, xpath=''):
     subprop = subprop.strip('_')
 
     value = wrap_value(value)
-
     if subprop in _COMPLEX_WITH_MULTI.get(prop, ''):
-        return value
+        return value  # Leave sub properties allowing lists wrapped
 
+    # Join on comma for element attribute values; newline for element text values
     return _join_complex_attr(value) if '@' in xpath else _join_complex_prop(value)
 
 
@@ -669,7 +669,8 @@ def validate_properties(props, required):
 def validate_type(prop, value, expected):
     """ Default validation for all types """
 
-    if not isinstance(value, expected):
+    # Validate on expected type(s), but ignore None: defaults handled elsewhere
+    if value is not None and not isinstance(value, expected):
         _validation_error(prop, type(value).__name__, None, expected)
 
 
