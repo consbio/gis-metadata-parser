@@ -98,7 +98,11 @@ fgdc_from_file.write(out_file_or_path='/path/to/updated.xml')  # Output updated 
 
 #Extending and Customizing#
 
-Any of the supported parsers can be extended to include more of a standard's supported data.
+Any of the supported parsers can be extended to include more of a standard's supported data. In this example we'll add two new properties:
+
+* `metadata_language`: a simple string field describing the language of the metadata file itself (not the dataset)
+* `metadata_contacts`: a complex structure with contact info leveraging and enhancing the existing contact structure
+
 ```python
 from gis_metadata.iso_metadata_parser import IsoParser
 from gis_metadata.utils import CONTACTS, format_xpaths, get_complex_definitions, ParserProperty
@@ -148,7 +152,7 @@ class CustomIsoParser(IsoParser):
         self._metadata_props.add(ct_prop)
 
 
-with open(r'C:\Users\Daniel\Docs\Desktop\iso_test_contacts.xml') as metadata:
+with open(r'/path/to/metadata.xml') as metadata:
     iso_from_file = CustomIsoParser(metadata)
 
 iso_from_file.metadata_language
