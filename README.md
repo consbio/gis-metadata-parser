@@ -114,16 +114,21 @@ class CustomIsoParser(IsoParser):
         self._data_map[lang_prop] = 'language/CharacterString'
         self._data_map['_' + lang_prop] = 'language/LanguageCode/@codeListValue'
 
-        # Complex structure (reuse of contacts structure)
+        # Complex structure (reuse of contacts structure plus phone)
         ct_prop = 'metadata_contacts'
         ct_format = 'contact/CI_ResponsibleParty/{ct_path}'
+        ct_defintion = get_complex_definitions()[CONTACTS]
+        ct_defintion['phone'] = '{phone}'
 
         # Reusing CONTACT structure definition to specify locations per prop
         self._data_structures[ct_prop] = format_xpaths(
-            get_complex_definitions()[CONTACTS],
+            ct_defintion,
             name=ct_format.format(ct_path='individualName/CharacterString'),
             organization=ct_format.format(ct_path='organisationName/CharacterString'),
             position=ct_format.format(ct_path='positionName/CharacterString'),
+            phone=ct_format.format(
+                ct_path='contactInfo/CI_Contact/phone/CI_Telephone/voice/CharacterString'
+            ),
             email=ct_format.format(
                 ct_path='contactInfo/CI_Contact/address/CI_Address/electronicMailAddress/CharacterString'
             )

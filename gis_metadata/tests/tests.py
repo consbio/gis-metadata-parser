@@ -11,10 +11,10 @@ from parserutils.elements import insert_element, remove_element, remove_element_
 from gis_metadata.arcgis_metadata_parser import ArcGISParser, ARCGIS_NODES, ARCGIS_ROOTS
 from gis_metadata.fgdc_metadata_parser import FgdcParser, FGDC_ROOT
 from gis_metadata.iso_metadata_parser import IsoParser, ISO_ROOTS, _iso_tag_formats
-from gis_metadata.metadata_parser import MetadataParser, get_metadata_parser, get_parsed_content
+from gis_metadata.metadata_parser import MetadataParser, get_metadata_parser, get_parsed_content, convert_parser_to
 
 from gis_metadata.exceptions import ParserError
-from gis_metadata.utils import get_complex_definitions, get_supported_props
+from gis_metadata.utils import format_xpaths, get_complex_definitions, get_supported_props
 from gis_metadata.utils import DATE_TYPE, DATE_VALUES
 from gis_metadata.utils import DATE_TYPE_SINGLE, DATE_TYPE_RANGE, DATE_TYPE_MISSING, DATE_TYPE_MULTIPLE
 from gis_metadata.utils import ATTRIBUTES, CONTACTS, DIGITAL_FORMS, PROCESS_STEPS
@@ -510,6 +510,33 @@ class MetadataParserTemplateTests(MetadataParserTestCase):
 
 class MetadataParserTests(MetadataParserTestCase):
 
+    def test_custom_parser(self):
+        """ Covers support for custom parsers """
+
+        custom_parser = CustomIsoParser(self.iso_metadata)
+        target_values = {
+            'metadata_contacts': [{
+                'name': 'Custom Contact Name', 'email': 'Custom Contact Email', 'phone': 'Custom Contact Phone',
+                'position': 'Custom Contact Position', 'organization': 'Custom Contact Organization'
+            }],
+            'metadata_language': 'eng'
+        }
+
+        for prop in target_values:
+            self.assertEqual(getattr(custom_parser, prop), target_values[prop], 'Custom parser values were not parsed')
+
+        complex_val = {
+            'name': 'Changed Contact Name', 'email': 'Changed Contact Email', 'phone': 'Changed Contact Phone',
+            'position': 'Changed Contact Position', 'organization': 'Changed Contact Organization'
+        }
+        self.assert_reparsed_complex_for(custom_parser, 'metadata_contacts', complex_val, [complex_val])
+        self.assert_reparsed_simple_for(custom_parser, ['metadata_language'], 'es', 'es')
+
+        supported_props = get_supported_props().update(target_values.keys())
+        converted_parser = convert_parser_to(custom_parser, CustomIsoParser, supported_props)
+
+        self.assert_parsers_are_equal(custom_parser, converted_parser)
+
     def test_generic_parser(self):
         """ Covers code that enforces certain behaviors for custom parsers """
 
@@ -993,3 +1020,41 @@ class MetadataParserTests(MetadataParserTestCase):
         self.assert_parser_after_write(ArcGISParser, self.arcgis_metadata, self.test_arcgis_file_path, True)
         self.assert_parser_after_write(FgdcParser, self.fgdc_metadata, self.test_fgdc_file_path, True)
         self.assert_parser_after_write(IsoParser, self.iso_metadata, self.test_iso_file_path, True)
+
+
+class CustomIsoParser(IsoParser):
+
+    def _init_data_map(self):
+        super(CustomIsoParser, self)._init_data_map()
+
+        # Basic property: text or list (with default location)
+        lang_prop = 'metadata_language'
+        self._data_map[lang_prop] = 'language/CharacterString'
+        self._data_map['_' + lang_prop] = 'language/LanguageCode/@codeListValue'
+
+        # Complex structure (reuse of contacts structure plus phone)
+        ct_prop = 'metadata_contacts'
+        ct_format = 'contact/CI_ResponsibleParty/{ct_path}'
+        ct_defintion = get_complex_definitions()[CONTACTS]
+        ct_defintion['phone'] = '{phone}'
+
+        self._data_structures[ct_prop] = format_xpaths(
+            ct_defintion,
+            name=ct_format.format(ct_path='individualName/CharacterString'),
+            organization=ct_format.format(ct_path='organisationName/CharacterString'),
+            position=ct_format.format(ct_path='positionName/CharacterString'),
+            phone=ct_format.format(
+                ct_path='contactInfo/CI_Contact/phone/CI_Telephone/voice/CharacterString'
+            ),
+            email=ct_format.format(
+                ct_path='contactInfo/CI_Contact/address/CI_Address/electronicMailAddress/CharacterString'
+            )
+        )
+
+        self._data_map['_{prop}_root'.format(prop=ct_prop)] = 'contact'
+        self._data_map[ct_prop] = ParserProperty(self._parse_complex_list, self._update_complex_list)
+        self._metadata_props.add(lang_prop)
+
+        # Ensure the parent logic knows about the two new properties
+        self._metadata_props.add(lang_prop)
+        self._metadata_props.add(ct_prop)
