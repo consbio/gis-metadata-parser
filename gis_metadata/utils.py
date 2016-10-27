@@ -170,7 +170,7 @@ def get_xpath_branch(xroot, xpath):
     """ :return: the relative part of an XPATH: that which extends past the root provided """
 
     if xroot and xpath and xpath.startswith(xroot):
-        xpath = xpath.replace(xroot, '')
+        xpath = xpath[len(xroot):]
         xpath = xpath.lstrip(XPATH_DELIM)
 
     return xpath
