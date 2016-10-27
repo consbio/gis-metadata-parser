@@ -530,10 +530,8 @@ def validate_complex(prop, value, xpath_map=None):
 
         if prop in _complex_definitions:
             complex_keys = _complex_definitions[prop]
-        elif xpath_map is None:
-            complex_keys = {}
         else:
-            complex_keys = xpath_map
+            complex_keys = {} if xpath_map is None else xpath_map
 
         for complex_prop, complex_val in iteritems(value):
             complex_key = '.'.join((prop, complex_prop))
@@ -552,10 +550,8 @@ def validate_complex_list(prop, value, xpath_map=None):
 
         if prop in _complex_definitions:
             complex_keys = _complex_definitions[prop]
-        elif xpath_map is None:
-            complex_keys = {}
         else:
-            complex_keys = xpath_map
+            complex_keys = {} if xpath_map is None else xpath_map
 
         for idx, complex_struct in enumerate(wrap_value(value)):
             cs_idx = prop + '[' + str(idx) + ']'
@@ -587,10 +583,8 @@ def validate_dates(prop, value, xpath_map=None):
             if DATE_TYPE not in date_keys or DATE_VALUES not in date_keys:
                 if prop in _complex_definitions:
                     complex_keys = _complex_definitions[prop]
-                elif xpath_map is None:
-                    complex_keys = _complex_definitions[DATES]
                 else:
-                    complex_keys = xpath_map
+                    complex_keys = _complex_definitions[DATES] if xpath_map is None else xpath_map
 
                 _validation_error(prop, None, value, ('keys: {0}'.format(','.join(complex_keys))))
 
