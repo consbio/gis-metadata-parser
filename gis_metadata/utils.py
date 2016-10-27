@@ -513,9 +513,13 @@ def validate_any(prop, value, xpath_map=None):
         elif prop == PROCESS_STEPS:
             validate_process_steps(prop, value)
 
+        elif prop not in _supported_props and xpath_map is not None:
+            # Validate custom data structures as complex lists by default
+            validate_complex_list(prop, value, xpath_map)
+
         else:
-            for val in wrap_value(value):
-                validate_type(prop, val, string_types)
+            for val in wrap_value(value, include_empty=True):
+                validate_type(prop, val, (string_types, list))
 
 
 def validate_complex(prop, value, xpath_map=None):

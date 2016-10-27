@@ -513,7 +513,6 @@ class MetadataParserTests(MetadataParserTestCase):
     def test_custom_parser(self):
         """ Covers support for custom parsers """
 
-        custom_parser = CustomIsoParser(self.iso_metadata)
         target_values = {
             'metadata_contacts': [{
                 'name': 'Custom Contact Name', 'email': 'Custom Contact Email', 'phone': 'Custom Contact Phone',
@@ -522,6 +521,7 @@ class MetadataParserTests(MetadataParserTestCase):
             'metadata_language': 'eng'
         }
 
+        custom_parser = CustomIsoParser(self.iso_metadata)
         for prop in target_values:
             self.assertEqual(getattr(custom_parser, prop), target_values[prop], 'Custom parser values were not parsed')
 
@@ -536,6 +536,26 @@ class MetadataParserTests(MetadataParserTestCase):
         converted_parser = convert_parser_to(custom_parser, CustomIsoParser, supported_props)
 
         self.assert_parsers_are_equal(custom_parser, converted_parser)
+
+        # Test invalid custom complex structure value
+
+        metadata_contacts = custom_parser.metadata_contacts
+        custom_parser.metadata_contacts = u'None'
+
+        with self.assertRaises(ParserError):
+            custom_parser.validate()
+
+        custom_parser.metadata_contacts = metadata_contacts
+
+        # Test invalid custom simple value
+
+        metadata_language = custom_parser.metadata_language
+        custom_parser.metadata_language = {}
+
+        with self.assertRaises(ParserError):
+            custom_parser.validate()
+
+        custom_parser.metadata_language = metadata_language
 
     def test_generic_parser(self):
         """ Covers code that enforces certain behaviors for custom parsers """
