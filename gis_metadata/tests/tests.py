@@ -404,7 +404,7 @@ class MetadataParserTemplateTests(MetadataParserTestCase):
                 with self.assertRaises(NoContent, msg=bad_root_format.format('IsoParser', bad_root)):
                     IsoParser(bad_root)
 
-        for bad_root in (u'<badRoot/>', u'<badRoot>invalid</badRoot>'):
+        for bad_root in (u'NOT XML', u'<badRoot/>', u'<badRoot>invalid</badRoot>'):
             with self.assertRaises(InvalidContent, msg=bad_root_format.format('get_parsed_content', bad_root)):
                 get_parsed_content(bad_root)
             with self.assertRaises(InvalidContent, msg=bad_root_format.format('get_parsed_content', bad_root)):
