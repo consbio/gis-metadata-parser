@@ -370,7 +370,8 @@ class MetadataParser(object):
             out_file_or_path = self.out_file_or_path
 
         if not out_file_or_path:
-            raise FileNotFoundError('Output file path has not been provided')
+            # FileNotFoundError doesn't exist in Python 2
+            raise IOError('Output file path has not been provided')
 
         write_element(self.update(use_template), out_file_or_path, encoding)
 

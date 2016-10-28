@@ -613,7 +613,7 @@ class MetadataParserTests(MetadataParserTestCase):
 
         self.assertIs(data_map_1, data_map_2, 'Data map was reinitialized after instantiation')
 
-        with self.assertRaises(FileNotFoundError):
+        with self.assertRaises(IOError):
             parser.write()
 
     def test_specific_parsers(self):
@@ -628,7 +628,7 @@ class MetadataParserTests(MetadataParserTestCase):
 
             self.assertIs(data_map_1, data_map_2, 'Data map was reinitialized after instantiation')
 
-            with self.assertRaises(FileNotFoundError):
+            with self.assertRaises(IOError):
                 parser.write()
 
             with self.assertRaises(ValidationError):
