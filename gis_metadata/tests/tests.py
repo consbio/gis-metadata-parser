@@ -1,7 +1,7 @@
 import unittest
 
 from os.path import os
-from six import iteritems
+from six import iteritems, StringIO
 
 from parserutils.collections import wrap_value
 from parserutils.elements import element_exists, element_to_dict, element_to_string
@@ -13,7 +13,7 @@ from gis_metadata.fgdc_metadata_parser import FgdcParser, FGDC_ROOT
 from gis_metadata.iso_metadata_parser import IsoParser, ISO_ROOTS, _iso_tag_formats
 from gis_metadata.metadata_parser import MetadataParser, get_metadata_parser, get_parsed_content
 
-from gis_metadata.exceptions import ParserError
+from gis_metadata.exceptions import ConfigurationError, InvalidContent, NoContent, ValidationError
 from gis_metadata.utils import format_xpaths, get_complex_definitions, get_supported_props
 from gis_metadata.utils import DATE_TYPE, DATE_VALUES
 from gis_metadata.utils import DATE_TYPE_SINGLE, DATE_TYPE_RANGE, DATE_TYPE_MISSING, DATE_TYPE_MULTIPLE
@@ -306,7 +306,7 @@ class MetadataParserTestCase(unittest.TestCase):
             parser.validate()
         except Exception as e:
             # Not using self.assertRaises to customize the failure message
-            self.assertEqual(type(e), ParserError, (
+            self.assertEqual(type(e), ValidationError, (
                 'Property "{0}.{1}" does not raise ParserError for value: "{2}" ({3})'.format(
                     type(parser).__name__, prop, invalid, type(invalid).__name__
                 )
@@ -388,36 +388,50 @@ class MetadataParserTemplateTests(MetadataParserTestCase):
 
     def test_template_conversion_bad_roots(self):
 
-        for bad_root in (None, '', '<badRoot/>', '<badRoot>invalid</badRoot>'):
-            with self.assertRaises(ParserError):
+        bad_root_format = 'Bad root test failed for {0} with {1}'
+
+        for bad_root in (None, u'', StringIO(u''), {}):
+            with self.assertRaises(NoContent, msg=bad_root_format.format('get_parsed_content', bad_root)):
                 get_parsed_content(bad_root)
-            with self.assertRaises(ParserError):
+            with self.assertRaises(NoContent, msg=bad_root_format.format('get_parsed_content', bad_root)):
                 get_metadata_parser(bad_root)
 
             if bad_root is not None:
-                with self.assertRaises(ParserError):
-                    IsoParser(bad_root)
-                with self.assertRaises(ParserError):
-                    FgdcParser(bad_root)
-                with self.assertRaises(ParserError):
+                with self.assertRaises(NoContent, msg=bad_root_format.format('ArcGISParser', bad_root)):
                     ArcGISParser(bad_root)
+                with self.assertRaises(NoContent, msg=bad_root_format.format('FgdcParser', bad_root)):
+                    FgdcParser(bad_root)
+                with self.assertRaises(NoContent, msg=bad_root_format.format('IsoParser', bad_root)):
+                    IsoParser(bad_root)
 
-        with self.assertRaises(ParserError):
+        for bad_root in (u'<badRoot/>', u'<badRoot>invalid</badRoot>'):
+            with self.assertRaises(InvalidContent, msg=bad_root_format.format('get_parsed_content', bad_root)):
+                get_parsed_content(bad_root)
+            with self.assertRaises(InvalidContent, msg=bad_root_format.format('get_parsed_content', bad_root)):
+                get_metadata_parser(bad_root)
+            with self.assertRaises(InvalidContent, msg=bad_root_format.format('ArcGISParser', bad_root)):
+                ArcGISParser(bad_root)
+            with self.assertRaises(InvalidContent, msg=bad_root_format.format('FgdcParser', bad_root)):
+                FgdcParser(bad_root)
+            with self.assertRaises(InvalidContent, msg=bad_root_format.format('IsoParser', bad_root)):
+                IsoParser(bad_root)
+
+        with self.assertRaises(InvalidContent, msg=bad_root_format.format('get_parsed_content', bad_root)):
             IsoParser(FGDC_ROOT.join(('<', '></', '>')))
 
         for iso_root in ISO_ROOTS:
-            with self.assertRaises(ParserError):
+            with self.assertRaises(InvalidContent, msg=bad_root_format.format('get_parsed_content', bad_root)):
                 ArcGISParser(iso_root.join(('<', '></', '>')))
-            with self.assertRaises(ParserError):
+            with self.assertRaises(InvalidContent, msg=bad_root_format.format('get_parsed_content', bad_root)):
                 FgdcParser(iso_root.join(('<', '></', '>')))
 
         for arcgis_root in ARCGIS_ROOTS:
 
-            with self.assertRaises(ParserError):
+            with self.assertRaises(InvalidContent, msg=bad_root_format.format('get_parsed_content', bad_root)):
                 IsoParser(arcgis_root.join(('<', '></', '>')))
 
             if arcgis_root != FGDC_ROOT:
-                with self.assertRaises(ParserError):
+                with self.assertRaises(InvalidContent, msg=bad_root_format.format('get_parsed_content', bad_root)):
                     FgdcParser(arcgis_root.join(('<', '></', '>')))
 
     def test_template_conversion_from_dict(self):
@@ -549,7 +563,7 @@ class MetadataParserTests(MetadataParserTestCase):
         metadata_contacts = custom_parser.metadata_contacts
         custom_parser.metadata_contacts = u'None'
 
-        with self.assertRaises(ParserError):
+        with self.assertRaises(ValidationError):
             custom_parser.validate()
 
         custom_parser.metadata_contacts = metadata_contacts
@@ -559,7 +573,7 @@ class MetadataParserTests(MetadataParserTestCase):
         metadata_language = custom_parser.metadata_language
         custom_parser.metadata_language = {}
 
-        with self.assertRaises(ParserError):
+        with self.assertRaises(ValidationError):
             custom_parser.validate()
 
         custom_parser.metadata_language = metadata_language
@@ -571,20 +585,20 @@ class MetadataParserTests(MetadataParserTestCase):
         prop_get = '{0}'.format
         prop_set = '{xpaths}'.format
 
-        with self.assertRaises(ParserError):
+        with self.assertRaises(ConfigurationError):
             # Un-callable property parser (no xpath)
             ParserProperty(None, None)
 
-        with self.assertRaises(ParserError):
+        with self.assertRaises(ConfigurationError):
             # Un-callable property parser (no xpath)
             ParserProperty(None, prop_set)
 
-        with self.assertRaises(ParserError):
+        with self.assertRaises(ConfigurationError):
             # Un-callable property updater
             ParserProperty(prop_get, None)
 
         parser_prop = ParserProperty(None, prop_set, 'path')
-        with self.assertRaises(ParserError):
+        with self.assertRaises(ConfigurationError):
             # Un-callable property parser with xpath
             parser_prop.get_prop('prop')
 
@@ -599,7 +613,7 @@ class MetadataParserTests(MetadataParserTestCase):
 
         self.assertIs(data_map_1, data_map_2, 'Data map was reinitialized after instantiation')
 
-        with self.assertRaises(ParserError):
+        with self.assertRaises(FileNotFoundError):
             parser.write()
 
     def test_specific_parsers(self):
@@ -614,10 +628,10 @@ class MetadataParserTests(MetadataParserTestCase):
 
             self.assertIs(data_map_1, data_map_2, 'Data map was reinitialized after instantiation')
 
-            with self.assertRaises(ParserError):
+            with self.assertRaises(FileNotFoundError):
                 parser.write()
 
-            with self.assertRaises(ParserError):
+            with self.assertRaises(ValidationError):
                 parser._data_map.clear()
                 parser.validate()
 

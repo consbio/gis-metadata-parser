@@ -8,7 +8,7 @@ from parserutils.elements import get_element, get_elements, get_element_attribut
 from parserutils.elements import insert_element, remove_element_attributes, remove_element
 from parserutils.elements import XPATH_DELIM
 
-from gis_metadata.exceptions import ParserError
+from gis_metadata.exceptions import ConfigurationError, ValidationError
 
 
 # Generic identifying property name constants
@@ -655,7 +655,7 @@ def validate_properties(props, required):
 
     if len(required.intersection(props)) < len(required):
         missing = required - props
-        raise ParserError(
+        raise ValidationError(
             'Missing property names: {props}', props=','.join(missing), missing=missing
         )
 
@@ -678,7 +678,7 @@ def _validation_error(prop, prop_type, prop_value, expected):
         attrib = 'type'
         assigned = prop_type
 
-    raise ParserError(
+    raise ValidationError(
         'Invalid property {attrib} for {prop}:\n\t{attrib}: {assigned}\n\texpected: {expected}',
         attrib=attrib, prop=prop, assigned=assigned, expected=expected,
         invalid={prop: prop_value} if attrib == 'value' else {}
@@ -700,7 +700,7 @@ class ParserProperty(object):
         elif xpath is not None:
             self._parser = None
         else:
-            raise ParserError(
+            raise ConfigurationError(
                 'Invalid property getter:\n\tpassed in: {param}\n\texpected: {expected}',
                 param=type(prop_parser), expected='<type "callable"> or provide XPATH'
             )
@@ -708,7 +708,7 @@ class ParserProperty(object):
         if hasattr(prop_updater, '__call__'):
             self._updater = prop_updater
         else:
-            raise ParserError(
+            raise ConfigurationError(
                 'Invalid property setter:\n\tpassed in: {param}\n\texpected: {expected}',
                 param=type(prop_updater), expected='<type "callable">'
             )
@@ -719,7 +719,7 @@ class ParserProperty(object):
         """ Calls the getter with no arguments and returns its value """
 
         if self._parser is None:
-            raise ParserError('Cannot call ParserProperty."get_prop" with no parser configured')
+            raise ConfigurationError('Cannot call ParserProperty."get_prop" with no parser configured')
 
         return self._parser(prop) if prop else self._parser()
 

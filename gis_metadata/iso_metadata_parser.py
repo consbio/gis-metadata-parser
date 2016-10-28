@@ -10,8 +10,8 @@ from parserutils.elements import get_element_name, get_element_text, get_element
 from parserutils.elements import get_elements, get_remote_element, insert_element, remove_element
 from parserutils.elements import XPATH_DELIM
 
+from gis_metadata.exceptions import InvalidContent
 from gis_metadata.metadata_parser import MetadataParser
-from gis_metadata.exceptions import ParserError
 
 from gis_metadata.utils import DATE_TYPE, DATE_TYPE_SINGLE, DATE_TYPE_MULTIPLE
 from gis_metadata.utils import DATE_TYPE_RANGE, DATE_TYPE_RANGE_BEGIN, DATE_TYPE_RANGE_END
@@ -37,6 +37,7 @@ ISO_ROOTS = ('MD_Metadata', 'MI_Metadata')
 KEYWORD_TYPE_PLACE = 'place'
 KEYWORD_TYPE_THEME = 'theme'
 
+# For appending digital form content to ISO distribution format specs
 _DIGITAL_FORMS_CONTENT_DELIM = '@------------------------------@'
 
 
@@ -184,7 +185,7 @@ class IsoParser(MetadataParser):
             iso_root = get_element_name(self._xml_tree)
 
         if iso_root not in ISO_ROOTS:
-            raise ParserError('Invalid XML root for ISO-19115 standard: {root}', root=iso_root)
+            raise InvalidContent('Invalid XML root for ISO-19115 standard: {root}', root=iso_root)
 
         iso_data_map = {'_root': iso_root}
         iso_data_map.update(_iso_tag_roots)

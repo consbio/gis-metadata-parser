@@ -4,7 +4,7 @@ import six
 
 from six import iteritems
 
-from gis_metadata.exceptions import ParserError
+from gis_metadata.exceptions import InvalidContent
 from gis_metadata.metadata_parser import MetadataParser
 
 from gis_metadata.utils import DATE_TYPE, DATE_TYPE_SINGLE, DATE_TYPE_MULTIPLE
@@ -111,7 +111,7 @@ class ArcGISParser(MetadataParser):
             agis_root = get_element_name(self._xml_tree)
 
         if agis_root not in ARCGIS_ROOTS:
-            raise ParserError('Invalid XML root for ArcGIS metadata: {root}', root=agis_root)
+            raise InvalidContent('Invalid XML root for ArcGIS metadata: {root}', root=agis_root)
 
         agis_data_map = {'_root': agis_root}
         agis_data_map.update(_agis_tag_formats)

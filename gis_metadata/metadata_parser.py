@@ -4,15 +4,15 @@ from copy import deepcopy
 from six import iteritems
 
 from parserutils.elements import create_element_tree, element_exists, element_to_string
-from parserutils.elements import remove_element, write_element, strip_namespaces
-from parserutils.elements import get_element_name, get_element_tree
+from parserutils.elements import get_element_name, get_element_tree, remove_element, write_element
 from parserutils.strings import DEFAULT_ENCODING
 
+from gis_metadata.exceptions import InvalidContent, NoContent
 from gis_metadata.utils import DATES, DATE_TYPE, DATE_VALUES
 from gis_metadata.utils import DATE_TYPE_RANGE, DATE_TYPE_RANGE_BEGIN, DATE_TYPE_RANGE_END
 from gis_metadata.utils import parse_complex, parse_complex_list, parse_dates, parse_property
 from gis_metadata.utils import update_complex, update_complex_list, update_property, validate_any, validate_properties
-from gis_metadata.utils import _supported_props, ParserError
+from gis_metadata.utils import _supported_props
 
 
 # Place holders for lazy, one-time FGDC & ISO imports
@@ -46,10 +46,8 @@ def convert_parser_to(parser, parser_or_type, metadata_props=None):
 
 def get_metadata_parser(metadata_container, **metadata_defaults):
     """
-    :return: an appropriate instance of MetadataParser depending on what is passed in. If metadata_container
-    is a type, an instance of it must contain an update method that returns parsable content.
-    :param metadata_container: a parser, parser type, or parsable content
-    :throws ParserError: if the content does not correspond to a supported metadata standard
+    Takes a metadata_container, which may be a type or instance of a parser, a dict, string, or file.
+    :return: a new instance of a parser corresponding to the standard represented by metadata_container
     :see: get_parsed_content(metdata_content) for more on types of content that can be parsed
     """
 
@@ -87,7 +85,9 @@ def get_parsed_content(metadata_content):
         - attributes: a Dictionary containing element attributes
         - children: a List of converted child elements
 
-    :throws ParserError: If the content passed in is null or otherwise invalid
+    :raises InvalidContent: if the XML is invalid or does not conform to a supported metadata standard
+    :raises NoContent: If the content passed in is null or otherwise empty
+
     :return: the XML root along with an XML Tree parsed by and compatible with element_utils
     """
 
@@ -95,7 +95,9 @@ def get_parsed_content(metadata_content):
 
     xml_tree = None
 
-    if metadata_content is not None:
+    if metadata_content is None:
+        raise NoContent('Metadata has no data')
+    else:
         if isinstance(metadata_content, MetadataParser):
             xml_tree = deepcopy(metadata_content._xml_tree)
         elif isinstance(metadata_content, dict):
@@ -103,21 +105,25 @@ def get_parsed_content(metadata_content):
         else:
             try:
                 # Strip name spaces from file or XML content
-                xml_tree = get_element_tree(strip_namespaces(metadata_content))
+                xml_tree = get_element_tree(metadata_content)
             except:
                 xml_tree = None  # Several exceptions possible, outcome is the same
 
     if xml_tree is None:
-        raise ParserError(
+        raise InvalidContent(
             'Cannot instantiate a {parser_type} parser with invalid content to parse',
             parser_type=type(metadata_content).__name__
         )
 
     xml_root = get_element_name(xml_tree)
-    if xml_root in VALID_ROOTS:
-        return xml_root, xml_tree
 
-    raise ParserError('Invalid root element for MetadataParser: {xml_root}', xml_root=xml_root)
+    if xml_root is None:
+        raise NoContent('Metadata contains no data')
+    elif xml_root not in VALID_ROOTS:
+        content = type(metadata_content).__name__
+        raise InvalidContent('Invalid root element for {content}: {xml_root}', content=content, xml_root=xml_root)
+
+    return xml_root, xml_tree
 
 
 def _import_parsers():
@@ -207,11 +213,11 @@ class MetadataParser(object):
         self._data_structures = None
         self._metadata_props = set(metadata_props or _supported_props)
 
-        if metadata_to_parse is None:
+        if metadata_to_parse is not None:
+            self._xml_root, self._xml_tree = get_parsed_content(metadata_to_parse)
+        else:
             self._xml_tree = self._get_template(**metadata_defaults)
             self._xml_root = self._data_map['_root']
-        else:
-            self._xml_root, self._xml_tree = get_parsed_content(metadata_to_parse)
 
         self._init_metadata()
 
@@ -364,7 +370,7 @@ class MetadataParser(object):
             out_file_or_path = self.out_file_or_path
 
         if not out_file_or_path:
-            raise ParserError('Output file path has not been provided')
+            raise FileNotFoundError('Output file path has not been provided')
 
         write_element(self.update(use_template), out_file_or_path, encoding)
 

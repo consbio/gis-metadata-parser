@@ -4,8 +4,8 @@ from six import iteritems
 
 from parserutils.elements import get_element_name
 
+from gis_metadata.exceptions import InvalidContent
 from gis_metadata.metadata_parser import MetadataParser
-from gis_metadata.exceptions import ParserError
 
 from gis_metadata.utils import remove_element
 from gis_metadata.utils import DATE_TYPE, DATE_TYPE_SINGLE, DATE_TYPE_MULTIPLE
@@ -100,7 +100,7 @@ class FgdcParser(MetadataParser):
             fgdc_root = get_element_name(self._xml_tree)
 
         if fgdc_root != FGDC_ROOT:
-            raise ParserError('Invalid XML root for ISO-19115 standard: {root}', root=fgdc_root)
+            raise InvalidContent('Invalid XML root for ISO-19115 standard: {root}', root=fgdc_root)
 
         fgdc_data_map = {'_root': FGDC_ROOT}
         fgdc_data_structures = {}
