@@ -390,7 +390,7 @@ class MetadataParserTemplateTests(MetadataParserTestCase):
 
         bad_root_format = 'Bad root test failed for {0} with {1}'
 
-        for bad_root in (None, u'', StringIO(u''), {}):
+        for bad_root in (None, u'', StringIO(u''), {}, '<?xml version="1.0" encoding="UTF-8"?>\n'):
             with self.assertRaises(NoContent, msg=bad_root_format.format('get_parsed_content', bad_root)):
                 get_parsed_content(bad_root)
             with self.assertRaises(NoContent, msg=bad_root_format.format('get_parsed_content', bad_root)):
