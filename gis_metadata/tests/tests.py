@@ -14,7 +14,7 @@ from gis_metadata.iso_metadata_parser import IsoParser, ISO_ROOTS, _iso_tag_form
 from gis_metadata.metadata_parser import MetadataParser, get_metadata_parser, get_parsed_content
 
 from gis_metadata.exceptions import ConfigurationError, InvalidContent, NoContent, ValidationError
-from gis_metadata.utils import format_xpaths, get_complex_definitions, get_supported_props
+from gis_metadata.utils import format_xpaths, get_complex_definitions, get_default_for_complex, get_supported_props
 from gis_metadata.utils import DATE_TYPE, DATE_VALUES
 from gis_metadata.utils import DATE_TYPE_SINGLE, DATE_TYPE_RANGE, DATE_TYPE_MISSING, DATE_TYPE_MULTIPLE
 from gis_metadata.utils import ATTRIBUTES, CONTACTS, DIGITAL_FORMS, PROCESS_STEPS
@@ -109,7 +109,7 @@ TEST_METADATA_VALUES = {
         'publish_date': 'Larger Works Date',
         'title': 'Larger Works Title',
         'edition': 'Larger Works Edition',
-        'origin': 'Larger Works Originator'
+        'origin': ['Larger Works Originator']
     },
     'online_linkages': 'http://test.onlinelinkages.org',
     'originators': 'Test Originators',
@@ -120,11 +120,11 @@ TEST_METADATA_VALUES = {
         'description': 'Process Step Description 1',
         'date': 'Process Step Date 1'
     }, {
-        'sources': '',
+        'sources': [],
         'description': 'Process Step Description 2',
         'date': ''
     }, {
-        'sources': '', 'description': '', 'date': 'Process Step Date 3'
+        'sources': [], 'description': '', 'date': 'Process Step Date 3'
     }, {
         'sources': ['Process Step Sources 4.1', 'Process Step Sources 4.2'],
         'description': 'Process Step Description 4',
@@ -145,7 +145,7 @@ TEST_METADATA_VALUES = {
 
 class MetadataParserTestCase(unittest.TestCase):
 
-    valid_complex_values = (u'one', [u'before', u'after'], [u'first', u'next', u'last'])
+    valid_complex_values = ('one', ['before', 'after'], ['first', 'next', 'last'])
 
     def setUp(self):
         sep = os.path.sep
@@ -173,6 +173,7 @@ class MetadataParserTestCase(unittest.TestCase):
         self.test_file_paths = (self.test_arcgis_file_path, self.test_fgdc_file_path, self.test_iso_file_path)
 
     def assert_equal_for(self, parser_type, prop, value, target):
+
         self.assertEqual(
             value, target,
             'Parser property "{0}.{1}" does not equal target:{2}'.format(
@@ -189,6 +190,9 @@ class MetadataParserTestCase(unittest.TestCase):
         parser_type = type(parser)
         parser_name = parser_type.__name__
         reparsed = getattr(parser_type(parser.serialize()), prop)
+
+        if prop in get_complex_definitions():
+            target = get_default_for_complex(prop, target)
 
         if isinstance(reparsed, dict):
             # Reparsed is a dict: compare each value with corresponding in target
@@ -249,14 +253,14 @@ class MetadataParserTestCase(unittest.TestCase):
                 )
             )
 
-    def assert_parsers_are_equal(self, parser_1, parser_2):
-        parser_type = type(parser_1).__name__
+    def assert_parsers_are_equal(self, parser_tgt, parser_val):
+        parser_type = type(parser_tgt).__name__
 
-        self.assert_valid_parser(parser_1)
-        self.assert_valid_parser(parser_2)
+        self.assert_valid_parser(parser_tgt)
+        self.assert_valid_parser(parser_val)
 
         for prop in get_supported_props():
-            self.assert_equal_for(parser_type, prop, getattr(parser_1, prop), getattr(parser_2, prop))
+            self.assert_equal_for(parser_type, prop, getattr(parser_val, prop), getattr(parser_tgt, prop))
 
     def assert_parser_after_write(self, parser_type, in_file, out_file_path, use_template=False):
 
@@ -268,20 +272,23 @@ class MetadataParserTestCase(unittest.TestCase):
         for prop in get_supported_props():
 
             if prop in (ATTRIBUTES, CONTACTS, DIGITAL_FORMS, PROCESS_STEPS):
-                val = [
+                value = [
                     {}.fromkeys(complex_defs[prop], 'test'),
                     {}.fromkeys(complex_defs[prop], prop)
                 ]
             elif prop in (BOUNDING_BOX, LARGER_WORKS):
-                val = {}.fromkeys(complex_defs[prop], 'test ' + prop)
+                value = {}.fromkeys(complex_defs[prop], 'test ' + prop)
             elif prop == DATES:
-                val = {DATE_TYPE: DATE_TYPE_RANGE, DATE_VALUES: ['test', prop]}
+                value = {DATE_TYPE: DATE_TYPE_RANGE, DATE_VALUES: ['test', prop]}
             elif prop in (KEYWORDS_PLACE, KEYWORDS_THEME):
-                val = ['test', prop]
+                value = ['test', prop]
             else:
-                val = 'test ' + prop
+                value = 'test ' + prop
 
-            setattr(parser, prop, val)
+            if prop in get_complex_definitions():
+                value = get_default_for_complex(prop, value)
+
+            setattr(parser, prop, value)
 
         parser.write(use_template=use_template)
 

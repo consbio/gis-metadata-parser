@@ -20,7 +20,7 @@ from gis_metadata.utils import LARGER_WORKS
 from gis_metadata.utils import PROCESS_STEPS
 from gis_metadata.utils import ParserProperty
 
-from gis_metadata.utils import format_xpaths, get_complex_definitions
+from gis_metadata.utils import format_xpaths, get_complex_definitions, get_default_for_complex
 from gis_metadata.utils import parse_complex_list, update_complex_list
 
 from parserutils.collections import flatten_items, reduce_value, wrap_value
@@ -256,7 +256,7 @@ class ArcGISParser(MetadataParser):
             if any(digital_form.values()):
                 parsed_forms.append(digital_form)
 
-        return parsed_forms
+        return get_default_for_complex(prop, parsed_forms)
 
     def _parse_report_item(self, prop):
         """ :return: the text for each element at the configured path if type attribute matches"""

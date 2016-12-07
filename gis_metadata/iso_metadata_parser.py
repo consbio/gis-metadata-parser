@@ -25,7 +25,7 @@ from gis_metadata.utils import LARGER_WORKS
 from gis_metadata.utils import PROCESS_STEPS
 from gis_metadata.utils import ParserProperty
 
-from gis_metadata.utils import format_xpaths, get_complex_definitions
+from gis_metadata.utils import format_xpaths, get_complex_definitions, get_default_for_complex
 from gis_metadata.utils import parse_complex_list, parse_property, update_complex_list, update_property
 
 
@@ -328,7 +328,7 @@ class IsoParser(MetadataParser):
             # Aliases are not in ISO standard: default to label
             attribute['aliases'] = attribute['label']
 
-        return parsed_attributes
+        return get_default_for_complex(prop, parsed_attributes)
 
     def _parse_attribute_details_file(self, prop=ATTRIBUTES):
         """ Concatenates a list of Attribute Details data structures parsed from a remote file """
@@ -373,7 +373,10 @@ class IsoParser(MetadataParser):
         content_delim = _DIGITAL_FORMS_CONTENT_DELIM
 
         for digital_form in digital_forms:
-            specifications = wrap_value(s.strip() for s in digital_form['specification'])
+            specs = reduce_value(digital_form['specification'])
+            specs = specs.splitlines() if isinstance(specs, string_types) else specs
+
+            specifications = wrap_value(s.strip() for s in specs)
 
             digital_form['content'] = []
             digital_form['specification'] = []
@@ -409,7 +412,7 @@ class IsoParser(MetadataParser):
             if any(digital_form.values()):
                 parsed_forms.append(digital_form)
 
-        return parsed_forms
+        return get_default_for_complex(prop, parsed_forms)
 
     def _parse_keywords(self, prop):
         """ Parse type-specific keywords from the metadata: Theme or Place """

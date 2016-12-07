@@ -202,7 +202,18 @@ def get_default_for(prop, value):
         return u'' if val is None else val
 
 
-def get_default_for_complex(prop, subprop, value, xpath=''):
+def get_default_for_complex(prop, value, xpath=''):
+
+    # Ensure sub-props of complex structs and complex lists that take multiple values are wrapped as lists
+    val = [
+        {k: get_default_for_complex_sub(prop, k, v, xpath) for k, v in iteritems(val)}
+        for val in wrap_value(value)
+    ]
+
+    return val if prop in _COMPLEX_LISTS else reduce_value(val, {})
+
+
+def get_default_for_complex_sub(prop, subprop, value, xpath):
 
     # Handle alternate props (leading underscores)
     prop = prop.strip('_')
@@ -244,11 +255,11 @@ def parse_complex(tree_to_parse, xpath_root, xpath_map, complex_key):
     complex_struct = {}
 
     for prop in _complex_definitions.get(complex_key, xpath_map):
+        # Normalize complex values: treat values with newlines like values from separate elements
         parsed = parse_property(tree_to_parse, xpath_root, xpath_map, prop)
-        complex_struct[prop] = reduce_value(
-            # Normalize complex values: preserve newlines by splitting on them
-            flatten_items(v.split(_COMPLEX_DELIM) for v in wrap_value(parsed))
-        )
+        parsed = reduce_value(flatten_items(v.split(_COMPLEX_DELIM) for v in wrap_value(parsed)))
+
+        complex_struct[prop] = get_default_for_complex_sub(complex_key, prop, parsed, xpath_map[prop])
 
     return complex_struct if any(complex_struct.values()) else {}
 
@@ -460,7 +471,7 @@ def update_complex(tree_to_update, xpath_root, xpath_map, prop, values):
     else:
         for subprop, value in iteritems(values):
             xpath = xpath_map[subprop]
-            value = get_default_for_complex(prop, subprop, value, xpath)
+            value = get_default_for_complex_sub(prop, subprop, value, xpath)
             update_property(tree_to_update, None, xpath, subprop, value)
         updated = get_element(tree_to_update, xpath_root)
 
@@ -492,7 +503,7 @@ def update_complex_list(tree_to_update, xpath_root, xpath_map, prop, values):
 
             for subprop, value in iteritems(complex_struct):
                 xpath = get_xpath_branch(xpath_root, xpath_map[subprop])
-                value = get_default_for_complex(prop, subprop, value, xpath)
+                value = get_default_for_complex_sub(prop, subprop, value, xpath)
                 complex_list.append(update_property(complex_element, None, xpath, subprop, value))
 
     return complex_list
