@@ -246,6 +246,7 @@ def parse_complex(tree_to_parse, xpath_root, xpath_map, complex_key):
     for prop in _complex_definitions.get(complex_key, xpath_map):
         parsed = parse_property(tree_to_parse, xpath_root, xpath_map, prop)
         complex_struct[prop] = reduce_value(
+            # Normalize complex values: preserve newlines by splitting on them
             flatten_items(v.split(_COMPLEX_DELIM) for v in wrap_value(parsed))
         )
 
