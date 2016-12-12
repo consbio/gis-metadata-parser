@@ -208,10 +208,34 @@
 <!ELEMENT gmd:MD_CoverageContentTypeCode (#PCDATA)>
 <!ATTLIST gmd:MD_CoverageContentTypeCode codeList CDATA>
 <!ATTLIST gmd:MD_CoverageContentTypeCode codeListValue CDATA>
-<!ELEMENT gmd:dimension (gmd:MD_RangeDimension)>
+<!ELEMENT gmd:dimension (gmd:MD_Band, gmd:MD_RangeDimension)>
+<!ELEMENT gmd:MD_Band (gmd:sequenceIdentifier?, gmd:descriptor?, maxValue?, minValue?, units?, peakResponse?, bitsPerValue?, toneGradation?, scaleFactor?, offset?)>
 <!ELEMENT gmd:MD_RangeDimension (gmd:sequenceIdentifier?, gmd:descriptor?)>
 <!ELEMENT gmd:sequenceIdentifier (gco:MemberName?)>
 <!ELEMENT gmd:descriptor (gco:CharacterString)>
+<!ELEMENT gmd:maxVal (gco:Real)>
+<!ELEMENT gmd:minVal (gco:Real)>
+<!ELEMENT gmd:units ((gml:UnitDefinition|gml:ConventionalUnit|gml:DerivedUnit)?)>
+<!ELEMENT gmd:peakResponse (gco:Real)>
+<!ELEMENT gmd:bitsPerValue (gco:Integer)>
+<!ELEMENT gmd:toneGradation (gco:Integer)>
+<!ELEMENT gmd:scaleFactor (gco:Real)>
+<!ELEMENT gmd:offset (gco:Real)>
+
+<!ELEMENT gmd:UnitDefinition (gml:metaDataProperty*, gml:description?, gml:descriptionReference?, gml:identifier, gml:name*, gml:remarks?, gml:quantityType?, gml:quantityTypeReference?, gml:catalogSymbol?)>
+<!ELEMENT gmd:ConventionalUnit (gml:metaDataProperty*, gml:description?, gml:descriptionReference?, gml:identifier, gml:name*, gml:remarks?, gml:quantityType?, gml:quantityTypeReference?, gml:catalogSymbol?)>
+<!ELEMENT gmd:DerivedUnit (gml:metaDataProperty*, gml:description?, gml:descriptionReference?, gml:identifier, gml:name*, gml:remarks?, gml:quantityType?, gml:quantityTypeReference?, gml:catalogSymbol?)>
+<!ELEMENT gml:metaDataProperty (gml:GenericMetaData?, )>
+<!ELEMENT gml:GenericMetaData (#PCDATA)>
+<!ELEMENT gml:description (#PCDATA)>
+<!ELEMENT gml:descriptionReference (#PCDATA)>
+<!ELEMENT gml:identifier (#PCDATA)>
+<!ELEMENT gml:name (#PCDATA)>
+<!ELEMENT gml:remarks (#PCDATA)>
+<!ELEMENT gml:quantityType (#PCDATA)>
+<!ELEMENT gml:quantityTypeReference (#PCDATA)>
+<!ELEMENT gml:catalogSymbol (#PCDATA)>
+
 
 <!-- MD_Metadata.contentInfo.MD_FeatureCatalogueDescription references ISO 19110 -->
 
