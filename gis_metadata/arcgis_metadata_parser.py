@@ -88,6 +88,7 @@ _agis_tag_formats = {
     LARGER_WORKS: 'dataIdInfo/aggrInfo/aggrDSName/{lw_path}',
     'other_citation_info': 'dataIdInfo/idCitation/otherCitDet',
     'use_constraints': 'dataIdInfo/resConst/Consts/useLimit',
+    '_use_constraints': 'dataIdInfo/resConst/LegConsts/useLimit',
     DATES: 'dataIdInfo/dataExt/tempEle/TempExtent/exTemp/{type_path}',
     KEYWORDS_PLACE: 'dataIdInfo/placeKeys/keyword',
     KEYWORDS_THEME: 'dataIdInfo/themeKeys/keyword'

@@ -151,6 +151,7 @@ _iso_tag_formats = {
     '_lw_linkage': '{_idinfo_aggregate_contact}/contactInfo/CI_Contact/onlineResource/CI_OnlineResource/{{lw_path}}',
     'other_citation_info': '{_idinfo_citation}/otherCitationDetails/CharacterString',
     'use_constraints': '{_idinfo}/resourceConstraints/MD_Constraints/useLimitation/CharacterString',
+    '_use_constraints': '{_idinfo}/resourceConstraints/MD_LegalConstraints/useLimitation/CharacterString',
     DATES: '{_idinfo_extent}/temporalElement/EX_TemporalExtent/extent/{{type_path}}',
     KEYWORDS_PLACE: '{_idinfo_keywords}/keyword/CharacterString',
     KEYWORDS_THEME: '{_idinfo_keywords}/keyword/CharacterString'
