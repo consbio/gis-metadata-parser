@@ -1,7 +1,5 @@
 *.pyc
 .coverage
-.project
-.pydevproject
 __pycache__/
 build/
 dist/
