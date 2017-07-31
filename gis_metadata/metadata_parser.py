@@ -51,7 +51,13 @@ def get_metadata_parser(metadata_container, **metadata_defaults):
     :see: get_parsed_content(metdata_content) for more on types of content that can be parsed
     """
 
-    if isinstance(metadata_container, type):
+    parser_type = None
+
+    if isinstance(metadata_container, MetadataParser):
+        parser_type = type(metadata_container)
+
+    elif isinstance(metadata_container, type):
+        parser_type = metadata_container
         metadata_container = metadata_container().update(**metadata_defaults)
 
     xml_root, xml_tree = get_parsed_content(metadata_container)
@@ -60,7 +66,9 @@ def get_metadata_parser(metadata_container, **metadata_defaults):
 
     parser = None
 
-    if xml_root in ISO_ROOTS:
+    if parser_type is not None:
+        parser = parser_type(xml_tree, **metadata_defaults)
+    elif xml_root in ISO_ROOTS:
         parser = IsoParser(xml_tree, **metadata_defaults)
     else:
         has_arcgis_data = any(element_exists(xml_tree, e) for e in ARCGIS_NODES)
