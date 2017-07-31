@@ -1,6 +1,6 @@
 """ A module to contain utility FGDC metadata parsing helpers """
 
-from six import iteritems
+import six
 
 from parserutils.elements import get_element_name
 
@@ -18,9 +18,13 @@ from gis_metadata.utils import DIGITAL_FORMS
 from gis_metadata.utils import KEYWORDS_PLACE, KEYWORDS_THEME
 from gis_metadata.utils import LARGER_WORKS
 from gis_metadata.utils import PROCESS_STEPS
+from gis_metadata.utils import RASTER_INFO
 from gis_metadata.utils import ParserProperty
 
 from gis_metadata.utils import format_xpaths, get_complex_definitions
+
+
+iteritems = getattr(six, 'iteritems')
 
 
 FGDC_ROOT = 'metadata'
@@ -33,6 +37,12 @@ _fgdc_definitions[CONTACTS].update({
     '_organization': '{_organization}'
 })
 
+# Define backup locations for raster_info sub-properties
+_fgdc_definitions[RASTER_INFO].update({
+    '_x_resolution': '{_x_resolution}',
+    '_y_resolution': '{_y_resolution}'
+})
+
 _fgdc_tag_formats = {
     '_attributes_root': 'eainfo/detailed/attr',
     '_bounding_box_root': 'idinfo/spdom/bounding',
@@ -41,6 +51,10 @@ _fgdc_tag_formats = {
     '_digital_forms_root': 'distinfo/stdorder/digform',
     '_larger_works_root': 'idinfo/citation/citeinfo/lworkcit/citeinfo',
     '_process_steps_root': 'dataqual/lineage/procstep',
+    '_raster_info_root': 'spdoinfo/rastinfo',
+
+    '_raster_resolution': 'spref/horizsys/planar/planci/coordrep',
+    '__raster_resolution': 'spref/horizsys/geograph',
 
     'title': 'idinfo/citation/citeinfo/title',
     'abstract': 'idinfo/descript/abstract',
@@ -75,6 +89,7 @@ _fgdc_tag_formats = {
     DIGITAL_FORMS: 'distinfo/stdorder/digform/{df_path}',
     PROCESS_STEPS: 'dataqual/lineage/procstep/{ps_path}',
     LARGER_WORKS: 'idinfo/citation/citeinfo/lworkcit/citeinfo/{lw_path}',
+    RASTER_INFO: 'spdoinfo/rastinfo/{ri_path}',
     'other_citation_info': 'idinfo/citation/citeinfo/othercit',
     'use_constraints': 'idinfo/useconst',
     DATES: 'idinfo/timeperd/timeinfo/{type_path}',
@@ -185,6 +200,21 @@ class FgdcParser(MetadataParser):
             sources=ps_format.format(ps_path='srcused')
         )
 
+        ri_format = _fgdc_tag_formats[RASTER_INFO]
+        fgdc_data_structures[RASTER_INFO] = format_xpaths(
+            _fgdc_definitions[RASTER_INFO],
+
+            dimensions=ri_format.format(ri_path='rasttype'),
+            row_count=ri_format.format(ri_path='rowcount'),
+            column_count=ri_format.format(ri_path='colcount'),
+            vertical_count=ri_format.format(ri_path='vrtcount'),
+
+            x_resolution=_fgdc_tag_formats['_raster_resolution'] + '/absres',
+            _x_resolution=_fgdc_tag_formats['__raster_resolution'] + '/longres',
+            y_resolution=_fgdc_tag_formats['_raster_resolution'] + '/ordres',
+            _y_resolution=_fgdc_tag_formats['__raster_resolution'] + '/latres',
+        )
+
         # Assign XPATHS and gis_metadata.utils.ParserProperties to fgdc_data_map
 
         fgdc_data_formats = dict(_fgdc_tag_formats)
@@ -193,7 +223,7 @@ class FgdcParser(MetadataParser):
             if prop in (ATTRIBUTES, CONTACTS, DIGITAL_FORMS, PROCESS_STEPS):
                 fgdc_data_map[prop] = ParserProperty(self._parse_complex_list, self._update_complex_list)
 
-            elif prop in (BOUNDING_BOX, LARGER_WORKS):
+            elif prop in (BOUNDING_BOX, LARGER_WORKS, RASTER_INFO):
                 fgdc_data_map[prop] = ParserProperty(self._parse_complex, self._update_complex)
 
             elif prop == DATES:

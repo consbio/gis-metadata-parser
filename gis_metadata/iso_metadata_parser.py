@@ -3,7 +3,6 @@
 import six
 
 from collections import OrderedDict
-from six import iteritems, string_types
 
 from parserutils.collections import filter_empty, reduce_value, wrap_value
 from parserutils.elements import get_element_name, get_element_text, get_elements_text
@@ -23,13 +22,18 @@ from gis_metadata.utils import DIGITAL_FORMS
 from gis_metadata.utils import KEYWORDS_PLACE, KEYWORDS_THEME
 from gis_metadata.utils import LARGER_WORKS
 from gis_metadata.utils import PROCESS_STEPS
+from gis_metadata.utils import RASTER_DIMS, RASTER_INFO
 from gis_metadata.utils import ParserProperty
 
-from gis_metadata.utils import format_xpaths, get_complex_definitions, get_default_for_complex
+from gis_metadata.utils import format_xpaths, get_complex_definitions
+from gis_metadata.utils import get_default_for_complex, get_default_for_complex_sub
 from gis_metadata.utils import parse_complex_list, parse_property, update_complex_list, update_property
 
 
-xrange = getattr(six.moves, 'xrange')
+iteritems = getattr(six, 'iteritems')
+string_types = getattr(six, 'string_types')
+six_moves = getattr(six, 'moves')
+xrange = getattr(six_moves, 'xrange')
 
 
 ISO_ROOTS = ('MD_Metadata', 'MI_Metadata')
@@ -49,6 +53,10 @@ _iso_definitions[ATTRIBUTES].update({
     '__definition_source': '{__definition_src}',
     '___definition_source': '{___definition_src}'
 })
+
+# Define backup location for dimension type property
+_iso_definitions[RASTER_DIMS]['_type'] = '{_type}'
+
 
 _iso_tag_roots = OrderedDict((
     # First process private dependency tags (order enforced by key sorting)
@@ -72,6 +80,9 @@ _iso_tag_roots = OrderedDict((
     ('_idinfo_keywords', '{_idinfo}/descriptiveKeywords/MD_Keywords'),
     ('_idinfo_resp', '{_idinfo}/pointOfContact/CI_ResponsibleParty'),
     ('_idinfo_resp_contact', '{_idinfo_resp}/contactInfo/CI_Contact'),
+
+    ('_srinfo_grid_rep', 'spatialRepresentationInfo/MD_GridSpatialRepresentation'),
+    ('_srinfo_grid_dim', '{_srinfo_grid_rep}/axisDimensionProperties/MD_Dimension'),
 
     # Supported in separate file ISO-19110: FC_FeatureCatalog
     ('_attr_root', 'FC_FeatureCatalogue'),
@@ -104,6 +115,7 @@ _iso_tag_formats = {
     '_keywords_root': '{_idinfo}/descriptiveKeywords',
     '_larger_works_root': '{_idinfo_aggregate_citation}',
     '_process_steps_root': '{_dataqual_lineage}/processStep',
+    '_raster_info_root': '{_srinfo_grid_rep}/axisDimensionProperties',
     '_use_constraints_root': '{_idinfo}/resourceConstraints',
 
     # Then process public dependent tags
@@ -149,9 +161,10 @@ _iso_tag_formats = {
     '_lw_collective': '{_idinfo_aggregate_citation}/collectiveTitle/CharacterString',
     '_lw_contact': '{_idinfo_aggregate_contact}/contactInfo/CI_Contact/{{lw_path}}',
     '_lw_linkage': '{_idinfo_aggregate_contact}/contactInfo/CI_Contact/onlineResource/CI_OnlineResource/{{lw_path}}',
+    RASTER_INFO: '{_srinfo_grid_dim}/{{ri_path}}',
+    '_ri_num_dims': '{_srinfo_grid_rep}/numberOfDimensions/Integer',
     'other_citation_info': '{_idinfo_citation}/otherCitationDetails/CharacterString',
     'use_constraints': '{_idinfo}/resourceConstraints/MD_Constraints/useLimitation/CharacterString',
-    '_use_constraints': '{_idinfo}/resourceConstraints/MD_LegalConstraints/useLimitation/CharacterString',
     DATES: '{_idinfo_extent}/temporalElement/EX_TemporalExtent/extent/{{type_path}}',
     KEYWORDS_PLACE: '{_idinfo_keywords}/keyword/CharacterString',
     KEYWORDS_THEME: '{_idinfo_keywords}/keyword/CharacterString'
@@ -201,6 +214,7 @@ class IsoParser(MetadataParser):
 
         iso_data_structures[ATTRIBUTES] = format_xpaths(
             _iso_definitions[ATTRIBUTES],
+
             label=ad_format.format(ad_path='memberName/LocalName'),
             aliases=ad_format.format(ad_path='aliases/LocalName'),  # Not in spec
             definition=ad_format.format(ad_path='definition/CharacterString'),
@@ -290,6 +304,16 @@ class IsoParser(MetadataParser):
             )
         )
 
+        ri_format = iso_data_map[RASTER_INFO]
+        iso_data_structures[RASTER_INFO] = format_xpaths(
+            _iso_definitions[RASTER_DIMS],
+            type=ri_format.format(ri_path='dimensionName/MD_DimensionNameTypeCode'),
+            _type=ri_format.format(ri_path='dimensionName/MD_DimensionNameTypeCode/@codeListValue'),
+            size=ri_format.format(ri_path='dimensionSize/Integer'),
+            value=ri_format.format(ri_path='resolution/Measure'),
+            units=ri_format.format(ri_path='resolution/Measure/@uom')
+        )
+
         # Assign XPATHS and gis_metadata.utils.ParserProperties to data map
 
         for prop, xpath in iteritems(dict(iso_data_map)):
@@ -310,6 +334,9 @@ class IsoParser(MetadataParser):
 
             elif prop in [KEYWORDS_PLACE, KEYWORDS_THEME]:
                 iso_data_map[prop] = ParserProperty(self._parse_keywords, self._update_keywords)
+
+            elif prop == RASTER_INFO:
+                iso_data_map[prop] = ParserProperty(self._parse_raster_info, self._update_raster_info)
 
             else:
                 iso_data_map[prop] = xpath
@@ -438,6 +465,38 @@ class IsoParser(MetadataParser):
 
         return keywords
 
+    def _parse_raster_info(self, prop=RASTER_INFO):
+        """ Collapses multiple dimensions into a single raster_info complex struct """
+
+        raster_info = {}.fromkeys(_iso_definitions[prop], u'')
+
+        # Ensure conversion of lists to newlines is in place
+        raster_info['dimensions'] = get_default_for_complex_sub(
+            prop=prop,
+            subprop='dimensions',
+            value=parse_property(self._xml_tree, None, self._data_map, '_ri_num_dims'),
+            xpath=self._data_map['_ri_num_dims']
+        )
+
+        xpath_root = self._get_xroot_for(prop)
+        xpath_map = self._data_structures[prop]
+
+        for dimension in parse_complex_list(self._xml_tree, xpath_root, xpath_map, RASTER_DIMS):
+            dimension_type = dimension['type'].lower()
+
+            if dimension_type == 'vertical':
+                raster_info['vertical_count'] = dimension['size']
+
+            elif dimension_type == 'column':
+                raster_info['column_count'] = dimension['size']
+                raster_info['x_resolution'] = u' '.join(dimension[k] for k in ['value', 'units']).strip()
+
+            elif dimension_type == 'row':
+                raster_info['row_count'] = dimension['size']
+                raster_info['y_resolution'] = u' '.join(dimension[k] for k in ['value', 'units']).strip()
+
+        return raster_info if any(raster_info[k] for k in raster_info) else {}
+
     def _update_attribute_details(self, **update_props):
         """ Update operation for ISO Attribute Details metadata: write to "MD_Metadata/featureType" """
 
@@ -537,7 +596,7 @@ class IsoParser(MetadataParser):
 
         if prop in [KEYWORDS_PLACE, KEYWORDS_THEME]:
             xpath_root = self._data_map['_keywords_root']
-            xpath_map = self._data_structures[update_props['prop']]
+            xpath_map = self._data_structures[prop]
 
             xtype = xpath_map['keyword_type']
             xroot = xpath_map['keyword_root']
@@ -559,6 +618,52 @@ class IsoParser(MetadataParser):
             keywords.extend(update_property(element, xroot, xpath, prop, values))
 
         return keywords
+
+    def _update_raster_info(self, **update_props):
+        """ Derives multiple dimensions from a single raster_info complex struct """
+
+        tree_to_update = update_props['tree_to_update']
+        prop = update_props['prop']
+        values = update_props.pop('values')
+
+        # Update number of dimensions at raster_info root (applies to all dimensions below)
+
+        xroot, xpath = None, self._data_map['_ri_num_dims']
+        raster_info = [update_property(tree_to_update, xroot, xpath, prop, values.get('dimensions', u''))]
+
+        # Derive vertical, longitude, and latitude dimensions from raster_info
+
+        xpath_root = self._get_xroot_for(prop)
+        xpath_map = self._data_structures[prop]
+
+        v_dimension = {}
+        if values.get('vertical_count'):
+            v_dimension = v_dimension.fromkeys(xpath_map, u'')
+            v_dimension['type'] = 'vertical'
+            v_dimension['size'] = values.get('vertical_count', u'')
+
+        x_dimension = {}
+        if values.get('column_count') or values.get('x_resolution'):
+            x_dimension = x_dimension.fromkeys(xpath_map, u'')
+            x_dimension['type'] = 'column'
+            x_dimension['size'] = values.get('column_count', u'')
+            x_dimension['value'] = values.get('x_resolution', u'')
+
+        y_dimension = {}
+        if values.get('row_count') or values.get('y_resolution'):
+            y_dimension = y_dimension.fromkeys(xpath_map, u'')
+            y_dimension['type'] = 'row'
+            y_dimension['size'] = values.get('row_count', u'')
+            y_dimension['value'] = values.get('y_resolution', u'')
+
+        # Update derived dimensions as complex list, and append affected elements for return
+
+        update_props['prop'] = RASTER_DIMS
+        update_props['values'] = [v_dimension, x_dimension, y_dimension]
+
+        raster_info += update_complex_list(xpath_root=xpath_root, xpath_map=xpath_map, **update_props)
+
+        return raster_info
 
     def update(self, use_template=False, **metadata_defaults):
         """ OVERRIDDEN: Prevents writing multiple CharacterStrings per XPATH property """

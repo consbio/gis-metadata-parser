@@ -1,20 +1,27 @@
 """ Data structures and functionality used by all Metadata Parsers """
 
+import six
+
 from copy import deepcopy
-from six import iteritems, string_types
 
 from parserutils.collections import filter_empty, flatten_items, reduce_value, wrap_value
 from parserutils.elements import get_element, get_elements, get_element_attributes, get_elements_text
-from parserutils.elements import insert_element, remove_element_attributes, remove_element
+from parserutils.elements import insert_element, remove_element
+from parserutils.elements import remove_element_attributes, set_element_attributes
 from parserutils.elements import XPATH_DELIM
 
 from gis_metadata.exceptions import ConfigurationError, ValidationError
+
+
+iteritems = getattr(six, 'iteritems')
+string_types = getattr(six, 'string_types')
 
 
 # Generic identifying property name constants
 
 KEYWORDS_PLACE = 'place_keywords'
 KEYWORDS_THEME = 'thematic_keywords'
+
 
 # Identifying property name constants for all complex definitions
 
@@ -25,20 +32,21 @@ DATES = 'dates'
 DIGITAL_FORMS = 'digital_forms'
 LARGER_WORKS = 'larger_works'
 PROCESS_STEPS = 'process_steps'
+RASTER_INFO = 'raster_info'
+RASTER_DIMS = '_raster_dims'
+
 
 # Grouping property name constants for complex definitions
 
 _COMPLEX_DELIM = '\n'
 _COMPLEX_LISTS = {ATTRIBUTES, CONTACTS, DIGITAL_FORMS, KEYWORDS_PLACE, KEYWORDS_THEME, PROCESS_STEPS}
-_COMPLEX_STRUCTS = {BOUNDING_BOX, DATES, LARGER_WORKS}
+_COMPLEX_STRUCTS = {BOUNDING_BOX, DATES, LARGER_WORKS, RASTER_INFO}
 _COMPLEX_WITH_MULTI = {
     DATES: {'values'},
     LARGER_WORKS: {'origin'},
     PROCESS_STEPS: {'sources'}
 }
 
-_join_complex_attr = ','.join
-_join_complex_prop = _COMPLEX_DELIM.join
 
 # A set of identifying property names that must be supported by all parsers
 
@@ -49,9 +57,10 @@ _supported_props = {
     'dist_address', 'dist_city', 'dist_state', 'dist_postal', 'dist_country',
     'dist_liability', 'processing_fees', 'processing_instrs', 'resource_desc', 'tech_prerequisites',
     ATTRIBUTES, 'attribute_accuracy', BOUNDING_BOX, CONTACTS, 'dataset_completeness',
-    LARGER_WORKS, PROCESS_STEPS, 'use_constraints',
+    LARGER_WORKS, PROCESS_STEPS, RASTER_INFO, 'use_constraints',
     DATES, KEYWORDS_PLACE, KEYWORDS_THEME
 }
+
 
 # Date specific constants for the DATES complex structure
 
@@ -126,6 +135,21 @@ _complex_definitions = {
         'description': '{description}',           # Text
         'date': '{date}',                         # Text
         'sources': '{sources}'                    # Text []
+    },
+    RASTER_INFO: {
+        'dimensions': '{dimensions}',             # Text
+        'row_count': '{row_count}',               # Text
+        'column_count': '{column_count}',         # Text
+        'vertical_count': '{vertical_count}',     # Text
+        'x_resolution': '{x_resolution}',         # Text
+        'y_resolution': '{y_resolution}',         # Text
+    },
+    RASTER_DIMS: {
+        # Captures dimension data for raster_info
+        'type': '{type}',                         # Text
+        'size': '{size}',                         # Text
+        'value': '{value}',                       # Text
+        'units': '{units}'                        # Text
     }
 }
 
@@ -160,8 +184,11 @@ def get_xpath_root(xpath):
     """ :return: the base of an XPATH: the part preceding any format keys or attribute references """
 
     if xpath:
-        index = xpath.find('/@' if '@' in xpath else '/{')
-        xpath = xpath[:index] if index >= 0 else xpath
+        if xpath.startswith('@'):
+            xpath = ''
+        else:
+            index = xpath.find('/@' if '@' in xpath else '/{')
+            xpath = xpath[:index] if index >= 0 else xpath
 
     return xpath
 
@@ -182,7 +209,7 @@ def get_xpath_tuple(xpath):
     xroot = get_xpath_root(xpath)
     xattr = None
 
-    if xroot and xroot != xpath:
+    if xroot != xpath:
         xattr = get_xpath_branch(xroot, xpath).strip('@')
 
     return (xroot, xattr)
@@ -224,7 +251,7 @@ def get_default_for_complex_sub(prop, subprop, value, xpath):
         return value  # Leave sub properties allowing lists wrapped
 
     # Join on comma for element attribute values; newline for element text values
-    return _join_complex_attr(value) if '@' in xpath else _join_complex_prop(value)
+    return ','.join(value) if '@' in xpath else _COMPLEX_DELIM.join(value)
 
 
 def has_property(elem_to_parse, xpath):
@@ -235,7 +262,7 @@ def has_property(elem_to_parse, xpath):
 
     xroot, attr = get_xpath_tuple(xpath)
 
-    if not xroot:
+    if not xroot and not attr:
         return False
     elif not attr:
         return bool(get_elements_text(elem_to_parse, xroot))
@@ -385,13 +412,13 @@ def update_property(tree_to_update, xpath_root, xpaths, prop, values, supported=
     if not xpaths:
         return []
     elif not isinstance(xpaths, ParserProperty):
-        return _update_property(tree_to_update, xpath_root, xpaths, prop, values)
+        return _update_property(tree_to_update, xpath_root, xpaths, values)
     else:
         # Call ParserProperty.set_prop without xpath_root (managed internally)
         return xpaths.set_prop(tree_to_update=tree_to_update, prop=prop, values=values)
 
 
-def _update_property(tree_to_update, xpath_root, xpaths, prop, values):
+def _update_property(tree_to_update, xpath_root, xpaths, values):
     """
     Default update operation for a single parser property. If xpaths contains one xpath,
     then one element per value will be inserted at that location in the tree_to_update;
@@ -429,8 +456,11 @@ def _update_property(tree_to_update, xpath_root, xpaths, prop, values):
             val = val.decode('utf-8') if not isinstance(val, string_types) else val
             if not attr:
                 items.append(insert_element(elem_to_update, i, path, val))
-            else:
+            elif path:
                 items.append(insert_element(elem_to_update, i, path, **{attr: val}))
+            else:
+                set_element_attributes(elem_to_update, **{attr: val})
+                items.append(elem_to_update)
 
         return items
 
@@ -516,7 +546,7 @@ def validate_any(prop, value, xpath_map=None):
         if prop in (ATTRIBUTES, CONTACTS, DIGITAL_FORMS):
             validate_complex_list(prop, value, xpath_map)
 
-        elif prop in (BOUNDING_BOX, LARGER_WORKS):
+        elif prop in (BOUNDING_BOX, LARGER_WORKS, RASTER_INFO):
             validate_complex(prop, value, xpath_map)
 
         elif prop == DATES:

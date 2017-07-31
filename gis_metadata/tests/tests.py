@@ -1,7 +1,7 @@
+import six
 import unittest
 
 from os.path import os
-from six import iteritems, StringIO
 
 from parserutils.collections import wrap_value
 from parserutils.elements import element_exists, element_to_dict, element_to_string
@@ -18,9 +18,13 @@ from gis_metadata.utils import format_xpaths, get_complex_definitions, get_defau
 from gis_metadata.utils import DATE_TYPE, DATE_VALUES
 from gis_metadata.utils import DATE_TYPE_SINGLE, DATE_TYPE_RANGE, DATE_TYPE_MISSING, DATE_TYPE_MULTIPLE
 from gis_metadata.utils import ATTRIBUTES, CONTACTS, DIGITAL_FORMS, PROCESS_STEPS
-from gis_metadata.utils import BOUNDING_BOX, DATES, LARGER_WORKS
+from gis_metadata.utils import BOUNDING_BOX, DATES, LARGER_WORKS, RASTER_INFO
 from gis_metadata.utils import KEYWORDS_PLACE, KEYWORDS_THEME
 from gis_metadata.utils import ParserProperty
+
+
+iteritems = getattr(six, 'iteritems')
+StringIO = getattr(six, 'StringIO')
 
 
 TEST_TEMPLATE_VALUES = {
@@ -276,7 +280,7 @@ class MetadataParserTestCase(unittest.TestCase):
                     {}.fromkeys(complex_defs[prop], 'test'),
                     {}.fromkeys(complex_defs[prop], prop)
                 ]
-            elif prop in (BOUNDING_BOX, LARGER_WORKS):
+            elif prop in (BOUNDING_BOX, LARGER_WORKS, RASTER_INFO):
                 value = {}.fromkeys(complex_defs[prop], 'test ' + prop)
             elif prop == DATES:
                 value = {DATE_TYPE: DATE_TYPE_RANGE, DATE_VALUES: ['test', prop]}
@@ -892,7 +896,7 @@ class MetadataParserTests(MetadataParserTestCase):
 
     def test_reparse_complex_structs(self):
         complex_defs = get_complex_definitions()
-        complex_structs = (BOUNDING_BOX, LARGER_WORKS)
+        complex_structs = (BOUNDING_BOX, LARGER_WORKS, RASTER_INFO)
 
         arcgis_parser = ArcGISParser(self.arcgis_metadata)
         fgdc_parser = FgdcParser(self.fgdc_metadata)
@@ -1017,7 +1021,7 @@ class MetadataParserTests(MetadataParserTestCase):
                     self.assert_validates_for(parser, prop, invalid)
 
     def test_validate_complex_structs(self):
-        complex_props = (BOUNDING_BOX, DATES, LARGER_WORKS)
+        complex_props = (BOUNDING_BOX, DATES, LARGER_WORKS, RASTER_INFO)
 
         invalid_values = ('', u'', {'x': 'xxx'}, list(), set(), tuple())
 

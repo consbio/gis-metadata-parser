@@ -2,8 +2,6 @@
 
 import six
 
-from six import iteritems
-
 from gis_metadata.exceptions import InvalidContent
 from gis_metadata.metadata_parser import MetadataParser
 
@@ -18,17 +16,22 @@ from gis_metadata.utils import KEYWORDS_PLACE
 from gis_metadata.utils import KEYWORDS_THEME
 from gis_metadata.utils import LARGER_WORKS
 from gis_metadata.utils import PROCESS_STEPS
+from gis_metadata.utils import RASTER_DIMS, RASTER_INFO
 from gis_metadata.utils import ParserProperty
 
-from gis_metadata.utils import format_xpaths, get_complex_definitions, get_default_for_complex
+from gis_metadata.utils import format_xpaths, get_complex_definitions
+from gis_metadata.utils import get_default_for_complex, get_default_for_complex_sub
 from gis_metadata.utils import parse_complex_list, update_complex_list
+from gis_metadata.utils import parse_property, update_property
 
 from parserutils.collections import flatten_items, reduce_value, wrap_value
 from parserutils.elements import get_elements, get_element_name, get_element_attributes
 from parserutils.elements import clear_element, element_to_dict, insert_element, remove_element, remove_empty_element
 
 
-xrange = getattr(six.moves, 'xrange')
+iteritems = getattr(six, 'iteritems')
+six_moves = getattr(six, 'moves')
+xrange = getattr(six_moves, 'xrange')
 
 
 ARCGIS_ROOTS = ('metadata', 'Metadata')
@@ -48,7 +51,10 @@ _agis_tag_formats = {
     '_transfer_options_root': 'distInfo/distTranOps/onLineSrc',
     '_larger_works_root': 'dataIdInfo/aggrInfo/aggrDSName',
     '_process_steps_root': 'dqInfo/dataLineage/prcStep',
+    '_raster_info_root': 'spatRepInfo/GridSpatRep/axisDimension',
     '_use_constraints_root': 'dataIdInfo/resConst',
+
+    '_srinfo_grid_rep': 'spatRepInfo/GridSpatRep',
 
     'title': 'dataIdInfo/idCitation/resTitle',
     'abstract': 'dataIdInfo/idAbs',
@@ -86,6 +92,8 @@ _agis_tag_formats = {
     '_network_resource': 'distInfo/distTranOps/onLineSrc/linkage',
     PROCESS_STEPS: 'dqInfo/dataLineage/prcStep/{ps_path}',
     LARGER_WORKS: 'dataIdInfo/aggrInfo/aggrDSName/{lw_path}',
+    RASTER_INFO: 'spatRepInfo/GridSpatRep/axisDimension/{ri_path}',
+    '_ri_num_dims': 'spatRepInfo/GridSpatRep/numDims',
     'other_citation_info': 'dataIdInfo/idCitation/otherCitDet',
     'use_constraints': 'dataIdInfo/resConst/Consts/useLimit',
     '_use_constraints': 'dataIdInfo/resConst/LegConsts/useLimit',
@@ -156,6 +164,7 @@ class ArcGISParser(MetadataParser):
             '_' + DATE_TYPE_RANGE_BEGIN: dt_format.format(type_path='TM_Period/tmBegin/@date'),
             DATE_TYPE_RANGE_END: dt_format.format(type_path='TM_Period/tmEnd'),
             '_' + DATE_TYPE_RANGE_END: dt_format.format(type_path='TM_Period/tmEnd/@date'),
+
             # Same as multiple dates, but will contain only one
             DATE_TYPE_SINGLE: dt_format.format(type_path='TM_Instant/tmPosition'),
             '_' + DATE_TYPE_SINGLE: dt_format.format(type_path='TM_Instant/tmPosition/@date')
@@ -203,6 +212,15 @@ class ArcGISParser(MetadataParser):
             sources=ps_format.format(ps_path='stepSrc/srcDesc')
         )
 
+        ri_format = agis_data_map[RASTER_INFO]
+        agis_data_structures[RASTER_INFO] = format_xpaths(
+            _agis_definitions[RASTER_DIMS],
+            type=ri_format.format(ri_path='@type'),
+            size=ri_format.format(ri_path='dimSize'),
+            value=ri_format.format(ri_path='dimResol/value'),
+            units=ri_format.format(ri_path='dimResol/value/@uom')
+        )
+
         # Assign XPATHS and gis_metadata.utils.ParserProperties to data map
 
         for prop, xpath in iteritems(dict(agis_data_map)):
@@ -220,6 +238,9 @@ class ArcGISParser(MetadataParser):
 
             elif prop == DIGITAL_FORMS:
                 agis_data_map[prop] = ParserProperty(self._parse_digital_forms, self._update_digital_forms)
+
+            elif prop == RASTER_INFO:
+                agis_data_map[prop] = ParserProperty(self._parse_raster_info, self._update_raster_info)
 
             else:
                 agis_data_map[prop] = xpath
@@ -275,6 +296,38 @@ class ArcGISParser(MetadataParser):
         parsed = flatten_items(e['children'] for e in parsed if e['attributes'].get('type') == item_type)
 
         return reduce_value([p['text'] for p in parsed if p['name'] == 'measDesc'])
+
+    def _parse_raster_info(self, prop=RASTER_INFO):
+        """ Collapses multiple dimensions into a single raster_info complex struct """
+
+        raster_info = {}.fromkeys(_agis_definitions[prop], u'')
+
+        # Ensure conversion of lists to newlines is in place
+        raster_info['dimensions'] = get_default_for_complex_sub(
+            prop=prop,
+            subprop='dimensions',
+            value=parse_property(self._xml_tree, None, self._data_map, '_ri_num_dims'),
+            xpath=self._data_map['_ri_num_dims']
+        )
+
+        xpath_root = self._get_xroot_for(prop)
+        xpath_map = self._data_structures[prop]
+
+        for dimension in parse_complex_list(self._xml_tree, xpath_root, xpath_map, RASTER_DIMS):
+            dimension_type = dimension['type'].lower()
+
+            if dimension_type == 'vertical':
+                raster_info['vertical_count'] = dimension['size']
+
+            elif dimension_type == 'column':
+                raster_info['column_count'] = dimension['size']
+                raster_info['x_resolution'] = u' '.join(dimension[k] for k in ['value', 'units']).strip()
+
+            elif dimension_type == 'row':
+                raster_info['row_count'] = dimension['size']
+                raster_info['y_resolution'] = u' '.join(dimension[k] for k in ['value', 'units']).strip()
+
+        return raster_info if any(raster_info[k] for k in raster_info) else {}
 
     def _update_digital_forms(self, **update_props):
         """
@@ -377,3 +430,49 @@ class ArcGISParser(MetadataParser):
             updated.append(insert_element(elem, idx, 'measDesc', value))
 
         return updated
+
+    def _update_raster_info(self, **update_props):
+        """ Derives multiple dimensions from a single raster_info complex struct """
+
+        tree_to_update = update_props['tree_to_update']
+        prop = update_props['prop']
+        values = update_props.pop('values')
+
+        # Update number of dimensions at raster_info root (applies to all dimensions below)
+
+        xroot, xpath = None, self._data_map['_ri_num_dims']
+        raster_info = [update_property(tree_to_update, xroot, xpath, prop, values.get('dimensions', u''))]
+
+        # Derive vertical, longitude, and latitude dimensions from raster_info
+
+        xpath_root = self._get_xroot_for(prop)
+        xpath_map = self._data_structures[prop]
+
+        v_dimension = {}
+        if values.get('vertical_count'):
+            v_dimension = v_dimension.fromkeys(xpath_map, u'')
+            v_dimension['type'] = 'vertical'
+            v_dimension['size'] = values.get('vertical_count', u'')
+
+        x_dimension = {}
+        if values.get('column_count') or values.get('x_resolution'):
+            x_dimension = x_dimension.fromkeys(xpath_map, u'')
+            x_dimension['type'] = 'column'
+            x_dimension['size'] = values.get('column_count', u'')
+            x_dimension['value'] = values.get('x_resolution', u'')
+
+        y_dimension = {}
+        if values.get('row_count') or values.get('y_resolution'):
+            y_dimension = y_dimension.fromkeys(xpath_map, u'')
+            y_dimension['type'] = 'row'
+            y_dimension['size'] = values.get('row_count', u'')
+            y_dimension['value'] = values.get('y_resolution', u'')
+
+        # Update derived dimensions as complex list, and append affected elements for return
+
+        update_props['prop'] = RASTER_DIMS
+        update_props['values'] = [v_dimension, x_dimension, y_dimension]
+
+        raster_info += update_complex_list(xpath_root=xpath_root, xpath_map=xpath_map, **update_props)
+
+        return raster_info
