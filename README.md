@@ -7,10 +7,10 @@ XML parsers for GIS metadata that are designed to read in, validate, update and 
 
 [![Build Status](https://travis-ci.org/consbio/gis-metadata-parser.png?branch=master)](https://travis-ci.org/consbio/gis-metadata-parser) [![Coverage Status](https://coveralls.io/repos/github/consbio/gis-metadata-parser/badge.svg?branch=master)](https://coveralls.io/github/consbio/gis-metadata-parser?branch=master)
 
-#Installation#
+## Installation
 Install with `pip install gis-metadata-parser`.
 
-#Usage#
+## Usage
 
 Parsers can be instantiated from files, XML strings or URLs. They can be converted from one standard to another as well.
 ```python
@@ -87,6 +87,7 @@ fgdc_from_file.dates
 fgdc_from_file.digital_forms
 fgdc_from_file.larger_works
 fgdc_from_file.process_steps
+fgdc_from_file.raster_info
 
 # :see: gis_metadata.utils.get_complex_definitions for structure of all complex properties
 
@@ -101,9 +102,9 @@ fgdc_from_file.write()                                         # Output updated 
 fgdc_from_file.write(out_file_or_path='/path/to/updated.xml')  # Output updated XML to new file
 ```
 
-#Extending and Customizing#
+## Extending and Customizing
 
-##Tips##
+### Tips
 
 There are a few unwritten (until now) rules about the way the metadata parsers are wired to work:
 
@@ -160,7 +161,7 @@ _iso_definitions[ATTRIBUTES].update({
 ```
 
 
-##Examples##
+### Examples
 
 Any of the supported parsers can be extended to include more of a standard's supported data. In this example we'll add two new properties to the `IsoParser`:
 
