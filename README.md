@@ -1,9 +1,12 @@
 # gis_metadata_parser
+
 XML parsers for GIS metadata that are designed to read in, validate, update and output a core set of properties that have been mapped between the most common standards, currently:
 
 * FGDC
 * ISO-19139 (and ISO-19115)
 * ArcGIS (tested with ArcGIS format 1.0).
+
+This library is compatible with Python versions 2.7 and 3.4 through 3.6.
 
 [![Build Status](https://travis-ci.org/consbio/gis-metadata-parser.png?branch=master)](https://travis-ci.org/consbio/gis-metadata-parser) [![Coverage Status](https://coveralls.io/repos/github/consbio/gis-metadata-parser/badge.svg?branch=master)](https://coveralls.io/github/consbio/gis-metadata-parser?branch=master)
 
