@@ -306,5 +306,23 @@ Process Step Date 3
     </refSysInfo>
     <spatRepInfo>
         <VectSpatRep/>
+        <GridSpatRep>
+            <axisDimension type="vertical">
+                <dimSize>Test Vertical Count</dimSize>
+            </axisDimension>
+            <axisDimension type="column">
+                <dimSize>Test Column Count</dimSize>
+                <dimResol>
+                    <value>Test X Resolution</value>
+                </dimResol>
+            </axisDimension>
+            <axisDimension type="row">
+                <dimSize>Test Row Count</dimSize>
+                <dimResol>
+                    <value>Test Y Resolution</value>
+                </dimResol>
+            </axisDimension>
+            <numDims>Test # Dimensions</numDims>
+        </GridSpatRep>
     </spatRepInfo>
 </metadata>

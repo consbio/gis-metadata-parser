@@ -115,6 +115,14 @@ TEST_METADATA_VALUES = {
         'edition': 'Larger Works Edition',
         'origin': ['Larger Works Originator']
     },
+    'raster_info': {
+        'dimensions': 'Test # Dimensions',
+        'row_count': 'Test Row Count',
+        'column_count': 'Test Column Count',
+        'vertical_count': 'Test Vertical Count',
+        'x_resolution': 'Test X Resolution',
+        'y_resolution': 'Test Y Resolution',
+    },
     'online_linkages': 'http://test.onlinelinkages.org',
     'originators': 'Test Originators',
     'other_citation_info': 'Test Other Citation Info',

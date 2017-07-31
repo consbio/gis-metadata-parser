@@ -21,7 +21,7 @@ from gis_metadata.utils import PROCESS_STEPS
 from gis_metadata.utils import RASTER_INFO
 from gis_metadata.utils import ParserProperty
 
-from gis_metadata.utils import format_xpaths, get_complex_definitions
+from gis_metadata.utils import format_xpaths, get_complex_definitions, update_complex
 
 
 iteritems = getattr(six, 'iteritems')
@@ -51,7 +51,9 @@ _fgdc_tag_formats = {
     '_digital_forms_root': 'distinfo/stdorder/digform',
     '_larger_works_root': 'idinfo/citation/citeinfo/lworkcit/citeinfo',
     '_process_steps_root': 'dataqual/lineage/procstep',
+
     '_raster_info_root': 'spdoinfo/rastinfo',
+    '__raster_res_root': 'spref/horizsys',
 
     '_raster_resolution': 'spref/horizsys/planar/planci/coordrep',
     '__raster_resolution': 'spref/horizsys/geograph',
@@ -223,11 +225,14 @@ class FgdcParser(MetadataParser):
             if prop in (ATTRIBUTES, CONTACTS, DIGITAL_FORMS, PROCESS_STEPS):
                 fgdc_data_map[prop] = ParserProperty(self._parse_complex_list, self._update_complex_list)
 
-            elif prop in (BOUNDING_BOX, LARGER_WORKS, RASTER_INFO):
+            elif prop in (BOUNDING_BOX, LARGER_WORKS):
                 fgdc_data_map[prop] = ParserProperty(self._parse_complex, self._update_complex)
 
             elif prop == DATES:
                 fgdc_data_map[prop] = ParserProperty(self._parse_dates, self._update_dates)
+
+            elif prop == RASTER_INFO:
+                fgdc_data_map[prop] = ParserProperty(self._parse_complex, self._update_raster_info)
 
             else:
                 fgdc_data_map[prop] = xpath
@@ -255,3 +260,13 @@ class FgdcParser(MetadataParser):
                 remove_element(tree_to_update, self._data_map['_dates_root'])
 
         return super(FgdcParser, self)._update_dates(xpath_root, **update_props)
+
+    def _update_raster_info(self, **update_props):
+        """ Ensures complete removal of raster_info given the two roots: <spdoinfo> and <spref> """
+
+        xpath_map = self._data_structures[update_props['prop']]
+
+        return [
+            update_complex(xpath_root=self._data_map.get('_raster_info_root'), xpath_map=xpath_map, **update_props),
+            update_complex(xpath_root=self._data_map.get('__raster_res_root'), xpath_map=xpath_map, **update_props)
+        ]

@@ -659,4 +659,48 @@
             </lineage>
         </DQ_DataQuality>
     </dataQualityInfo>
+    <spatialRepresentationInfo>
+        <MD_GridSpatialRepresentation>
+            <axisDimensionProperties>
+                <MD_Dimension>
+                    <dimensionName>
+                        <MD_DimensionNameTypeCode codeListValue="vertical">
+                        </MD_DimensionNameTypeCode>
+                    </dimensionName>
+                    <dimensionSize>
+                        <Integer>Test Vertical Count</Integer>
+                    </dimensionSize>
+                </MD_Dimension>
+            </axisDimensionProperties>
+            <axisDimensionProperties>
+                <MD_Dimension>
+                    <resolution>
+                        <Measure>Test X Resolution</Measure>
+                    </resolution>
+                    <dimensionName>
+                        <MD_DimensionNameTypeCode>column</MD_DimensionNameTypeCode>
+                    </dimensionName>
+                    <dimensionSize>
+                        <Integer>Test Column Count</Integer>
+                    </dimensionSize>
+                </MD_Dimension>
+            </axisDimensionProperties>
+            <axisDimensionProperties>
+                <MD_Dimension>
+                    <resolution>
+                        <Measure>Test Y Resolution</Measure>
+                    </resolution>
+                    <dimensionName>
+                        <MD_DimensionNameTypeCode codeListValue="row" />
+                    </dimensionName>
+                    <dimensionSize>
+                        <Integer>Test Row Count</Integer>
+                    </dimensionSize>
+                </MD_Dimension>
+            </axisDimensionProperties>
+            <numberOfDimensions>
+                <Integer>Test # Dimensions</Integer>
+            </numberOfDimensions>
+        </MD_GridSpatialRepresentation>
+    </spatialRepresentationInfo>
 </MD_Metadata>

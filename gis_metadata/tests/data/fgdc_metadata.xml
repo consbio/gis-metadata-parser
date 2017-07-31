@@ -229,4 +229,29 @@ Process Step Description 4
             <attraccr>Test Attribute Accuracy</attraccr>
         </attracc>
     </dataqual>
+    <spdoinfo>
+        <rastinfo>
+            <colcount>Test Column Count</colcount>
+            <vrtcount>Test Vertical Count</vrtcount>
+            <rowcount>Test Row Count</rowcount>
+            <rasttype>Test # Dimensions</rasttype>
+        </rastinfo>
+    </spdoinfo>
+    <spref>
+        <horizsys>
+            <geograph>
+                <!-- Will not exist if <planar> tag is present -->
+                <latres>Test Backup Y Resolution</latres>
+                <longres>Test Backup X Resolution</longres>
+            </geograph>
+            <planar>
+                <planci>
+                    <coordrep>
+                        <ordres>Test Y Resolution</ordres>
+                        <absres>Test X Resolution</absres>
+                    </coordrep>
+                </planci>
+            </planar>
+        </horizsys>
+    </spref>
 </metadata>
