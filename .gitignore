@@ -1,4 +1,5 @@
 *.pyc
+.cache/
 .coverage
 __pycache__/
 build/
