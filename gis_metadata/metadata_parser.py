@@ -1,7 +1,8 @@
 """ A module to contain utility metadata parsing helpers """
 
+import six
+
 from copy import deepcopy
-from six import iteritems
 
 from parserutils.elements import create_element_tree, element_exists, element_to_string
 from parserutils.elements import get_element_name, get_element_tree, remove_element, write_element
@@ -13,6 +14,9 @@ from gis_metadata.utils import DATE_TYPE_RANGE, DATE_TYPE_RANGE_BEGIN, DATE_TYPE
 from gis_metadata.utils import parse_complex, parse_complex_list, parse_dates, parse_property
 from gis_metadata.utils import update_complex, update_complex_list, update_property, validate_any, validate_properties
 from gis_metadata.utils import _supported_props
+
+
+iteritems = getattr(six, 'iteritems')
 
 
 # Place holders for lazy, one-time FGDC & ISO imports
