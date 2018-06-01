@@ -5,7 +5,7 @@ import six
 from copy import deepcopy
 
 from parserutils.collections import filter_empty, flatten_items, reduce_value, wrap_value
-from parserutils.elements import get_element, get_elements, get_element_attributes, get_elements_text
+from parserutils.elements import get_element, get_elements, get_elements_attributes, get_elements_text
 from parserutils.elements import insert_element, remove_element
 from parserutils.elements import remove_element_attributes, set_element_attributes
 from parserutils.elements import XPATH_DELIM
@@ -267,7 +267,7 @@ def has_property(elem_to_parse, xpath):
     elif not attr:
         return bool(get_elements_text(elem_to_parse, xroot))
     else:
-        return bool(get_element_attributes(elem_to_parse, xroot).get(attr))
+        return bool(get_elements_attributes(elem_to_parse, xroot, attr))
 
 
 def parse_complex(tree_to_parse, xpath_root, xpath_map, complex_key):
@@ -379,7 +379,7 @@ def parse_property(tree_to_parse, xpath_root, xpath_map, prop):
         parsed = get_elements_text(tree_to_parse, xpath)
     else:
         xroot, xattr = get_xpath_tuple(xpath)
-        parsed = get_element_attributes(tree_to_parse, xroot).get(xattr)
+        parsed = get_elements_attributes(tree_to_parse, xroot, xattr)
 
     return get_default_for(prop, parsed)
 

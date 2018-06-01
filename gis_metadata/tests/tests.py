@@ -551,7 +551,7 @@ class MetadataParserTests(MetadataParserTestCase):
                 'name': 'Custom Contact Name', 'email': 'Custom Contact Email', 'phone': 'Custom Contact Phone',
                 'position': 'Custom Contact Position', 'organization': 'Custom Contact Organization'
             }],
-            'metadata_language': 'eng'
+            'metadata_language': ['eng', 'esp']
         }
 
         custom_parser = CustomIsoParser(self.iso_metadata)
@@ -563,7 +563,7 @@ class MetadataParserTests(MetadataParserTestCase):
             'position': 'Changed Contact Position', 'organization': 'Changed Contact Organization'
         }
         self.assert_reparsed_complex_for(custom_parser, 'metadata_contacts', complex_val, [complex_val])
-        self.assert_reparsed_simple_for(custom_parser, ['metadata_language'], 'es', 'es')
+        self.assert_reparsed_simple_for(custom_parser, ['metadata_language'], ['en', 'es'], ['en', 'es'])
 
         # Test conversion with custom props
         converted_parser = custom_parser.convert_to(CustomIsoParser)
