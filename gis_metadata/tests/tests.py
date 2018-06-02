@@ -19,13 +19,14 @@ from gis_metadata.utils import DATE_TYPE, DATE_VALUES
 from gis_metadata.utils import DATE_TYPE_SINGLE, DATE_TYPE_RANGE, DATE_TYPE_MISSING, DATE_TYPE_MULTIPLE
 from gis_metadata.utils import ATTRIBUTES, CONTACTS, DIGITAL_FORMS, PROCESS_STEPS
 from gis_metadata.utils import BOUNDING_BOX, DATES, LARGER_WORKS, RASTER_INFO
-from gis_metadata.utils import KEYWORDS_PLACE, KEYWORDS_THEME
+from gis_metadata.utils import KEYWORDS_PLACE, KEYWORDS_STRATUM, KEYWORDS_TEMPORAL, KEYWORDS_THEME
 from gis_metadata.utils import ParserProperty
 
 
 iteritems = getattr(six, 'iteritems')
 StringIO = getattr(six, 'StringIO')
 
+KEYWORD_PROPS = (KEYWORDS_PLACE, KEYWORDS_STRATUM, KEYWORDS_TEMPORAL, KEYWORDS_THEME)
 
 TEST_TEMPLATE_VALUES = {
     'dist_contact_org': 'ORG',
@@ -147,8 +148,10 @@ TEST_METADATA_VALUES = {
     'purpose': 'Test Purpose',
     'publish_date': 'Test Publish Date',
     'resource_desc': 'Test Resource Description',
+    'stratum_keywords': ['Layer One', 'Layer Two'],
     'supplementary_info': 'Test Supplementary Info',
     'tech_prerequisites': 'Test Technical Prerequisites',
+    'temporal_keywords': ['Now', 'Later'],
     'thematic_keywords': ['Ecoregion', 'Risk', 'Threat', 'Habitat'],
     'title': 'Test Title',
     'use_constraints': 'Test Use Constraints'
@@ -292,7 +295,7 @@ class MetadataParserTestCase(unittest.TestCase):
                 value = {}.fromkeys(complex_defs[prop], 'test ' + prop)
             elif prop == DATES:
                 value = {DATE_TYPE: DATE_TYPE_RANGE, DATE_VALUES: ['test', prop]}
-            elif prop in (KEYWORDS_PLACE, KEYWORDS_THEME):
+            elif prop in KEYWORD_PROPS:
                 value = ['test', prop]
             else:
                 value = 'test ' + prop
@@ -655,7 +658,7 @@ class MetadataParserTests(MetadataParserTestCase):
                 parser.validate()
 
     def test_arcgis_parser(self):
-        """ Tests behavior unique to the FGDC parser """
+        """ Tests behavior unique to the ArcGIS parser """
 
         # Test dates structure defaults
 
@@ -663,8 +666,18 @@ class MetadataParserTests(MetadataParserTestCase):
         arcgis_element = get_remote_element(self.arcgis_file)
         remove_element(arcgis_element, 'dataIdInfo/dataExt/tempEle/TempExtent/exTemp/TM_Instant', True)
 
-        # Assert that the backup dates are read in successfully
         arcgis_parser = ArcGISParser(element_to_string(arcgis_element))
+
+        # Assert that ArcGIS-specific keywords are read in correctly
+
+        self.assertEqual(arcgis_parser.discipline_keys, ['ArcGIS Discipline One', 'ArcGIS Discipline Two'])
+        self.assertEqual(arcgis_parser.other_keys, ['ArcGIS Other One', 'ArcGIS Other Two'])
+        self.assertEqual(arcgis_parser.product_keys, ['ArcGIS Product One', 'ArcGIS Product Two'])
+        self.assertEqual(arcgis_parser.search_keys, ['ArcGIS Search One', 'ArcGIS Search Two'])
+        self.assertEqual(arcgis_parser.topic_category_keys, ['ArcGIS Topical One', 'ArcGIS Topical Two'])
+
+        # Assert that the backup dates are read in successfully
+
         self.assertEqual(arcgis_parser.dates, {'type': 'range', 'values': ['Date Range Start', 'Date Range End']})
 
         # Remove one of the date range values and assert that only the end date is read in as a single
@@ -957,13 +970,13 @@ class MetadataParserTests(MetadataParserTestCase):
 
             # Test reparsed empty keywords
             for keywords in ('', u'', []):
-                self.assert_reparsed_complex_for(parser, KEYWORDS_PLACE, keywords, [])
-                self.assert_reparsed_complex_for(parser, KEYWORDS_THEME, keywords, [])
+                for keyword_prop in KEYWORD_PROPS:
+                    self.assert_reparsed_complex_for(parser, keyword_prop, keywords, [])
 
             # Test reparsed valid keywords
             for keywords in ('keyword', ['keyword', 'list']):
-                self.assert_reparsed_complex_for(parser, KEYWORDS_PLACE, keywords, wrap_value(keywords))
-                self.assert_reparsed_complex_for(parser, KEYWORDS_THEME, keywords, wrap_value(keywords))
+                for keyword_prop in KEYWORD_PROPS:
+                    self.assert_reparsed_complex_for(parser, keyword_prop, keywords, wrap_value(keywords))
 
     def test_reparse_process_steps(self):
         proc_step_def = get_complex_definitions()[PROCESS_STEPS]
@@ -999,7 +1012,7 @@ class MetadataParserTests(MetadataParserTestCase):
         required_props = set(get_supported_props())
 
         simple_props = required_props.difference(complex_props)
-        simple_props = simple_props.difference({KEYWORDS_PLACE, KEYWORDS_THEME})
+        simple_props = simple_props.difference(KEYWORD_PROPS)
 
         simple_empty_vals = ('', u'', [])
         simple_valid_vals = (u'value', [u'item', u'list'])

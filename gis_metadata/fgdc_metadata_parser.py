@@ -15,7 +15,7 @@ from gis_metadata.utils import BOUNDING_BOX
 from gis_metadata.utils import CONTACTS
 from gis_metadata.utils import DATES
 from gis_metadata.utils import DIGITAL_FORMS
-from gis_metadata.utils import KEYWORDS_PLACE, KEYWORDS_THEME
+from gis_metadata.utils import KEYWORDS_PLACE, KEYWORDS_STRATUM, KEYWORDS_TEMPORAL, KEYWORDS_THEME
 from gis_metadata.utils import LARGER_WORKS
 from gis_metadata.utils import PROCESS_STEPS
 from gis_metadata.utils import RASTER_INFO
@@ -96,6 +96,8 @@ _fgdc_tag_formats = {
     'use_constraints': 'idinfo/useconst',
     DATES: 'idinfo/timeperd/timeinfo/{type_path}',
     KEYWORDS_PLACE: 'idinfo/keywords/place/placekey',
+    KEYWORDS_STRATUM: 'idinfo/keywords/stratum/stratkey',
+    KEYWORDS_TEMPORAL: 'idinfo/keywords/temporal/tempkey',
     KEYWORDS_THEME: 'idinfo/keywords/theme/themekey'
 }
 

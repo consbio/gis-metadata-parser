@@ -189,6 +189,14 @@
             <keyword>Oregon</keyword>
             <keyword>Washington</keyword>
         </placeKeys>
+        <stratKeys>
+            <keyword>Layer One</keyword>
+            <keyword>Layer Two</keyword>
+        </stratKeys>
+        <tempKeys>
+            <keyword>Now</keyword>
+            <keyword>Later</keyword>
+        </tempKeys>
         <themeKeys>
             <keyword>Ecoregion</keyword>
         </themeKeys>
@@ -197,9 +205,26 @@
             <keyword>Threat</keyword>
             <keyword>Habitat</keyword>
         </themeKeys>
+        <discKeys>
+            <keyword>ArcGIS Discipline One</keyword>
+            <keyword>ArcGIS Discipline Two</keyword>
+        </discKeys>
+        <otherKeys>
+            <keyword>ArcGIS Other One</keyword>
+            <keyword>ArcGIS Other Two</keyword>
+        </otherKeys>
+        <productKeys>
+            <keyword>ArcGIS Product One</keyword>
+            <keyword>ArcGIS Product Two</keyword>
+        </productKeys>
         <searchKeys>
-            <keyword>Not Used</keyword>
+            <keyword>ArcGIS Search One</keyword>
+            <keyword>ArcGIS Search Two</keyword>
         </searchKeys>
+        <subTopicCatKeys>
+            <keyword>ArcGIS Topical One</keyword>
+            <keyword>ArcGIS Topical Two</keyword>
+        </subTopicCatKeys>
         <resConst>
             <LegConsts>
                 <othConsts>Test Distribution Liability</othConsts>

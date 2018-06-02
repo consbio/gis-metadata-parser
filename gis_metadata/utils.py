@@ -20,6 +20,8 @@ string_types = getattr(six, 'string_types')
 # Generic identifying property name constants
 
 KEYWORDS_PLACE = 'place_keywords'
+KEYWORDS_STRATUM = 'stratum_keywords'
+KEYWORDS_TEMPORAL = 'temporal_keywords'
 KEYWORDS_THEME = 'thematic_keywords'
 
 
@@ -39,7 +41,10 @@ RASTER_DIMS = '_raster_dims'
 # Grouping property name constants for complex definitions
 
 _COMPLEX_DELIM = '\n'
-_COMPLEX_LISTS = {ATTRIBUTES, CONTACTS, DIGITAL_FORMS, KEYWORDS_PLACE, KEYWORDS_THEME, PROCESS_STEPS}
+_COMPLEX_LISTS = {
+    ATTRIBUTES, CONTACTS, DIGITAL_FORMS, PROCESS_STEPS,
+    KEYWORDS_PLACE, KEYWORDS_STRATUM, KEYWORDS_TEMPORAL, KEYWORDS_THEME,
+}
 _COMPLEX_STRUCTS = {BOUNDING_BOX, DATES, LARGER_WORKS, RASTER_INFO}
 _COMPLEX_WITH_MULTI = {
     DATES: {'values'},
@@ -58,7 +63,7 @@ _supported_props = {
     'dist_liability', 'processing_fees', 'processing_instrs', 'resource_desc', 'tech_prerequisites',
     ATTRIBUTES, 'attribute_accuracy', BOUNDING_BOX, CONTACTS, 'dataset_completeness',
     LARGER_WORKS, PROCESS_STEPS, RASTER_INFO, 'use_constraints',
-    DATES, KEYWORDS_PLACE, KEYWORDS_THEME
+    DATES, KEYWORDS_PLACE, KEYWORDS_STRATUM, KEYWORDS_TEMPORAL, KEYWORDS_THEME
 }
 
 

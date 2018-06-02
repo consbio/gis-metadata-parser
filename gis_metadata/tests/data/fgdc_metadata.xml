@@ -70,6 +70,14 @@
                 <placekey>Oregon</placekey>
                 <placekey>Washington</placekey>
             </place>
+            <stratum>
+                <stratkey>Layer One</stratkey>
+                <stratkey>Layer Two</stratkey>
+            </stratum>
+            <temporal>
+                <tempkey>Now</tempkey>
+                <tempkey>Later</tempkey>
+            </temporal>
             <theme>
                 <themekey>Ecoregion</themekey>
                 <themekey>Risk</themekey>

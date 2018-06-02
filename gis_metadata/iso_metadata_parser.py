@@ -3,6 +3,7 @@
 import six
 
 from collections import OrderedDict
+from copy import deepcopy
 
 from parserutils.collections import filter_empty, reduce_value, wrap_value
 from parserutils.elements import get_element_name, get_element_text, get_elements_text
@@ -19,7 +20,7 @@ from gis_metadata.utils import CONTACTS
 from gis_metadata.utils import BOUNDING_BOX
 from gis_metadata.utils import DATES
 from gis_metadata.utils import DIGITAL_FORMS
-from gis_metadata.utils import KEYWORDS_PLACE, KEYWORDS_THEME
+from gis_metadata.utils import KEYWORDS_PLACE, KEYWORDS_STRATUM, KEYWORDS_TEMPORAL, KEYWORDS_THEME
 from gis_metadata.utils import LARGER_WORKS
 from gis_metadata.utils import PROCESS_STEPS
 from gis_metadata.utils import RASTER_DIMS, RASTER_INFO
@@ -38,8 +39,13 @@ xrange = getattr(six_moves, 'xrange')
 
 ISO_ROOTS = ('MD_Metadata', 'MI_Metadata')
 
-KEYWORD_TYPE_PLACE = 'place'
-KEYWORD_TYPE_THEME = 'theme'
+KEYWORD_PROPS = (KEYWORDS_PLACE, KEYWORDS_STRATUM, KEYWORDS_TEMPORAL, KEYWORDS_THEME)
+KEYWORD_TYPES = {
+    KEYWORDS_PLACE: 'place',
+    KEYWORDS_STRATUM: 'stratum',
+    KEYWORDS_TEMPORAL: 'temporal',
+    KEYWORDS_THEME: 'theme'
+}
 
 # For appending digital form content to ISO distribution format specs
 _DIGITAL_FORMS_CONTENT_DELIM = '@------------------------------@'
@@ -167,6 +173,8 @@ _iso_tag_formats = {
     'use_constraints': '{_idinfo}/resourceConstraints/MD_Constraints/useLimitation/CharacterString',
     DATES: '{_idinfo_extent}/temporalElement/EX_TemporalExtent/extent/{{type_path}}',
     KEYWORDS_PLACE: '{_idinfo_keywords}/keyword/CharacterString',
+    KEYWORDS_STRATUM: '{_idinfo_keywords}/keyword/CharacterString',
+    KEYWORDS_TEMPORAL: '{_idinfo_keywords}/keyword/CharacterString',
     KEYWORDS_THEME: '{_idinfo_keywords}/keyword/CharacterString'
 }
 
@@ -278,8 +286,8 @@ class IsoParser(MetadataParser):
             'keyword_type': 'MD_Keywords/type/MD_KeywordTypeCode',
             'keyword': 'MD_Keywords/keyword/CharacterString'
         }
-        iso_data_structures[KEYWORDS_PLACE] = keywords_structure
-        iso_data_structures[KEYWORDS_THEME] = keywords_structure
+        for keyword_prop in KEYWORD_PROPS:
+            iso_data_structures[keyword_prop] = deepcopy(keywords_structure)
 
         lw_format = iso_data_map[LARGER_WORKS]
         iso_data_structures[LARGER_WORKS] = format_xpaths(
@@ -332,7 +340,7 @@ class IsoParser(MetadataParser):
             elif prop == DIGITAL_FORMS:
                 iso_data_map[prop] = ParserProperty(self._parse_digital_forms, self._update_digital_forms)
 
-            elif prop in [KEYWORDS_PLACE, KEYWORDS_THEME]:
+            elif prop in KEYWORD_PROPS:
                 iso_data_map[prop] = ParserProperty(self._parse_keywords, self._update_keywords)
 
             elif prop == RASTER_INFO:
@@ -374,7 +382,7 @@ class IsoParser(MetadataParser):
 
         try:
             tree_to_parse = get_remote_element(self._attr_details_file_url)
-        except:
+        except Exception:
             self._attr_details_file_url = None
             return None
 
@@ -447,17 +455,13 @@ class IsoParser(MetadataParser):
 
         keywords = []
 
-        if prop in [KEYWORDS_PLACE, KEYWORDS_THEME]:
+        if prop in KEYWORD_PROPS:
             xpath_root = self._data_map['_keywords_root']
             xpath_map = self._data_structures[prop]
 
             xtype = xpath_map['keyword_type']
             xpath = xpath_map['keyword']
-
-            if prop == KEYWORDS_PLACE:
-                ktype = KEYWORD_TYPE_PLACE
-            elif prop == KEYWORDS_THEME:
-                ktype = KEYWORD_TYPE_THEME
+            ktype = KEYWORD_TYPES[prop]
 
             for element in get_elements(self._xml_tree, xpath_root):
                 if get_element_text(element, xtype).lower() == ktype.lower():
@@ -594,18 +598,14 @@ class IsoParser(MetadataParser):
 
         keywords = []
 
-        if prop in [KEYWORDS_PLACE, KEYWORDS_THEME]:
+        if prop in KEYWORD_PROPS:
             xpath_root = self._data_map['_keywords_root']
             xpath_map = self._data_structures[prop]
 
             xtype = xpath_map['keyword_type']
             xroot = xpath_map['keyword_root']
             xpath = xpath_map['keyword']
-
-            if prop == KEYWORDS_PLACE:
-                ktype = KEYWORD_TYPE_PLACE
-            elif prop == KEYWORDS_THEME:
-                ktype = KEYWORD_TYPE_THEME
+            ktype = KEYWORD_TYPES[prop]
 
             # Remove descriptiveKeyword nodes according to type
             for element in get_elements(tree_to_update, xpath_root):

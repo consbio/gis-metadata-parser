@@ -364,6 +364,32 @@
             <descriptiveKeywords>
                 <MD_Keywords>
                     <keyword>
+                        <CharacterString>Layer One</CharacterString>
+                    </keyword>
+                    <keyword>
+                        <CharacterString>Layer Two</CharacterString>
+                    </keyword>
+                    <type>
+                        <MD_KeywordTypeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_KeywordTypeCode" codeListValue="stratum" codeSpace="ISOTC211/19115">stratum</MD_KeywordTypeCode>
+                    </type>
+                </MD_Keywords>
+            </descriptiveKeywords>
+            <descriptiveKeywords>
+                <MD_Keywords>
+                    <keyword>
+                        <CharacterString>Now</CharacterString>
+                    </keyword>
+                    <keyword>
+                        <CharacterString>Later</CharacterString>
+                    </keyword>
+                    <type>
+                        <MD_KeywordTypeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_KeywordTypeCode" codeListValue="temporal" codeSpace="ISOTC211/19115">temporal</MD_KeywordTypeCode>
+                    </type>
+                </MD_Keywords>
+            </descriptiveKeywords>
+            <descriptiveKeywords>
+                <MD_Keywords>
+                    <keyword>
                         <CharacterString>Oregon</CharacterString>
                     </keyword>
                     <type>

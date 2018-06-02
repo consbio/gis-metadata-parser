@@ -12,8 +12,7 @@ from gis_metadata.utils import BOUNDING_BOX
 from gis_metadata.utils import CONTACTS
 from gis_metadata.utils import DATES
 from gis_metadata.utils import DIGITAL_FORMS
-from gis_metadata.utils import KEYWORDS_PLACE
-from gis_metadata.utils import KEYWORDS_THEME
+from gis_metadata.utils import KEYWORDS_PLACE, KEYWORDS_STRATUM, KEYWORDS_TEMPORAL, KEYWORDS_THEME
 from gis_metadata.utils import LARGER_WORKS
 from gis_metadata.utils import PROCESS_STEPS
 from gis_metadata.utils import RASTER_DIMS, RASTER_INFO
@@ -99,7 +98,16 @@ _agis_tag_formats = {
     '_use_constraints': 'dataIdInfo/resConst/LegConsts/useLimit',
     DATES: 'dataIdInfo/dataExt/tempEle/TempExtent/exTemp/{type_path}',
     KEYWORDS_PLACE: 'dataIdInfo/placeKeys/keyword',
-    KEYWORDS_THEME: 'dataIdInfo/themeKeys/keyword'
+    KEYWORDS_STRATUM: 'dataIdInfo/stratKeys/keyword',
+    KEYWORDS_TEMPORAL: 'dataIdInfo/tempKeys/keyword',
+    KEYWORDS_THEME: 'dataIdInfo/themeKeys/keyword',
+
+    # Other ArcGIS keywords not supported by other standards
+    'discipline_keys': 'dataIdInfo/discKeys/keyword',
+    'other_keys': 'dataIdInfo/otherKeys/keyword',
+    'product_keys': 'dataIdInfo/productKeys/keyword',
+    'search_keys': 'dataIdInfo/searchKeys/keyword',
+    'topic_category_keys': 'dataIdInfo/subTopicCatKeys/keyword'
 }
 
 
