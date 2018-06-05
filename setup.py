@@ -18,11 +18,16 @@ class RunTests(Command):
         raise SystemExit(errno)
 
 
+with open('README.md') as readme:
+    long_description = readme.read()
+
+
 setup(
     name='gis_metadata_parser',
     description='Parser for GIS metadata standards including FGDC and ISO-19115',
+    long_description=long_description,
     keywords='arcgis,fgdc,iso,ISO-19115,ISO-19139,gis,metadata,parser,xml,gis_metadata,gis_metadata_parser',
-    version='1.1.1',
+    version='1.1.2',
     packages=[
         'gis_metadata', 'gis_metadata.tests'
     ],
