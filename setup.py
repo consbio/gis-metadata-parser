@@ -27,7 +27,7 @@ setup(
         'gis_metadata', 'gis_metadata.tests'
     ],
     install_requires=[
-        'parserutils', 'six'
+        'parserutils>=1.1', 'six>=1.9.0'
     ],
     url='https://github.com/consbio/gis-metadata-parser',
     license='BSD',
