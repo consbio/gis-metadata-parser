@@ -22,7 +22,7 @@ setup(
     name='gis_metadata_parser',
     description='Parser for GIS metadata standards including FGDC and ISO-19115',
     keywords='arcgis,fgdc,iso,ISO-19115,ISO-19139,gis,metadata,parser,xml,gis_metadata,gis_metadata_parser',
-    version='1.1',
+    version='1.1.1',
     packages=[
         'gis_metadata', 'gis_metadata.tests'
     ],
