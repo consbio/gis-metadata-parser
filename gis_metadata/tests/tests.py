@@ -670,11 +670,11 @@ class MetadataParserTests(MetadataParserTestCase):
 
         # Assert that ArcGIS-specific keywords are read in correctly
 
-        self.assertEqual(arcgis_parser.discipline_keys, ['ArcGIS Discipline One', 'ArcGIS Discipline Two'])
-        self.assertEqual(arcgis_parser.other_keys, ['ArcGIS Other One', 'ArcGIS Other Two'])
-        self.assertEqual(arcgis_parser.product_keys, ['ArcGIS Product One', 'ArcGIS Product Two'])
-        self.assertEqual(arcgis_parser.search_keys, ['ArcGIS Search One', 'ArcGIS Search Two'])
-        self.assertEqual(arcgis_parser.topic_category_keys, ['ArcGIS Topical One', 'ArcGIS Topical Two'])
+        self.assertEqual(arcgis_parser.discipline_keywords, ['ArcGIS Discipline One', 'ArcGIS Discipline Two'])
+        self.assertEqual(arcgis_parser.other_keywords, ['ArcGIS Other One', 'ArcGIS Other Two'])
+        self.assertEqual(arcgis_parser.product_keywords, ['ArcGIS Product One', 'ArcGIS Product Two'])
+        self.assertEqual(arcgis_parser.search_keywords, ['ArcGIS Search One', 'ArcGIS Search Two'])
+        self.assertEqual(arcgis_parser.topic_category_keywords, ['ArcGIS Topical One', 'ArcGIS Topical Two'])
 
         # Assert that the backup dates are read in successfully
 

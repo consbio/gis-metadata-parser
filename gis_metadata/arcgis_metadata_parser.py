@@ -103,11 +103,11 @@ _agis_tag_formats = {
     KEYWORDS_THEME: 'dataIdInfo/themeKeys/keyword',
 
     # Other ArcGIS keywords not supported by other standards
-    'discipline_keys': 'dataIdInfo/discKeys/keyword',
-    'other_keys': 'dataIdInfo/otherKeys/keyword',
-    'product_keys': 'dataIdInfo/productKeys/keyword',
-    'search_keys': 'dataIdInfo/searchKeys/keyword',
-    'topic_category_keys': 'dataIdInfo/subTopicCatKeys/keyword'
+    'discipline_keywords': 'dataIdInfo/discKeys/keyword',
+    'other_keywords': 'dataIdInfo/otherKeys/keyword',
+    'product_keywords': 'dataIdInfo/productKeys/keyword',
+    'search_keywords': 'dataIdInfo/searchKeys/keyword',
+    'topic_category_keywords': 'dataIdInfo/subTopicCatKeys/keyword'
 }
 
 
