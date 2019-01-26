@@ -118,7 +118,7 @@ def get_parsed_content(metadata_content):
             try:
                 # Strip name spaces from file or XML content
                 xml_tree = get_element_tree(metadata_content)
-            except:
+            except Exception:
                 xml_tree = None  # Several exceptions possible, outcome is the same
 
     if xml_tree is None:
