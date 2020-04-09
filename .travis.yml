@@ -8,6 +8,7 @@ python:
 install:
   - "pip install six"
   - "pip install parserutils"
+  - "pip install frozendict"
   - "pip install coveralls"
 
 script:
