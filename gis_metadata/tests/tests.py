@@ -1,7 +1,8 @@
 import six
+import mock
+import unittest
 
 from os.path import os
-from unittest import TestCase, mock
 
 from parserutils.collections import wrap_value
 from parserutils.elements import element_exists, element_to_dict, element_to_string
@@ -192,7 +193,7 @@ TEST_REMOTE_ISO_ATTRIBUTES = {
 }
 
 
-class MetadataParserTestCase(TestCase):
+class MetadataParserTestCase(unittest.TestCase):
 
     valid_complex_values = ('one', ['before', 'after'], ['first', 'next', 'last'])
 

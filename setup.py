@@ -35,6 +35,7 @@ setup(
     install_requires=[
         'frozendict>=1.2', 'parserutils>=1.1', 'six>=1.9.0'
     ],
+    tests_require=['mock'],
     url='https://github.com/consbio/gis-metadata-parser',
     license='BSD',
     cmdclass={'test': RunTests}
