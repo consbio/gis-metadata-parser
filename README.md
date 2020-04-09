@@ -67,6 +67,10 @@ iso_from_string = get_metadata_parser(
 fgdc_converted = iso_from_file.convert_to(FgdcParser)
 iso_converted = fgdc_from_file.convert_to(IsoParser)
 arcgis_converted = iso_converted.convert_to(ArcGISParser)
+
+# Output supported properties as key value pairs (dict)
+fgdc_key_vals = fgdc_from_file.convert_to(dict)
+iso_key_vals = iso_from_file.convert_to(dict)
 ```
 
 Finally, the properties of the parser can be updated, validated, applied and output:
@@ -116,11 +120,12 @@ There are a few unwritten (until now) rules about the way the metadata parsers a
 3. XPATH's configured in the data map support references to element attributes: `'path/to/element/@attr'`
 4. Complex parser properties are defined by custom parser/updater functions instead of by XPATH
 5. Complex parser properties accept values of type `dict` containing simple properties, or a list of said `dict`'s
-6. Properties with leading underscores are parsed, but not validated or written out
-7. Properties that "shadow" other properties but with a leading underscore serve as backup values
-8. For backup properties, additional underscores indicate further backup options, i.e. `title`, `_title`, `__title`
+6. XPATH keys in the data map with leading underscores are parsed, but not validated or written out
+7. XPATH keys in the data map that "shadow" other properties but with a leading underscore serve as secondary values
+8. Secondary values are used in the absence of a primary value if primary location (element or attribute) is missing
+9. Additional underscores indicate further locations to check for missing values, i.e. `title`, `_title`, `__title`
 
-Some examples of existing backup properties are as follows:
+Some examples of existing secondary properties are as follows:
 ```python
 # In the ArcGIS parser for distribution contact phone:
 
@@ -152,7 +157,7 @@ class FgdcParser(MetadataParser):
             _organization=ct_format.format(ct_path='cntorgp/cntorg'),  # If not in cntperp
         )
 
-# Also see the ISO parser for backup sub-properties in the attributes definition:
+# Also see the ISO parser for secondary and tertiary sub-properties in the attributes definition:
 
 ISO_DEFINITIONS = dict({k: dict(v) for k, v in iteritems(COMPLEX_DEFINITIONS)})
 ISO_DEFINITIONS[ATTRIBUTES].update({
@@ -173,7 +178,7 @@ Any of the supported parsers can be extended to include more of a standard's sup
 This example will cover:
 
 1. Adding a new simple property
-2. Configuring a backup location for a property
+2. Configuring a secondary location for a property value
 3. Referencing an element attribute in an XPATH
 4. Adding a new complex property
 5. Customizing the complex property to include a new sub-property
@@ -190,21 +195,21 @@ class CustomIsoParser(IsoParser):
     def _init_data_map(self):
         super(CustomIsoParser, self)._init_data_map()
 
-        # Basic property: text or list (with backup location referencing codeListValue attribute)
+        # 1. Basic property: text or list (with secondary location referencing `codeListValue` attribute)
 
         lang_prop = 'metadata_language'
         self._data_map[lang_prop] = 'language/CharacterString'                    # Parse from here if present
         self._data_map['_' + lang_prop] = 'language/LanguageCode/@codeListValue'  # Otherwise, try from here
 
-        # Complex structure (reuse of contacts structure plus phone)
+        # 2. Complex structure (reuse of contacts structure plus phone)
 
-        # Define some basic variables
+        # 2.1 Define some basic variables
         ct_prop = 'metadata_contacts'
         ct_xpath = 'contact/CI_ResponsibleParty/{ct_path}'
         ct_defintion = COMPLEX_DEFINITIONS[CONTACTS]
         ct_defintion['phone'] = '{phone}'
 
-        # Reuse CONTACT structure to specify locations per prop (adapted only slightly from parent)
+        # 2.2 Reuse CONTACT structure to specify locations per prop (adapted from parent to add `phone`)
         self._data_structures[ct_prop] = format_xpaths(
             ct_defintion,
             name=ct_xpath.format(ct_path='individualName/CharacterString'),
@@ -218,16 +223,16 @@ class CustomIsoParser(IsoParser):
             )
         )
 
-        # Set the contact root to insert new elements at "contact" level given the defined path:
+        # 2.3 Set the contact root to insert new elements at "contact" level given the defined path:
         #   'contact/CI_ResponsibleParty/...'
         # By default we would get multiple "CI_ResponsibleParty" elements under a single "contact"
         # This way we get multiple "contact" elements, each with its own single "CI_ResponsibleParty"
         self._data_map['_{prop}_root'.format(prop=ct_prop)] = 'contact'
 
-        # Use the built-in support for parsing complex properties (or write your own a parser/updater)
+        # 2.4 Leverage the default methods for parsing complex properties (or write your own parser/updater)
         self._data_map[ct_prop] = ParserProperty(self._parse_complex_list, self._update_complex_list)
 
-        # And finally, let the parent validation logic know about the two new custom properties
+        # 3. And finally, let the parent validation logic know about the two new custom properties
 
         self._metadata_props.add(lang_prop)
         self._metadata_props.add(ct_prop)
