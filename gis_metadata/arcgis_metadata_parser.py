@@ -2,9 +2,13 @@
 
 import six
 
+from frozendict import frozendict
+from parserutils.collections import flatten_items, reduce_value, wrap_value
+from parserutils.elements import get_elements, get_element_name, get_element_attributes
+from parserutils.elements import clear_element, element_to_dict, insert_element, remove_element, remove_empty_element
+
 from gis_metadata.exceptions import InvalidContent
 from gis_metadata.metadata_parser import MetadataParser
-
 from gis_metadata.utils import DATE_TYPE, DATE_TYPE_SINGLE, DATE_TYPE_MULTIPLE
 from gis_metadata.utils import DATE_TYPE_RANGE, DATE_TYPE_RANGE_BEGIN, DATE_TYPE_RANGE_END
 from gis_metadata.utils import ATTRIBUTES
@@ -16,16 +20,9 @@ from gis_metadata.utils import KEYWORDS_PLACE, KEYWORDS_STRATUM, KEYWORDS_TEMPOR
 from gis_metadata.utils import LARGER_WORKS
 from gis_metadata.utils import PROCESS_STEPS
 from gis_metadata.utils import RASTER_DIMS, RASTER_INFO
-from gis_metadata.utils import ParserProperty
-
-from gis_metadata.utils import format_xpaths, get_complex_definitions
-from gis_metadata.utils import get_default_for_complex, get_default_for_complex_sub
-from gis_metadata.utils import parse_complex_list, update_complex_list
-from gis_metadata.utils import parse_property, update_property
-
-from parserutils.collections import flatten_items, reduce_value, wrap_value
-from parserutils.elements import get_elements, get_element_name, get_element_attributes
-from parserutils.elements import clear_element, element_to_dict, insert_element, remove_element, remove_empty_element
+from gis_metadata.utils import COMPLEX_DEFINITIONS, ParserProperty
+from gis_metadata.utils import format_xpaths, get_default_for_complex, get_default_for_complex_sub
+from gis_metadata.utils import parse_complex_list, parse_property, update_complex_list, update_property
 
 
 iteritems = getattr(six, 'iteritems')
@@ -36,9 +33,7 @@ xrange = getattr(six_moves, 'xrange')
 ARCGIS_ROOTS = ('metadata', 'Metadata')
 ARCGIS_NODES = ('dataIdInfo', 'distInfo', 'dqInfo', 'Esri')
 
-_agis_definitions = get_complex_definitions()
-
-_agis_tag_formats = {
+ARCGIS_TAG_FORMATS = frozendict({
     '_attribute_accuracy_root': 'dqInfo/report',
     '_attributes_root': 'eainfo/detailed/attr',
     '_bounding_box_root': 'dataIdInfo/dataExt/geoEle',
@@ -108,7 +103,7 @@ _agis_tag_formats = {
     'product_keywords': 'dataIdInfo/productKeys/keyword',
     'search_keywords': 'dataIdInfo/searchKeys/keyword',
     'topic_category_keywords': 'dataIdInfo/subTopicCatKeys/keyword'
-}
+})
 
 
 class ArcGISParser(MetadataParser):
@@ -131,7 +126,7 @@ class ArcGISParser(MetadataParser):
             raise InvalidContent('Invalid XML root for ArcGIS metadata: {root}', root=agis_root)
 
         agis_data_map = {'_root': agis_root}
-        agis_data_map.update(_agis_tag_formats)
+        agis_data_map.update(ARCGIS_TAG_FORMATS)
 
         agis_data_structures = {}
 
@@ -139,7 +134,7 @@ class ArcGISParser(MetadataParser):
 
         ad_format = agis_data_map[ATTRIBUTES]
         agis_data_structures[ATTRIBUTES] = format_xpaths(
-            _agis_definitions[ATTRIBUTES],
+            COMPLEX_DEFINITIONS[ATTRIBUTES],
             label=ad_format.format(ad_path='attrlabl'),
             aliases=ad_format.format(ad_path='attalias'),
             definition=ad_format.format(ad_path='attrdef'),
@@ -148,7 +143,7 @@ class ArcGISParser(MetadataParser):
 
         bb_format = agis_data_map[BOUNDING_BOX]
         agis_data_structures[BOUNDING_BOX] = format_xpaths(
-            _agis_definitions[BOUNDING_BOX],
+            COMPLEX_DEFINITIONS[BOUNDING_BOX],
             east=bb_format.format(bbox_path='eastBL'),
             south=bb_format.format(bbox_path='southBL'),
             west=bb_format.format(bbox_path='westBL'),
@@ -157,7 +152,7 @@ class ArcGISParser(MetadataParser):
 
         ct_format = agis_data_map[CONTACTS]
         agis_data_structures[CONTACTS] = format_xpaths(
-            _agis_definitions[CONTACTS],
+            COMPLEX_DEFINITIONS[CONTACTS],
             name=ct_format.format(ct_path='rpIndName'),
             organization=ct_format.format(ct_path='rpOrgName'),
             position=ct_format.format(ct_path='rpPosName'),
@@ -188,7 +183,7 @@ class ArcGISParser(MetadataParser):
 
         df_format = agis_data_map[DIGITAL_FORMS]
         agis_data_structures[DIGITAL_FORMS] = format_xpaths(
-            _agis_definitions[DIGITAL_FORMS],
+            COMPLEX_DEFINITIONS[DIGITAL_FORMS],
             name=df_format.format(df_path='formatName'),
             content=df_format.format(df_path='formatInfo'),
             decompression=df_format.format(df_path='fileDecmTech'),
@@ -201,7 +196,7 @@ class ArcGISParser(MetadataParser):
 
         lw_format = agis_data_map[LARGER_WORKS]
         agis_data_structures[LARGER_WORKS] = format_xpaths(
-            _agis_definitions[LARGER_WORKS],
+            COMPLEX_DEFINITIONS[LARGER_WORKS],
             title=lw_format.format(lw_path='resTitle'),
             edition=lw_format.format(lw_path='resEd'),
             origin=lw_format.format(lw_path='citRespParty/rpIndName'),
@@ -214,7 +209,7 @@ class ArcGISParser(MetadataParser):
 
         ps_format = agis_data_map[PROCESS_STEPS]
         agis_data_structures[PROCESS_STEPS] = format_xpaths(
-            _agis_definitions[PROCESS_STEPS],
+            COMPLEX_DEFINITIONS[PROCESS_STEPS],
             description=ps_format.format(ps_path='stepDesc'),
             date=ps_format.format(ps_path='stepDateTm'),
             sources=ps_format.format(ps_path='stepSrc/srcDesc')
@@ -222,7 +217,7 @@ class ArcGISParser(MetadataParser):
 
         ri_format = agis_data_map[RASTER_INFO]
         agis_data_structures[RASTER_INFO] = format_xpaths(
-            _agis_definitions[RASTER_DIMS],
+            COMPLEX_DEFINITIONS[RASTER_DIMS],
             type=ri_format.format(ri_path='@type'),
             size=ri_format.format(ri_path='dimSize'),
             value=ri_format.format(ri_path='dimResol/value'),
@@ -276,7 +271,7 @@ class ArcGISParser(MetadataParser):
         parsed_forms = []
 
         for idx in xrange(0, max(df_len, to_len)):
-            digital_form = {}.fromkeys(_agis_definitions[prop], u'')
+            digital_form = {}.fromkeys(COMPLEX_DEFINITIONS[prop], u'')
 
             if idx < df_len:
                 digital_form.update(i for i in digital_forms[idx].items() if i[1])
@@ -308,7 +303,7 @@ class ArcGISParser(MetadataParser):
     def _parse_raster_info(self, prop=RASTER_INFO):
         """ Collapses multiple dimensions into a single raster_info complex struct """
 
-        raster_info = {}.fromkeys(_agis_definitions[prop], u'')
+        raster_info = {}.fromkeys(COMPLEX_DEFINITIONS[prop], u'')
 
         # Ensure conversion of lists to newlines is in place
         raster_info['dimensions'] = get_default_for_complex_sub(
@@ -340,7 +335,7 @@ class ArcGISParser(MetadataParser):
     def _update_digital_forms(self, **update_props):
         """
         Update operation for ArcGIS Digital Forms metadata
-        :see: gis_metadata.utils._complex_definitions[DIGITAL_FORMS]
+        :see: gis_metadata.utils.COMPLEX_DEFINITIONS[DIGITAL_FORMS]
         """
 
         digital_forms = wrap_value(update_props['values'])
@@ -385,7 +380,7 @@ class ArcGISParser(MetadataParser):
     def _update_dates(self, **update_props):
         """
         Update operation for ArcGIS Dates metadata
-        :see: gis_metadata.utils._complex_definitions[DATES]
+        :see: gis_metadata.utils.COMPLEX_DEFINITIONS[DATES]
         """
 
         tree_to_update = update_props['tree_to_update']

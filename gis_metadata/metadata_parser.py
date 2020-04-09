@@ -11,9 +11,9 @@ from parserutils.strings import DEFAULT_ENCODING
 from gis_metadata.exceptions import InvalidContent, NoContent
 from gis_metadata.utils import DATES, DATE_TYPE, DATE_VALUES
 from gis_metadata.utils import DATE_TYPE_RANGE, DATE_TYPE_RANGE_BEGIN, DATE_TYPE_RANGE_END
+from gis_metadata.utils import SUPPORTED_PROPS
 from gis_metadata.utils import parse_complex, parse_complex_list, parse_dates, parse_property
 from gis_metadata.utils import update_complex, update_complex_list, update_property, validate_any, validate_properties
-from gis_metadata.utils import _supported_props
 
 
 iteritems = getattr(six, 'iteritems')
@@ -40,7 +40,7 @@ def convert_parser_to(parser, parser_or_type, metadata_props=None):
     old_parser = parser if isinstance(parser, MetadataParser) else get_metadata_parser(parser)
     new_parser = get_metadata_parser(parser_or_type)
 
-    for prop in (metadata_props or _supported_props):
+    for prop in (metadata_props or SUPPORTED_PROPS):
         setattr(new_parser, prop, deepcopy(getattr(old_parser, prop, u'')))
 
     new_parser.update()
@@ -184,7 +184,7 @@ class MetadataParser(object):
     II. If the new field contains complex XML content:
 
         A. Add the new complex definition to utils
-            :see: gis_metadata.utils._complex_definitions for examples of complex XML content
+            :see: gis_metadata.utils.COMPLEX_DEFINITIONS for examples of complex XML content
 
         B. Define the necessary property parsing and updating methods in the child parsers
 
@@ -202,7 +202,7 @@ class MetadataParser(object):
             The _data_map dictionary will contain identifying property names as keys, and either
             XPATHs or ParserProperties as values.
 
-    III. If the new content is required across standards, update utils._supported_props as needed
+    III. If the new content is required across standards, update utils.SUPPORTED_PROPS as needed
 
         Requiring new content does not mean a value is required from the incoming metadata. Rather,
         it means all MetadataParser children must provide an XPATH for parsing the value, even if
@@ -217,13 +217,13 @@ class MetadataParser(object):
         :see: get_parsed_content(metdata_content) for more on what constitutes valid content
         """
 
-        self.has_data = False
-        self.out_file_or_path = out_file_or_path
+        self._has_data = False
+        self._out_file_or_path = out_file_or_path
 
         self._xml_tree = None
         self._data_map = None
         self._data_structures = None
-        self._metadata_props = set(metadata_props or _supported_props)
+        self._metadata_props = set(metadata_props or SUPPORTED_PROPS)
 
         if metadata_to_parse is not None:
             self._xml_root, self._xml_tree = get_parsed_content(metadata_to_parse)
@@ -251,7 +251,7 @@ class MetadataParser(object):
         for prop in self._data_map:
             setattr(self, prop, parse_property(self._xml_tree, None, self._data_map, prop))
 
-        self.has_data = any(getattr(self, prop) for prop in self._data_map)
+        self._has_data = any(getattr(self, prop) for prop in self._data_map)
 
     def _init_data_map(self):
         """ Default data map initialization: MUST be overridden in children """
@@ -332,7 +332,7 @@ class MetadataParser(object):
     def _update_dates(self, xpath_root=None, **update_props):
         """
         Default update operation for Dates metadata
-        :see: gis_metadata.utils._complex_definitions[DATES]
+        :see: gis_metadata.utils.COMPLEX_DEFINITIONS[DATES]
         """
 
         tree_to_update = update_props['tree_to_update']
@@ -361,7 +361,16 @@ class MetadataParser(object):
         as a parser, it must have
         :param new_parser_or_type: a new parser to initialize, or parser type to instantiate
         """
-        return convert_parser_to(self, new_parser_or_type, self._metadata_props)
+
+        try:
+            to_dict = issubclass(new_parser_or_type, dict)
+        except TypeError:
+            to_dict = isinstance(new_parser_or_type, dict)
+
+        if to_dict:
+            return {p: getattr(self, p) for p in self._metadata_props if p[0] != '_'}
+        else:
+            return convert_parser_to(self, new_parser_or_type, self._metadata_props)
 
     def serialize(self, use_template=False):
         """
@@ -374,12 +383,12 @@ class MetadataParser(object):
         """
         Validates instance properties, updates an XML tree with them, and writes the content to a file.
         :param use_template: if True, updates a new template XML tree; otherwise the original XML tree
-        :param out_file_or_path: optionally override self.out_file_or_path with a custom file path
+        :param out_file_or_path: optionally override self._out_file_or_path with a custom file path
         :param encoding: optionally use another encoding instead of UTF-8
         """
 
         if not out_file_or_path:
-            out_file_or_path = self.out_file_or_path
+            out_file_or_path = self._out_file_or_path
 
         if not out_file_or_path:
             # FileNotFoundError doesn't exist in Python 2

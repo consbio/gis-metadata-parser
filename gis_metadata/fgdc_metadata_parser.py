@@ -2,12 +2,11 @@
 
 import six
 
-from parserutils.elements import get_element_name
+from frozendict import frozendict
+from parserutils.elements import get_element_name, remove_element
 
 from gis_metadata.exceptions import InvalidContent
 from gis_metadata.metadata_parser import MetadataParser
-
-from gis_metadata.utils import remove_element
 from gis_metadata.utils import DATE_TYPE, DATE_TYPE_SINGLE, DATE_TYPE_MULTIPLE
 from gis_metadata.utils import DATE_TYPE_RANGE, DATE_TYPE_RANGE_BEGIN, DATE_TYPE_RANGE_END
 from gis_metadata.utils import ATTRIBUTES
@@ -19,9 +18,8 @@ from gis_metadata.utils import KEYWORDS_PLACE, KEYWORDS_STRATUM, KEYWORDS_TEMPOR
 from gis_metadata.utils import LARGER_WORKS
 from gis_metadata.utils import PROCESS_STEPS
 from gis_metadata.utils import RASTER_INFO
-from gis_metadata.utils import ParserProperty
-
-from gis_metadata.utils import format_xpaths, get_complex_definitions, update_complex
+from gis_metadata.utils import COMPLEX_DEFINITIONS, ParserProperty
+from gis_metadata.utils import format_xpaths, update_complex
 
 
 iteritems = getattr(six, 'iteritems')
@@ -29,21 +27,19 @@ iteritems = getattr(six, 'iteritems')
 
 FGDC_ROOT = 'metadata'
 
-_fgdc_definitions = get_complex_definitions()
-
-# Define backup locations for contact sub-properties
-_fgdc_definitions[CONTACTS].update({
+# Define backup locations for contact and raster_info sub-properties
+FGDC_DEFINITIONS = dict({k: dict(v) for k, v in iteritems(COMPLEX_DEFINITIONS)})
+FGDC_DEFINITIONS[CONTACTS].update({
     '_name': '{_name}',
     '_organization': '{_organization}'
 })
-
-# Define backup locations for raster_info sub-properties
-_fgdc_definitions[RASTER_INFO].update({
+FGDC_DEFINITIONS[RASTER_INFO].update({
     '_x_resolution': '{_x_resolution}',
     '_y_resolution': '{_y_resolution}'
 })
+FGDC_DEFINITIONS = frozendict({k: frozendict(v) for k, v in iteritems(FGDC_DEFINITIONS)})
 
-_fgdc_tag_formats = {
+FGDC_TAG_FORMATS = frozendict({
     '_attributes_root': 'eainfo/detailed/attr',
     '_bounding_box_root': 'idinfo/spdom/bounding',
     '_contacts_root': 'idinfo/ptcontac',
@@ -99,7 +95,7 @@ _fgdc_tag_formats = {
     KEYWORDS_STRATUM: 'idinfo/keywords/stratum/stratkey',
     KEYWORDS_TEMPORAL: 'idinfo/keywords/temporal/tempkey',
     KEYWORDS_THEME: 'idinfo/keywords/theme/themekey'
-}
+})
 
 
 class FgdcParser(MetadataParser):
@@ -126,27 +122,27 @@ class FgdcParser(MetadataParser):
 
         # Capture and format other complex XPATHs
 
-        ad_format = _fgdc_tag_formats[ATTRIBUTES]
+        ad_format = FGDC_TAG_FORMATS[ATTRIBUTES]
         fgdc_data_structures[ATTRIBUTES] = format_xpaths(
-            _fgdc_definitions[ATTRIBUTES],
+            FGDC_DEFINITIONS[ATTRIBUTES],
             label=ad_format.format(ad_path='attrlabl'),
             aliases=ad_format.format(ad_path='attalias'),
             definition=ad_format.format(ad_path='attrdef'),
             definition_src=ad_format.format(ad_path='attrdefs')
         )
 
-        bb_format = _fgdc_tag_formats[BOUNDING_BOX]
+        bb_format = FGDC_TAG_FORMATS[BOUNDING_BOX]
         fgdc_data_structures[BOUNDING_BOX] = format_xpaths(
-            _fgdc_definitions[BOUNDING_BOX],
+            FGDC_DEFINITIONS[BOUNDING_BOX],
             east=bb_format.format(bbox_path='eastbc'),
             south=bb_format.format(bbox_path='southbc'),
             west=bb_format.format(bbox_path='westbc'),
             north=bb_format.format(bbox_path='northbc')
         )
 
-        ct_format = _fgdc_tag_formats[CONTACTS]
+        ct_format = FGDC_TAG_FORMATS[CONTACTS]
         fgdc_data_structures[CONTACTS] = format_xpaths(
-            _fgdc_definitions[CONTACTS],
+            FGDC_DEFINITIONS[CONTACTS],
 
             name=ct_format.format(ct_path='cntperp/cntper'),
             _name=ct_format.format(ct_path='cntorgp/cntper'),  # If not in cntperp
@@ -158,7 +154,7 @@ class FgdcParser(MetadataParser):
             email=ct_format.format(ct_path='cntemail')
         )
 
-        dt_format = _fgdc_tag_formats[DATES]
+        dt_format = FGDC_TAG_FORMATS[DATES]
         fgdc_data_structures[DATES] = {
             DATE_TYPE_MULTIPLE: dt_format.format(type_path='mdattim/sngdate/caldate'),
             DATE_TYPE_RANGE_BEGIN: dt_format.format(type_path='rngdates/begdate'),
@@ -170,9 +166,9 @@ class FgdcParser(MetadataParser):
             fgdc_data_structures[DATES][DATE_TYPE_RANGE_END]
         ]
 
-        df_format = _fgdc_tag_formats[DIGITAL_FORMS]
+        df_format = FGDC_TAG_FORMATS[DIGITAL_FORMS]
         fgdc_data_structures[DIGITAL_FORMS] = format_xpaths(
-            _fgdc_definitions[DIGITAL_FORMS],
+            FGDC_DEFINITIONS[DIGITAL_FORMS],
             name=df_format.format(df_path='digtinfo/formname'),
             content=df_format.format(df_path='digtinfo/formcont'),
             decompression=df_format.format(df_path='digtinfo/filedec'),
@@ -183,9 +179,9 @@ class FgdcParser(MetadataParser):
             network_resource=df_format.format(df_path='digtopt/onlinopt/computer/networka/networkr')
         )
 
-        lw_format = _fgdc_tag_formats[LARGER_WORKS]
+        lw_format = FGDC_TAG_FORMATS[LARGER_WORKS]
         fgdc_data_structures[LARGER_WORKS] = format_xpaths(
-            _fgdc_definitions[LARGER_WORKS],
+            FGDC_DEFINITIONS[LARGER_WORKS],
             title=lw_format.format(lw_path='title'),
             edition=lw_format.format(lw_path='edition'),
             origin=lw_format.format(lw_path='origin'),
@@ -196,34 +192,32 @@ class FgdcParser(MetadataParser):
             info=lw_format.format(lw_path='pubinfo/publish')
         )
 
-        ps_format = _fgdc_tag_formats[PROCESS_STEPS]
+        ps_format = FGDC_TAG_FORMATS[PROCESS_STEPS]
         fgdc_data_structures[PROCESS_STEPS] = format_xpaths(
-            _fgdc_definitions[PROCESS_STEPS],
+            FGDC_DEFINITIONS[PROCESS_STEPS],
             description=ps_format.format(ps_path='procdesc'),
             date=ps_format.format(ps_path='procdate'),
             sources=ps_format.format(ps_path='srcused')
         )
 
-        ri_format = _fgdc_tag_formats[RASTER_INFO]
+        ri_format = FGDC_TAG_FORMATS[RASTER_INFO]
         fgdc_data_structures[RASTER_INFO] = format_xpaths(
-            _fgdc_definitions[RASTER_INFO],
+            FGDC_DEFINITIONS[RASTER_INFO],
 
             dimensions=ri_format.format(ri_path='rasttype'),
             row_count=ri_format.format(ri_path='rowcount'),
             column_count=ri_format.format(ri_path='colcount'),
             vertical_count=ri_format.format(ri_path='vrtcount'),
 
-            x_resolution=_fgdc_tag_formats['_raster_resolution'] + '/absres',
-            _x_resolution=_fgdc_tag_formats['__raster_resolution'] + '/longres',
-            y_resolution=_fgdc_tag_formats['_raster_resolution'] + '/ordres',
-            _y_resolution=_fgdc_tag_formats['__raster_resolution'] + '/latres',
+            x_resolution=FGDC_TAG_FORMATS['_raster_resolution'] + '/absres',
+            _x_resolution=FGDC_TAG_FORMATS['__raster_resolution'] + '/longres',
+            y_resolution=FGDC_TAG_FORMATS['_raster_resolution'] + '/ordres',
+            _y_resolution=FGDC_TAG_FORMATS['__raster_resolution'] + '/latres',
         )
 
         # Assign XPATHS and gis_metadata.utils.ParserProperties to fgdc_data_map
 
-        fgdc_data_formats = dict(_fgdc_tag_formats)
-
-        for prop, xpath in iteritems(fgdc_data_formats):
+        for prop, xpath in iteritems(FGDC_TAG_FORMATS):
             if prop in (ATTRIBUTES, CONTACTS, DIGITAL_FORMS, PROCESS_STEPS):
                 fgdc_data_map[prop] = ParserProperty(self._parse_complex_list, self._update_complex_list)
 
@@ -245,7 +239,7 @@ class FgdcParser(MetadataParser):
     def _update_dates(self, **update_props):
         """
         Update operation for FGDC Dates metadata
-        :see: gis_metadata.utils._complex_definitions[DATES]
+        :see: gis_metadata.utils.COMPLEX_DEFINITIONS[DATES]
         """
 
         tree_to_update = update_props['tree_to_update']

@@ -10,17 +10,17 @@ from parserutils.elements import insert_element, remove_element, remove_element_
 
 from gis_metadata.arcgis_metadata_parser import ArcGISParser, ARCGIS_NODES, ARCGIS_ROOTS
 from gis_metadata.fgdc_metadata_parser import FgdcParser, FGDC_ROOT
-from gis_metadata.iso_metadata_parser import IsoParser, ISO_ROOTS, _iso_tag_formats
+from gis_metadata.iso_metadata_parser import IsoParser, ISO_ROOTS, ISO_TAG_FORMATS
 from gis_metadata.metadata_parser import MetadataParser, get_metadata_parser, get_parsed_content
 
 from gis_metadata.exceptions import ConfigurationError, InvalidContent, NoContent, ValidationError
-from gis_metadata.utils import format_xpaths, get_complex_definitions, get_default_for_complex, get_supported_props
 from gis_metadata.utils import DATE_TYPE, DATE_VALUES
 from gis_metadata.utils import DATE_TYPE_SINGLE, DATE_TYPE_RANGE, DATE_TYPE_MISSING, DATE_TYPE_MULTIPLE
 from gis_metadata.utils import ATTRIBUTES, CONTACTS, DIGITAL_FORMS, PROCESS_STEPS
 from gis_metadata.utils import BOUNDING_BOX, DATES, LARGER_WORKS, RASTER_INFO
 from gis_metadata.utils import KEYWORDS_PLACE, KEYWORDS_STRATUM, KEYWORDS_TEMPORAL, KEYWORDS_THEME
-from gis_metadata.utils import ParserProperty
+from gis_metadata.utils import COMPLEX_DEFINITIONS, SUPPORTED_PROPS, ParserProperty
+from gis_metadata.utils import format_xpaths, get_default_for_complex
 
 
 iteritems = getattr(six, 'iteritems')
@@ -206,7 +206,7 @@ class MetadataParserTestCase(unittest.TestCase):
         parser_name = parser_type.__name__
         reparsed = getattr(parser_type(parser.serialize()), prop)
 
-        if prop in get_complex_definitions():
+        if prop in COMPLEX_DEFINITIONS:
             target = get_default_for_complex(prop, target)
 
         if isinstance(reparsed, dict):
@@ -260,7 +260,7 @@ class MetadataParserTestCase(unittest.TestCase):
             '{0} conversion is returning the original {0} instance'.format(type(converted).__name__)
         )
 
-        for prop in get_supported_props():
+        for prop in SUPPORTED_PROPS:
             self.assertEqual(
                 getattr(content_parser, prop), getattr(converted, prop),
                 '{0} {1}conversion does not equal original {2} content for {3}'.format(
@@ -274,25 +274,23 @@ class MetadataParserTestCase(unittest.TestCase):
         self.assert_valid_parser(parser_tgt)
         self.assert_valid_parser(parser_val)
 
-        for prop in get_supported_props():
+        for prop in SUPPORTED_PROPS:
             self.assert_equal_for(parser_type, prop, getattr(parser_val, prop), getattr(parser_tgt, prop))
 
     def assert_parser_after_write(self, parser_type, in_file, out_file_path, use_template=False):
 
         parser = parser_type(in_file, out_file_path)
 
-        complex_defs = get_complex_definitions()
-
         # Update each value and read the file in again
-        for prop in get_supported_props():
+        for prop in SUPPORTED_PROPS:
 
             if prop in (ATTRIBUTES, CONTACTS, DIGITAL_FORMS, PROCESS_STEPS):
                 value = [
-                    {}.fromkeys(complex_defs[prop], 'test'),
-                    {}.fromkeys(complex_defs[prop], prop)
+                    {}.fromkeys(COMPLEX_DEFINITIONS[prop], 'test'),
+                    {}.fromkeys(COMPLEX_DEFINITIONS[prop], prop)
                 ]
             elif prop in (BOUNDING_BOX, LARGER_WORKS, RASTER_INFO):
-                value = {}.fromkeys(complex_defs[prop], 'test ' + prop)
+                value = {}.fromkeys(COMPLEX_DEFINITIONS[prop], 'test ' + prop)
             elif prop == DATES:
                 value = {DATE_TYPE: DATE_TYPE_RANGE, DATE_VALUES: ['test', prop]}
             elif prop in KEYWORD_PROPS:
@@ -300,7 +298,7 @@ class MetadataParserTestCase(unittest.TestCase):
             else:
                 value = 'test ' + prop
 
-            if prop in get_complex_definitions():
+            if prop in COMPLEX_DEFINITIONS:
                 value = get_default_for_complex(prop, value)
 
             setattr(parser, prop, value)
@@ -714,7 +712,7 @@ class MetadataParserTests(MetadataParserTestCase):
 
         # Test contact data structure defaults
 
-        contacts_def = get_complex_definitions()[CONTACTS]
+        contacts_def = COMPLEX_DEFINITIONS[CONTACTS]
 
         # Remove the contact organization completely
         fgdc_element = get_remote_element(self.fgdc_file)
@@ -745,7 +743,7 @@ class MetadataParserTests(MetadataParserTestCase):
 
         # Remove the attribute details href attribute
         iso_element = get_remote_element(self.iso_file)
-        for citation_element in get_elements(iso_element, _iso_tag_formats['_attr_citation']):
+        for citation_element in get_elements(iso_element, ISO_TAG_FORMATS['_attr_citation']):
             removed = remove_element_attributes(citation_element, 'href')
 
         # Assert that the href attribute was removed and a different one was read in
@@ -758,7 +756,7 @@ class MetadataParserTests(MetadataParserTestCase):
 
         # Remove the attribute details linkage attribute
         iso_element = get_remote_element(self.iso_file)
-        for linkage_element in get_elements(iso_element, _iso_tag_formats['_attr_contact_url']):
+        for linkage_element in get_elements(iso_element, ISO_TAG_FORMATS['_attr_contact_url']):
             removed = get_element_text(linkage_element)
             clear_element(linkage_element)
 
@@ -771,7 +769,7 @@ class MetadataParserTests(MetadataParserTestCase):
         self.assertNotEqual(linkage_url, removed, 'ISO file URL is the same as the one removed')
 
         # Change the href attribute so that it is invalid
-        for citation_element in get_elements(iso_element, _iso_tag_formats['_attr_citation']):
+        for citation_element in get_elements(iso_element, ISO_TAG_FORMATS['_attr_citation']):
             removed = set_element_attributes(citation_element, href='neither url nor file')
 
         # Assert that the href attribute was removed and a different one was read in
@@ -800,7 +798,7 @@ class MetadataParserTests(MetadataParserTestCase):
         self.assert_parsers_are_equal(fgdc_parser, fgdc_new)
 
         iso_element = get_remote_element(self.iso_file)
-        remove_element(iso_element, _iso_tag_formats['_attr_citation'], True)
+        remove_element(iso_element, ISO_TAG_FORMATS['_attr_citation'], True)
         iso_parser = IsoParser(element_to_string(iso_element))
         iso_new = IsoParser(**TEST_METADATA_VALUES)
 
@@ -823,21 +821,34 @@ class MetadataParserTests(MetadataParserTestCase):
     def test_parser_conversion(self):
         arcgis_parser = ArcGISParser(self.arcgis_metadata)
         fgdc_parser = FgdcParser(self.fgdc_metadata)
-        iso_parser = IsoParser(self.iso_metadata)
+
+        # Remove references to remote attribute details files in MD_FeatureCatalogueDescription
+        iso_element = get_remote_element(self.iso_file)
+        for citation_element in get_elements(iso_element, ISO_TAG_FORMATS['_attr_citation']):
+            clear_element(citation_element)
+        iso_parser = IsoParser(element_to_string(iso_element))
 
         self.assert_parser_conversion(arcgis_parser, fgdc_parser, 'file')
         self.assert_parser_conversion(arcgis_parser, iso_parser, 'file')
+        self.assertEqual(arcgis_parser.convert_to(dict), TEST_METADATA_VALUES)
 
         self.assert_parser_conversion(fgdc_parser, arcgis_parser, 'file')
         self.assert_parser_conversion(fgdc_parser, iso_parser, 'file')
+        self.assertEqual(fgdc_parser.convert_to(dict), TEST_METADATA_VALUES)
 
         self.assert_parser_conversion(iso_parser, arcgis_parser, 'file')
         self.assert_parser_conversion(iso_parser, fgdc_parser, 'file')
+        self.assertEqual(iso_parser.convert_to(dict), TEST_METADATA_VALUES)
 
     def test_conversion_from_dict(self):
         arcgis_parser = ArcGISParser(self.arcgis_metadata)
         fgdc_parser = FgdcParser(self.fgdc_metadata)
-        iso_parser = IsoParser(self.iso_metadata)
+
+        # Remove references to remote attribute details files in MD_FeatureCatalogueDescription
+        iso_element = get_remote_element(self.iso_file)
+        for citation_element in get_elements(iso_element, ISO_TAG_FORMATS['_attr_citation']):
+            clear_element(citation_element)
+        iso_parser = IsoParser(element_to_string(iso_element))
 
         self.assert_parser_conversion(
             arcgis_parser, get_metadata_parser(element_to_dict(fgdc_parser._xml_tree, recurse=True)), 'dict-based'
@@ -845,6 +856,7 @@ class MetadataParserTests(MetadataParserTestCase):
         self.assert_parser_conversion(
             arcgis_parser, get_metadata_parser(element_to_dict(iso_parser._xml_tree, recurse=True)), 'dict-based'
         )
+        self.assertEqual(arcgis_parser.convert_to(dict), TEST_METADATA_VALUES)
 
         self.assert_parser_conversion(
             fgdc_parser, get_metadata_parser(element_to_dict(arcgis_parser._xml_tree, recurse=True)), 'dict-based'
@@ -852,6 +864,7 @@ class MetadataParserTests(MetadataParserTestCase):
         self.assert_parser_conversion(
             fgdc_parser, get_metadata_parser(element_to_dict(iso_parser._xml_tree, recurse=True)), 'dict-based'
         )
+        self.assertEqual(fgdc_parser.convert_to(dict), TEST_METADATA_VALUES)
 
         self.assert_parser_conversion(
             iso_parser, get_metadata_parser(element_to_dict(arcgis_parser._xml_tree, recurse=True)), 'dict-based'
@@ -859,11 +872,17 @@ class MetadataParserTests(MetadataParserTestCase):
         self.assert_parser_conversion(
             iso_parser, get_metadata_parser(element_to_dict(fgdc_parser._xml_tree, recurse=True)), 'dict-based'
         )
+        self.assertEqual(iso_parser.convert_to(dict), TEST_METADATA_VALUES)
 
     def test_conversion_from_str(self):
         arcgis_parser = ArcGISParser(self.arcgis_metadata)
         fgdc_parser = FgdcParser(self.fgdc_metadata)
-        iso_parser = IsoParser(self.iso_metadata)
+
+        # Remove references to remote attribute details files in MD_FeatureCatalogueDescription
+        iso_element = get_remote_element(self.iso_file)
+        for citation_element in get_elements(iso_element, ISO_TAG_FORMATS['_attr_citation']):
+            clear_element(citation_element)
+        iso_parser = IsoParser(element_to_string(iso_element))
 
         self.assert_parser_conversion(
             arcgis_parser, get_metadata_parser(fgdc_parser.serialize()), 'str-based'
@@ -871,6 +890,7 @@ class MetadataParserTests(MetadataParserTestCase):
         self.assert_parser_conversion(
             arcgis_parser, get_metadata_parser(iso_parser.serialize()), 'str-based'
         )
+        self.assertEqual(arcgis_parser.convert_to(dict), TEST_METADATA_VALUES)
 
         self.assert_parser_conversion(
             fgdc_parser, get_metadata_parser(arcgis_parser.serialize()), 'str-based'
@@ -878,6 +898,7 @@ class MetadataParserTests(MetadataParserTestCase):
         self.assert_parser_conversion(
             fgdc_parser, get_metadata_parser(iso_parser.serialize()), 'str-based'
         )
+        self.assertEqual(fgdc_parser.convert_to(dict), TEST_METADATA_VALUES)
 
         self.assert_parser_conversion(
             iso_parser, get_metadata_parser(arcgis_parser.serialize()), 'str-based'
@@ -885,9 +906,9 @@ class MetadataParserTests(MetadataParserTestCase):
         self.assert_parser_conversion(
             iso_parser, get_metadata_parser(fgdc_parser.serialize()), 'str-based'
         )
+        self.assertEqual(iso_parser.convert_to(dict), TEST_METADATA_VALUES)
 
     def test_reparse_complex_lists(self):
-        complex_defs = get_complex_definitions()
         complex_lists = (ATTRIBUTES, CONTACTS, DIGITAL_FORMS)
 
         arcgis_parser = ArcGISParser(self.arcgis_metadata)
@@ -898,7 +919,7 @@ class MetadataParserTests(MetadataParserTestCase):
 
             # Test reparsed empty complex lists
             for prop in complex_lists:
-                for empty in (None, [], [{}], [{}.fromkeys(complex_defs[prop], u'')]):
+                for empty in (None, [], [{}], [{}.fromkeys(COMPLEX_DEFINITIONS[prop], u'')]):
                     self.assert_reparsed_complex_for(parser, prop, empty, [])
 
             # Test reparsed valid complex lists (strings and lists for each property in each struct)
@@ -908,15 +929,14 @@ class MetadataParserTests(MetadataParserTestCase):
                 for val in self.valid_complex_values:
 
                     # Test with single unwrapped value
-                    next_complex = {}.fromkeys(complex_defs[prop], val)
+                    next_complex = {}.fromkeys(COMPLEX_DEFINITIONS[prop], val)
                     self.assert_reparsed_complex_for(parser, prop, next_complex, wrap_value(next_complex))
 
                     # Test with accumulated list of values
-                    complex_list.append({}.fromkeys(complex_defs[prop], val))
+                    complex_list.append({}.fromkeys(COMPLEX_DEFINITIONS[prop], val))
                     self.assert_reparsed_complex_for(parser, prop, complex_list, wrap_value(complex_list))
 
     def test_reparse_complex_structs(self):
-        complex_defs = get_complex_definitions()
         complex_structs = (BOUNDING_BOX, LARGER_WORKS, RASTER_INFO)
 
         arcgis_parser = ArcGISParser(self.arcgis_metadata)
@@ -927,13 +947,13 @@ class MetadataParserTests(MetadataParserTestCase):
 
             # Test reparsed empty complex structures
             for prop in complex_structs:
-                for empty in (None, {}, {}.fromkeys(complex_defs[prop], u'')):
+                for empty in (None, {}, {}.fromkeys(COMPLEX_DEFINITIONS[prop], u'')):
                     self.assert_reparsed_complex_for(parser, prop, empty, {})
 
             # Test reparsed valid complex structures
             for prop in complex_structs:
                 for val in self.valid_complex_values:
-                    complex_struct = {}.fromkeys(complex_defs[prop], val)
+                    complex_struct = {}.fromkeys(COMPLEX_DEFINITIONS[prop], val)
                     self.assert_reparsed_complex_for(parser, prop, complex_struct, complex_struct)
 
     def test_reparse_dates(self):
@@ -979,7 +999,7 @@ class MetadataParserTests(MetadataParserTestCase):
                     self.assert_reparsed_complex_for(parser, keyword_prop, keywords, wrap_value(keywords))
 
     def test_reparse_process_steps(self):
-        proc_step_def = get_complex_definitions()[PROCESS_STEPS]
+        proc_step_def = COMPLEX_DEFINITIONS[PROCESS_STEPS]
 
         arcgis_parser = ArcGISParser(self.arcgis_metadata)
         fgdc_parser = FgdcParser(self.fgdc_metadata)
@@ -1008,11 +1028,7 @@ class MetadataParserTests(MetadataParserTestCase):
 
     def test_reparse_simple_values(self):
 
-        complex_props = set(get_complex_definitions().keys())
-        required_props = set(get_supported_props())
-
-        simple_props = required_props.difference(complex_props)
-        simple_props = simple_props.difference(KEYWORD_PROPS)
+        simple_props = SUPPORTED_PROPS.difference(COMPLEX_DEFINITIONS).difference(KEYWORD_PROPS)
 
         simple_empty_vals = ('', u'', [])
         simple_valid_vals = (u'value', [u'item', u'list'])
@@ -1072,9 +1088,7 @@ class MetadataParserTests(MetadataParserTestCase):
                 self.assert_validates_for(parser, DATES, {DATE_TYPE: val[0], DATE_VALUES: val[1]})
 
     def test_validate_simple_values(self):
-        complex_props = set(get_complex_definitions().keys())
-        simple_props = set(get_supported_props()).difference(complex_props)
-
+        simple_props = SUPPORTED_PROPS.difference(COMPLEX_DEFINITIONS)
         invalid_values = (None, [None], dict(), [dict()], set(), [set()], tuple(), [tuple()])
 
         for parser in (ArcGISParser().validate(), FgdcParser().validate(), IsoParser().validate()):
@@ -1111,7 +1125,7 @@ class CustomIsoParser(IsoParser):
         # Define some basic variables
         ct_prop = 'metadata_contacts'
         ct_xpath = 'contact/CI_ResponsibleParty/{ct_path}'
-        ct_defintion = get_complex_definitions()[CONTACTS]
+        ct_defintion = dict(COMPLEX_DEFINITIONS[CONTACTS])
         ct_defintion['phone'] = '{phone}'
 
         # Reuse CONTACT structure to specify locations per prop (adapted only slightly from parent)

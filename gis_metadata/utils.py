@@ -2,7 +2,7 @@
 
 import six
 
-from copy import deepcopy
+from frozendict import frozendict
 
 from parserutils.collections import filter_empty, flatten_items, reduce_value, wrap_value
 from parserutils.elements import get_element, get_elements, get_elements_attributes, get_elements_text
@@ -41,30 +41,16 @@ RASTER_DIMS = '_raster_dims'
 # Grouping property name constants for complex definitions
 
 _COMPLEX_DELIM = '\n'
-_COMPLEX_LISTS = {
+_COMPLEX_LISTS = frozenset({
     ATTRIBUTES, CONTACTS, DIGITAL_FORMS, PROCESS_STEPS,
     KEYWORDS_PLACE, KEYWORDS_STRATUM, KEYWORDS_TEMPORAL, KEYWORDS_THEME,
-}
-_COMPLEX_STRUCTS = {BOUNDING_BOX, DATES, LARGER_WORKS, RASTER_INFO}
-_COMPLEX_WITH_MULTI = {
+})
+_COMPLEX_STRUCTS = frozenset({BOUNDING_BOX, DATES, LARGER_WORKS, RASTER_INFO})
+_COMPLEX_WITH_MULTI = frozendict({
     DATES: {'values'},
     LARGER_WORKS: {'origin'},
     PROCESS_STEPS: {'sources'}
-}
-
-
-# A set of identifying property names that must be supported by all parsers
-
-_supported_props = {
-    'title', 'abstract', 'purpose', 'supplementary_info',
-    'online_linkages', 'originators', 'publish_date', 'data_credits',
-    'dist_contact_org', 'dist_contact_person', 'dist_email', 'dist_phone',
-    'dist_address', 'dist_city', 'dist_state', 'dist_postal', 'dist_country',
-    'dist_liability', 'processing_fees', 'processing_instrs', 'resource_desc', 'tech_prerequisites',
-    ATTRIBUTES, 'attribute_accuracy', BOUNDING_BOX, CONTACTS, 'dataset_completeness',
-    LARGER_WORKS, PROCESS_STEPS, RASTER_INFO, 'use_constraints',
-    DATES, KEYWORDS_PLACE, KEYWORDS_STRATUM, KEYWORDS_TEMPORAL, KEYWORDS_THEME
-}
+})
 
 
 # Date specific constants for the DATES complex structure
@@ -86,37 +72,37 @@ DATE_VALUES = 'values'
 
 # To add a new complex definition field:
 #    1. Create a new constant representing the property name for the field
-#    2. Create a new item in _complex_definitions that represents the structure of the field
-#    3. If required by all metadata parsers, add the constant to _supported_props
+#    2. Create a new item in COMPLEX_DEFINITIONS that represents the structure of the field
+#    3. If required by all metadata parsers, add the constant to SUPPORTED_PROPS
 #    4. Update the target metadata parsers with a parse and update method for the new field
 #    5. Update the target metadata parsers' _init_data_map method to instantiate a ParserProperty
 #    6. Create a new validation method for the type if validate_complex or validate_complex_list won't suffice
 #    7. Update validate_any to recognize the constant and call the intended validation method
 
-_complex_definitions = {
-    ATTRIBUTES: {
+COMPLEX_DEFINITIONS = frozendict({
+    ATTRIBUTES: frozendict({
         'label': '{label}',                       # Text
         'aliases': '{aliases}',                   # Text
         'definition': '{definition}',             # Text
         'definition_source': '{definition_src}'   # Text
-    },
-    BOUNDING_BOX: {
+    }),
+    BOUNDING_BOX: frozendict({
         'east': '{east}',                         # Text
         'south': '{south}',                       # Text
         'west': '{west}',                         # Text
         'north': '{north}'                        # Text
-    },
-    CONTACTS: {
+    }),
+    CONTACTS: frozendict({
         'name': '{name}',                         # Text
         'email': '{email}',                       # Text
         'organization': '{organization}',         # Text
         'position': '{position}'                  # Text
-    },
-    DATES: {
+    }),
+    DATES: frozendict({
         DATE_TYPE: '{type}',                      # Text
         DATE_VALUES: '{values}'                   # Text []
-    },
-    DIGITAL_FORMS: {
+    }),
+    DIGITAL_FORMS: frozendict({
         'name': '{name}',                         # Text
         'content': '{content}',                   # Text
         'decompression': '{decompression}',       # Text
@@ -125,8 +111,8 @@ _complex_definitions = {
         'access_desc': '{access_desc}',           # Text
         'access_instrs': '{access_instrs}',       # Text
         'network_resource': '{network_resource}'  # Text
-    },
-    LARGER_WORKS: {
+    }),
+    LARGER_WORKS: frozendict({
         'title': '{title}',                       # Text
         'edition': '{edition}',                   # Text
         'origin': '{origin}',                     # Text []
@@ -135,28 +121,41 @@ _complex_definitions = {
         'publish_date': '{date}',                 # Text
         'publish_place': '{place}',               # Text
         'publish_info': '{info}'                  # Text
-    },
-    PROCESS_STEPS: {
+    }),
+    PROCESS_STEPS: frozendict({
         'description': '{description}',           # Text
         'date': '{date}',                         # Text
         'sources': '{sources}'                    # Text []
-    },
-    RASTER_INFO: {
+    }),
+    RASTER_INFO: frozendict({
         'dimensions': '{dimensions}',             # Text
         'row_count': '{row_count}',               # Text
         'column_count': '{column_count}',         # Text
         'vertical_count': '{vertical_count}',     # Text
         'x_resolution': '{x_resolution}',         # Text
         'y_resolution': '{y_resolution}',         # Text
-    },
-    RASTER_DIMS: {
+    }),
+    RASTER_DIMS: frozendict({
         # Captures dimension data for raster_info
         'type': '{type}',                         # Text
         'size': '{size}',                         # Text
         'value': '{value}',                       # Text
         'units': '{units}'                        # Text
-    }
-}
+    })
+})
+
+# A set of identifying property names that must be supported by all parsers
+
+SUPPORTED_PROPS = frozenset({
+    'title', 'abstract', 'purpose', 'other_citation_info', 'supplementary_info',
+    'online_linkages', 'originators', 'publish_date', 'data_credits', 'digital_forms',
+    'dist_contact_org', 'dist_contact_person', 'dist_email', 'dist_phone',
+    'dist_address', 'dist_address_type', 'dist_city', 'dist_state', 'dist_postal', 'dist_country',
+    'dist_liability', 'processing_fees', 'processing_instrs', 'resource_desc', 'tech_prerequisites',
+    ATTRIBUTES, 'attribute_accuracy', BOUNDING_BOX, CONTACTS, 'dataset_completeness',
+    LARGER_WORKS, PROCESS_STEPS, RASTER_INFO, 'use_constraints',
+    DATES, KEYWORDS_PLACE, KEYWORDS_STRATUM, KEYWORDS_TEMPORAL, KEYWORDS_THEME
+})
 
 
 def format_xpaths(xpath_map, *args, **kwargs):
@@ -168,21 +167,6 @@ def format_xpaths(xpath_map, *args, **kwargs):
         formatted[key] = xpath.format(*args, **kwargs)
 
     return formatted
-
-
-def get_complex_definitions():
-    """
-    Get a deep copy of the complex data structures definition, which contains
-    a map with all of the supported data structure definitions by field name
-    """
-
-    return deepcopy(_complex_definitions)
-
-
-def get_supported_props():
-    """ Get a deep copy of the default set of the keys supported by a given parser """
-
-    return deepcopy(_supported_props)
 
 
 def get_xpath_root(xpath):
@@ -286,7 +270,7 @@ def parse_complex(tree_to_parse, xpath_root, xpath_map, complex_key):
 
     complex_struct = {}
 
-    for prop in _complex_definitions.get(complex_key, xpath_map):
+    for prop in COMPLEX_DEFINITIONS.get(complex_key, xpath_map):
         # Normalize complex values: treat values with newlines like values from separate elements
         parsed = parse_property(tree_to_parse, xpath_root, xpath_map, prop)
         parsed = reduce_value(flatten_items(v.split(_COMPLEX_DELIM) for v in wrap_value(parsed)))
@@ -560,7 +544,7 @@ def validate_any(prop, value, xpath_map=None):
         elif prop == PROCESS_STEPS:
             validate_process_steps(prop, value)
 
-        elif prop not in _supported_props and xpath_map is not None:
+        elif prop not in SUPPORTED_PROPS and xpath_map is not None:
             # Validate custom data structures as complex lists by default
             validate_complex_list(prop, value, xpath_map)
 
@@ -575,8 +559,8 @@ def validate_complex(prop, value, xpath_map=None):
     if value is not None:
         validate_type(prop, value, dict)
 
-        if prop in _complex_definitions:
-            complex_keys = _complex_definitions[prop]
+        if prop in COMPLEX_DEFINITIONS:
+            complex_keys = COMPLEX_DEFINITIONS[prop]
         else:
             complex_keys = {} if xpath_map is None else xpath_map
 
@@ -595,8 +579,8 @@ def validate_complex_list(prop, value, xpath_map=None):
     if value is not None:
         validate_type(prop, value, (dict, list))
 
-        if prop in _complex_definitions:
-            complex_keys = _complex_definitions[prop]
+        if prop in COMPLEX_DEFINITIONS:
+            complex_keys = COMPLEX_DEFINITIONS[prop]
         else:
             complex_keys = {} if xpath_map is None else xpath_map
 
@@ -628,10 +612,10 @@ def validate_dates(prop, value, xpath_map=None):
 
         if date_keys:
             if DATE_TYPE not in date_keys or DATE_VALUES not in date_keys:
-                if prop in _complex_definitions:
-                    complex_keys = _complex_definitions[prop]
+                if prop in COMPLEX_DEFINITIONS:
+                    complex_keys = COMPLEX_DEFINITIONS[prop]
                 else:
-                    complex_keys = _complex_definitions[DATES] if xpath_map is None else xpath_map
+                    complex_keys = COMPLEX_DEFINITIONS[DATES] if xpath_map is None else xpath_map
 
                 _validation_error(prop, None, value, ('keys: {0}'.format(','.join(complex_keys))))
 
@@ -669,7 +653,7 @@ def validate_process_steps(prop, value):
     if value is not None:
         validate_type(prop, value, (dict, list))
 
-        procstep_keys = set(_complex_definitions[prop])
+        procstep_keys = COMPLEX_DEFINITIONS[prop]
 
         for idx, procstep in enumerate(wrap_value(value)):
             ps_idx = prop + '[' + str(idx) + ']'
@@ -698,7 +682,7 @@ def validate_properties(props, required):
     """
 
     props = set(props)
-    required = set(required or _supported_props)
+    required = set(required or SUPPORTED_PROPS)
 
     if len(required.intersection(props)) < len(required):
         missing = required - props

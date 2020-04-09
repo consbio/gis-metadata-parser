@@ -4,6 +4,7 @@ import six
 
 from collections import OrderedDict
 from copy import deepcopy
+from frozendict import frozendict, FrozenOrderedDict
 
 from parserutils.collections import filter_empty, reduce_value, wrap_value
 from parserutils.elements import get_element_name, get_element_text, get_elements_text
@@ -12,7 +13,6 @@ from parserutils.elements import XPATH_DELIM
 
 from gis_metadata.exceptions import InvalidContent
 from gis_metadata.metadata_parser import MetadataParser
-
 from gis_metadata.utils import DATE_TYPE, DATE_TYPE_SINGLE, DATE_TYPE_MULTIPLE
 from gis_metadata.utils import DATE_TYPE_RANGE, DATE_TYPE_RANGE_BEGIN, DATE_TYPE_RANGE_END
 from gis_metadata.utils import ATTRIBUTES
@@ -24,10 +24,8 @@ from gis_metadata.utils import KEYWORDS_PLACE, KEYWORDS_STRATUM, KEYWORDS_TEMPOR
 from gis_metadata.utils import LARGER_WORKS
 from gis_metadata.utils import PROCESS_STEPS
 from gis_metadata.utils import RASTER_DIMS, RASTER_INFO
-from gis_metadata.utils import ParserProperty
-
-from gis_metadata.utils import format_xpaths, get_complex_definitions
-from gis_metadata.utils import get_default_for_complex, get_default_for_complex_sub
+from gis_metadata.utils import COMPLEX_DEFINITIONS, ParserProperty
+from gis_metadata.utils import format_xpaths, get_default_for_complex, get_default_for_complex_sub
 from gis_metadata.utils import parse_complex_list, parse_property, update_complex_list, update_property
 
 
@@ -40,31 +38,27 @@ xrange = getattr(six_moves, 'xrange')
 ISO_ROOTS = ('MD_Metadata', 'MI_Metadata')
 
 KEYWORD_PROPS = (KEYWORDS_PLACE, KEYWORDS_STRATUM, KEYWORDS_TEMPORAL, KEYWORDS_THEME)
-KEYWORD_TYPES = {
+KEYWORD_TYPES = frozendict({
     KEYWORDS_PLACE: 'place',
     KEYWORDS_STRATUM: 'stratum',
     KEYWORDS_TEMPORAL: 'temporal',
     KEYWORDS_THEME: 'theme'
-}
+})
 
 # For appending digital form content to ISO distribution format specs
-_DIGITAL_FORMS_CONTENT_DELIM = '@------------------------------@'
+ISO_DIGITAL_FORMS_DELIM = '@------------------------------@'
 
-
-_iso_definitions = get_complex_definitions()
-
-# Define backup locations for attribute sub-properties
-_iso_definitions[ATTRIBUTES].update({
+# Define backup locations for attribute sub-properties and dimension type property
+ISO_DEFINITIONS = dict({k: dict(v) for k, v in iteritems(COMPLEX_DEFINITIONS)})
+ISO_DEFINITIONS[ATTRIBUTES].update({
     '_definition_source': '{_definition_src}',
     '__definition_source': '{__definition_src}',
     '___definition_source': '{___definition_src}'
 })
+ISO_DEFINITIONS[RASTER_DIMS]['_type'] = '{_type}'
+ISO_DEFINITIONS = frozendict({k: frozendict(v) for k, v in iteritems(ISO_DEFINITIONS)})
 
-# Define backup location for dimension type property
-_iso_definitions[RASTER_DIMS]['_type'] = '{_type}'
-
-
-_iso_tag_roots = OrderedDict((
+ISO_TAG_ROOTS = OrderedDict((
     # First process private dependency tags (order enforced by key sorting)
     ('_content_coverage', 'contentInfo/MD_CoverageDescription'),
     ('_dataqual', 'dataQualityInfo/DQ_DataQuality'),
@@ -104,10 +98,11 @@ _iso_tag_roots = OrderedDict((
 
 
 # Two passes required because of self references within roots dict
-_iso_tag_roots.update(format_xpaths(_iso_tag_roots, **_iso_tag_roots))
-_iso_tag_roots.update(format_xpaths(_iso_tag_roots, **_iso_tag_roots))
+ISO_TAG_ROOTS.update(format_xpaths(ISO_TAG_ROOTS, **ISO_TAG_ROOTS))
+ISO_TAG_ROOTS.update(format_xpaths(ISO_TAG_ROOTS, **ISO_TAG_ROOTS))
+ISO_TAG_ROOTS = FrozenOrderedDict(ISO_TAG_ROOTS)
 
-_iso_tag_formats = {
+ISO_TAG_FORMATS = {
     # Property-specific xpath roots: the base from which each element repeats
     '_attribute_accuracy_root': '{_dataqual_report}',
     '_attributes_root': 'featureType/FC_FeatureType/carrierOfCharacteristics',
@@ -179,15 +174,16 @@ _iso_tag_formats = {
 }
 
 # Apply XPATH root formats to the basic data map formats
-_iso_tag_formats.update(_iso_tag_roots)
-_iso_tag_formats.update(format_xpaths(_iso_tag_formats, **_iso_tag_roots))
+ISO_TAG_FORMATS.update(ISO_TAG_ROOTS)
+ISO_TAG_FORMATS.update(format_xpaths(ISO_TAG_FORMATS, **ISO_TAG_ROOTS))
+ISO_TAG_FORMATS = frozendict(ISO_TAG_FORMATS)
 
-_iso_tag_primitives = {
+ISO_TAG_PRIMITIVES = frozenset({
     'Binary', 'Boolean', 'CharacterString',
     'Date', 'DateTime', 'timePosition',
     'Decimal', 'Integer', 'Real', 'RecordType',
     'CI_DateTypeCode', 'MD_KeywordTypeCode', 'URL'
-}
+})
 
 
 class IsoParser(MetadataParser):
@@ -210,8 +206,8 @@ class IsoParser(MetadataParser):
             raise InvalidContent('Invalid XML root for ISO-19115 standard: {root}', root=iso_root)
 
         iso_data_map = {'_root': iso_root}
-        iso_data_map.update(_iso_tag_roots)
-        iso_data_map.update(_iso_tag_formats)
+        iso_data_map.update(ISO_TAG_ROOTS)
+        iso_data_map.update(ISO_TAG_FORMATS)
 
         iso_data_structures = {}
 
@@ -221,7 +217,7 @@ class IsoParser(MetadataParser):
         ft_source = iso_data_map['_attr_src'].replace('/carrierOfCharacteristics/FC_FeatureAttribute', '')
 
         iso_data_structures[ATTRIBUTES] = format_xpaths(
-            _iso_definitions[ATTRIBUTES],
+            ISO_DEFINITIONS[ATTRIBUTES],
 
             label=ad_format.format(ad_path='memberName/LocalName'),
             aliases=ad_format.format(ad_path='aliases/LocalName'),  # Not in spec
@@ -238,7 +234,7 @@ class IsoParser(MetadataParser):
 
         bb_format = iso_data_map[BOUNDING_BOX]
         iso_data_structures[BOUNDING_BOX] = format_xpaths(
-            _iso_definitions[BOUNDING_BOX],
+            ISO_DEFINITIONS[BOUNDING_BOX],
             east=bb_format.format(bbox_path='eastBoundLongitude/Decimal'),
             south=bb_format.format(bbox_path='southBoundLatitude/Decimal'),
             west=bb_format.format(bbox_path='westBoundLongitude/Decimal'),
@@ -247,7 +243,7 @@ class IsoParser(MetadataParser):
 
         ct_format = iso_data_map[CONTACTS]
         iso_data_structures[CONTACTS] = format_xpaths(
-            _iso_definitions[CONTACTS],
+            ISO_DEFINITIONS[CONTACTS],
             name=ct_format.format(ct_path='individualName/CharacterString'),
             organization=ct_format.format(ct_path='organisationName/CharacterString'),
             position=ct_format.format(ct_path='positionName/CharacterString'),
@@ -270,7 +266,7 @@ class IsoParser(MetadataParser):
 
         df_format = iso_data_map[DIGITAL_FORMS]
         iso_data_structures[DIGITAL_FORMS] = format_xpaths(
-            _iso_definitions[DIGITAL_FORMS],
+            ISO_DEFINITIONS[DIGITAL_FORMS],
             name=df_format.format(df_path='name/CharacterString'),
             content='',  # Not supported in ISO-19115 (appending to spec)
             decompression=df_format.format(df_path='fileDecompressionTechnique/CharacterString'),
@@ -291,7 +287,7 @@ class IsoParser(MetadataParser):
 
         lw_format = iso_data_map[LARGER_WORKS]
         iso_data_structures[LARGER_WORKS] = format_xpaths(
-            _iso_definitions[LARGER_WORKS],
+            ISO_DEFINITIONS[LARGER_WORKS],
             title=lw_format.format(lw_path='title/CharacterString'),
             edition=lw_format.format(lw_path='edition/CharacterString'),
             origin=iso_data_map['_lw_citation'].format(lw_path='individualName/CharacterString'),
@@ -304,7 +300,7 @@ class IsoParser(MetadataParser):
 
         ps_format = iso_data_map[PROCESS_STEPS]
         iso_data_structures[PROCESS_STEPS] = format_xpaths(
-            _iso_definitions[PROCESS_STEPS],
+            ISO_DEFINITIONS[PROCESS_STEPS],
             description=ps_format.format(ps_path='description/CharacterString'),
             date=ps_format.format(ps_path='dateTime/DateTime'),
             sources=ps_format.format(
@@ -314,7 +310,7 @@ class IsoParser(MetadataParser):
 
         ri_format = iso_data_map[RASTER_INFO]
         iso_data_structures[RASTER_INFO] = format_xpaths(
-            _iso_definitions[RASTER_DIMS],
+            ISO_DEFINITIONS[RASTER_DIMS],
             type=ri_format.format(ri_path='dimensionName/MD_DimensionNameTypeCode'),
             _type=ri_format.format(ri_path='dimensionName/MD_DimensionNameTypeCode/@codeListValue'),
             size=ri_format.format(ri_path='dimensionSize/Integer'),
@@ -406,7 +402,7 @@ class IsoParser(MetadataParser):
 
         # Split out digital form content that has been appended to specifications
 
-        content_delim = _DIGITAL_FORMS_CONTENT_DELIM
+        content_delim = ISO_DIGITAL_FORMS_DELIM
 
         for digital_form in digital_forms:
             specs = reduce_value(digital_form['specification'])
@@ -438,7 +434,7 @@ class IsoParser(MetadataParser):
         parsed_forms = []
 
         for idx in xrange(0, max(df_len, to_len)):
-            digital_form = {}.fromkeys(_iso_definitions[prop], u'')
+            digital_form = {}.fromkeys(ISO_DEFINITIONS[prop], u'')
 
             if idx < df_len:
                 digital_form.update(i for i in digital_forms[idx].items() if i[1])
@@ -472,7 +468,7 @@ class IsoParser(MetadataParser):
     def _parse_raster_info(self, prop=RASTER_INFO):
         """ Collapses multiple dimensions into a single raster_info complex struct """
 
-        raster_info = {}.fromkeys(_iso_definitions[prop], u'')
+        raster_info = {}.fromkeys(ISO_DEFINITIONS[prop], u'')
 
         # Ensure conversion of lists to newlines is in place
         raster_info['dimensions'] = get_default_for_complex_sub(
@@ -517,7 +513,7 @@ class IsoParser(MetadataParser):
     def _update_dates(self, **update_props):
         """
         Update operation for ISO Dates metadata
-        :see: gis_metadata.utils._complex_definitions[DATES]
+        :see: gis_metadata.utils.COMPLEX_DEFINITIONS[DATES]
         """
 
         tree_to_update = update_props['tree_to_update']
@@ -539,7 +535,7 @@ class IsoParser(MetadataParser):
     def _update_digital_forms(self, **update_props):
         """
         Update operation for ISO Digital Forms metadata
-        :see: gis_metadata.utils._complex_definitions[DIGITAL_FORMS]
+        :see: gis_metadata.utils.COMPLEX_DEFINITIONS[DIGITAL_FORMS]
         """
 
         digital_forms = wrap_value(update_props['values'])
@@ -558,7 +554,7 @@ class IsoParser(MetadataParser):
 
             if digital_form.get('content'):
                 dist_spec = wrap_value(digital_form.get('specification'))
-                dist_spec.append(_DIGITAL_FORMS_CONTENT_DELIM)
+                dist_spec.append(ISO_DIGITAL_FORMS_DELIM)
                 dist_spec.extend(wrap_value(digital_form['content']))
                 dist_format['specification'] = dist_spec
 
@@ -696,7 +692,7 @@ class IsoParser(MetadataParser):
         if xroot is None and isinstance(xpath, string_types):
             xtags = xpath.split(XPATH_DELIM)
 
-            if xtags[-1] in _iso_tag_primitives:
+            if xtags[-1] in ISO_TAG_PRIMITIVES:
                 xroot = XPATH_DELIM.join(xtags[:-1])
 
         return xroot

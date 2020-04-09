@@ -80,7 +80,7 @@ fgdc_from_file.abstract
 fgdc_from_file.place_keywords
 fgdc_from_file.thematic_keywords
 
-# :see: gis_metadata.utils.get_supported_props for list of all supported properties
+# :see: gis_metadata.utils.SUPPORTED_PROPS for list of all supported properties
 
 # Complex properties
 fgdc_from_file.attributes
@@ -92,7 +92,7 @@ fgdc_from_file.larger_works
 fgdc_from_file.process_steps
 fgdc_from_file.raster_info
 
-# :see: gis_metadata.utils.get_complex_definitions for structure of all complex properties
+# :see: gis_metadata.utils.COMPLEX_DEFINITIONS for structure of all complex properties
 
 # Update properties
 fgdc_from_file.title = 'New Title'
@@ -124,17 +124,17 @@ Some examples of existing backup properties are as follows:
 ```python
 # In the ArcGIS parser for distribution contact phone:
 
-_agis_tag_formats = {
+ARCGIS_TAG_FORMATS = frozendict({
      ...
     'dist_phone': 'distInfo/distributor/distorCont/rpCntInfo/cntPhone/voiceNum',
     '_dist_phone': 'distInfo/distributor/distorCont/rpCntInfo/voiceNum',  # If not in cntPhone
     ...
-}
+})
 
 # In the FGDC parser for sub-properties in the contacts definition:
 
-_fgdc_definitions = get_complex_definitions()
-_fgdc_definitions[CONTACTS].update({
+FGDC_DEFINITIONS = dict({k: dict(v) for k, v in iteritems(COMPLEX_DEFINITIONS)})
+FGDC_DEFINITIONS[CONTACTS].update({
     '_name': '{_name}',
     '_organization': '{_organization}'
 })
@@ -143,7 +143,7 @@ class FgdcParser(MetadataParser):
     ...
     def _init_data_map(self):
         ...
-        ct_format = _fgdc_tag_formats[CONTACTS]
+        ct_format = FGDC_TAG_FORMATS[CONTACTS]
         fgdc_data_structures[CONTACTS] = format_xpaths(
             ...
             name=ct_format.format(ct_path='cntperp/cntper'),
@@ -154,13 +154,12 @@ class FgdcParser(MetadataParser):
 
 # Also see the ISO parser for backup sub-properties in the attributes definition:
 
-_iso_definitions = get_complex_definitions()
-_iso_definitions[ATTRIBUTES].update({
+ISO_DEFINITIONS = dict({k: dict(v) for k, v in iteritems(COMPLEX_DEFINITIONS)})
+ISO_DEFINITIONS[ATTRIBUTES].update({
     '_definition_source': '{_definition_src}',
     '__definition_source': '{__definition_src}',
     '___definition_source': '{___definition_src}'
 })
-
 ```
 
 
@@ -183,7 +182,7 @@ Also, this example is specifically covered by unit tests.
 
 ```python
 from gis_metadata.iso_metadata_parser import IsoParser
-from gis_metadata.utils import CONTACTS, format_xpaths, get_complex_definitions, ParserProperty
+from gis_metadata.utils import COMPLEX_DEFINITIONS, CONTACTS, format_xpaths, ParserProperty
 
 
 class CustomIsoParser(IsoParser):
@@ -202,7 +201,7 @@ class CustomIsoParser(IsoParser):
         # Define some basic variables
         ct_prop = 'metadata_contacts'
         ct_xpath = 'contact/CI_ResponsibleParty/{ct_path}'
-        ct_defintion = get_complex_definitions()[CONTACTS]
+        ct_defintion = COMPLEX_DEFINITIONS[CONTACTS]
         ct_defintion['phone'] = '{phone}'
 
         # Reuse CONTACT structure to specify locations per prop (adapted only slightly from parent)
