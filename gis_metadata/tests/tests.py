@@ -1,7 +1,7 @@
 import six
-import unittest
 
 from os.path import os
+from unittest import TestCase, mock
 
 from parserutils.collections import wrap_value
 from parserutils.elements import element_exists, element_to_dict, element_to_string
@@ -156,9 +156,43 @@ TEST_METADATA_VALUES = {
     'title': 'Test Title',
     'use_constraints': 'Test Use Constraints'
 }
+TEST_REMOTE_ISO_ATTRIBUTES = {
+    'href': [{
+        'definition': 'HREF Attributes Definition 1',
+        'label': 'HREF Attributes Label 1',
+        'aliases': 'HREF Attributes Alias 1',
+        'definition_source': 'HREF Attributes Definition Source 1'
+    }, {
+        'definition': 'HREF Attributes Definition 2',
+        'label': 'HREF Attributes Label 2',
+        'aliases': 'HREF Attributes Alias 2',
+        'definition_source': 'HREF Attributes Definition Source 2'
+    }, {
+        'definition': 'HREF Attributes Definition 3',
+        'label': 'HREF Attributes Label 3',
+        'aliases': 'HREF Attributes Alias 3',
+        'definition_source': 'HREF Attributes Definition Source 3'
+    }],
+    'linkage': [{
+        'definition': 'LINKAGE Attributes Definition 1',
+        'label': 'LINKAGE Attributes Label 1',
+        'aliases': 'LINKAGE Attributes Alias 1',
+        'definition_source': 'LINKAGE Attributes Definition Source 1'
+    }, {
+        'definition': 'LINKAGE Attributes Definition 2',
+        'label': 'LINKAGE Attributes Label 2',
+        'aliases': 'LINKAGE Attributes Alias 2',
+        'definition_source': 'LINKAGE Attributes Definition Source 2'
+    }, {
+        'definition': 'LINKAGE Attributes Definition 3',
+        'label': 'LINKAGE Attributes Label 3',
+        'aliases': 'LINKAGE Attributes Alias 3',
+        'definition_source': 'LINKAGE Attributes Definition Source 3'
+    }]
+}
 
 
-class MetadataParserTestCase(unittest.TestCase):
+class MetadataParserTestCase(TestCase):
 
     valid_complex_values = ('one', ['before', 'after'], ['first', 'next', 'last'])
 
@@ -166,20 +200,16 @@ class MetadataParserTestCase(unittest.TestCase):
         sep = os.path.sep
         dir_name = os.path.dirname(os.path.abspath(__file__))
 
+        # Define input file paths
+
         self.data_dir = sep.join((dir_name, 'data'))
         self.arcgis_file = sep.join((self.data_dir, 'arcgis_metadata.xml'))
         self.fgdc_file = sep.join((self.data_dir, 'fgdc_metadata.xml'))
         self.iso_file = sep.join((self.data_dir, 'iso_metadata.xml'))
+        self.iso_href_file = sep.join((self.data_dir, 'iso_citation_href.xml'))
+        self.iso_linkage_file = sep.join((self.data_dir, 'iso_citation_linkage.xml'))
 
-        # Initialize metadata files
-
-        self.arcgis_metadata = open(self.arcgis_file)
-        self.fgdc_metadata = open(self.fgdc_file)
-        self.iso_metadata = open(self.iso_file)
-
-        self.metadata_files = (self.arcgis_metadata, self.fgdc_metadata, self.iso_metadata)
-
-        # Define test file paths
+        # Define test output file paths
 
         self.test_arcgis_file_path = '/'.join((self.data_dir, 'test_arcgis.xml'))
         self.test_fgdc_file_path = '/'.join((self.data_dir, 'test_fgdc.xml'))
@@ -277,9 +307,10 @@ class MetadataParserTestCase(unittest.TestCase):
         for prop in SUPPORTED_PROPS:
             self.assert_equal_for(parser_type, prop, getattr(parser_val, prop), getattr(parser_tgt, prop))
 
-    def assert_parser_after_write(self, parser_type, in_file, out_file_path, use_template=False):
+    def assert_parser_after_write(self, parser_type, in_file_path, out_file_path, use_template=False):
 
-        parser = parser_type(in_file, out_file_path)
+        with open(in_file_path) as in_file:
+            parser = parser_type(in_file, out_file_path)
 
         # Update each value and read the file in again
         for prop in SUPPORTED_PROPS:
@@ -335,9 +366,6 @@ class MetadataParserTestCase(unittest.TestCase):
             setattr(parser, prop, valid)  # Reset value for next test
 
     def tearDown(self):
-
-        for metadata_file in self.metadata_files:
-            metadata_file.close()
 
         for test_file_path in self.test_file_paths:
             if os.path.exists(test_file_path):
@@ -555,7 +583,9 @@ class MetadataParserTests(MetadataParserTestCase):
             'metadata_language': ['eng', 'esp']
         }
 
-        custom_parser = CustomIsoParser(self.iso_metadata)
+        with open(self.iso_file) as iso_metadata:
+            custom_parser = CustomIsoParser(iso_metadata)
+
         for prop in target_values:
             self.assertEqual(getattr(custom_parser, prop), target_values[prop], 'Custom parser values were not parsed')
 
@@ -738,46 +768,86 @@ class MetadataParserTests(MetadataParserTestCase):
             for contact in fgdc_parser.contacts:
                 self.assertIsNotNone(contact[key], 'Failed to read updated contact.{0}'.format(key))
 
-    def test_iso_parser(self):
+    @mock.patch('gis_metadata.iso_metadata_parser.get_remote_element')
+    def test_iso_parser(self, mock_get):
         """ Tests behavior unique to the ISO parser """
 
-        # Remove the attribute details href attribute
+        # Test reading in attributes from remote feature catalog citation href attribute
+
+        with open(self.iso_href_file) as href_attributes:
+            mock_get.return_value = href_attributes.read()
+
         iso_element = get_remote_element(self.iso_file)
+
+        # Assert that the data from the href attribute URL was read in
+        iso_parser = IsoParser(element_to_string(iso_element))
+        attributes = iso_parser.attributes
+        self.assertEquals(
+            iso_parser._attr_details_file_url,
+            'http://www.isotc211.org/2005/gfc/resources/example/G_3.xml',
+            'ISO href attribute was not read in'
+        )
+        self.assertEqual(
+            attributes, TEST_REMOTE_ISO_ATTRIBUTES['href'], 'Invalid HREF attributes: {0}'.format(attributes)
+        )
+
+        # Test reading in attributes from remote feature catalog citation linkage URL
+
+        with open(self.iso_linkage_file) as linkage_attributes:
+            mock_get.return_value = linkage_attributes.read()
+
+        # Remove the feature catalog citation href attribute for `attribute_details`
         for citation_element in get_elements(iso_element, ISO_TAG_FORMATS['_attr_citation']):
             removed = remove_element_attributes(citation_element, 'href')
+        self.assertIsNotNone(removed, 'ISO href attribute URL was not removed')
 
-        # Assert that the href attribute was removed and a different one was read in
+        # Assert that data from the linkage URL was read in
         iso_parser = IsoParser(element_to_string(iso_element))
-        attribute_href = iso_parser._attr_details_file_url
+        attributes = iso_parser.attributes
+        self.assertEquals(
+            iso_parser._attr_details_file_url,
+            'ftp://ftp.ncddc.noaa.gov/pub/Metadata//ISO/87ffdfd0-775a-11e0-a1f0-0800200c9a66.xml',
+            'ISO linkage URL was not read in'
+        )
+        self.assertEqual(
+            attributes, TEST_REMOTE_ISO_ATTRIBUTES['linkage'], 'Invalid LINKAGE attributes: {0}'.format(attributes)
+        )
 
-        self.assertIsNotNone(removed, 'ISO file URL was not removed')
-        self.assertIsNotNone(attribute_href, 'ISO href attribute was not read in')
-        self.assertNotEqual(attribute_href, removed, 'ISO href attribute is the same as the one removed')
+        # Test reading in attributes from nested feature catalog data in the file
 
-        # Remove the attribute details linkage attribute
-        iso_element = get_remote_element(self.iso_file)
+        mock_get.return_value = None
+
+        # Remove the feature catalog citation linkage URL for `attribute_details`
         for linkage_element in get_elements(iso_element, ISO_TAG_FORMATS['_attr_contact_url']):
             removed = get_element_text(linkage_element)
             clear_element(linkage_element)
-
-        # Assert that the linkage URL was removed and a different one was read in
-        iso_parser = IsoParser(element_to_string(iso_element))
-        linkage_url = iso_parser._attr_details_file_url
-
         self.assertIsNotNone(removed, 'ISO linkage URL was not removed')
-        self.assertIsNotNone(linkage_url, 'ISO linkage URL was not read in')
-        self.assertNotEqual(linkage_url, removed, 'ISO file URL is the same as the one removed')
+
+        # Assert that data from the nested feature catalog citation was read in
+        iso_parser = IsoParser(element_to_string(iso_element))
+        attributes = iso_parser.attributes
+        self.assertIsNone(iso_parser._attr_details_file_url, 'No URL should be with parser')
+        self.assertEqual(
+            attributes, TEST_METADATA_VALUES[ATTRIBUTES],
+            msg='Invalid parsed attributes with no URL: {0}'.format(attributes)
+        )
+
+        # Test reading in attributes from nested feature catalog data when URL is invalid
+
+        mock_get.side_effect = Exception
 
         # Change the href attribute so that it is invalid
         for citation_element in get_elements(iso_element, ISO_TAG_FORMATS['_attr_citation']):
-            removed = set_element_attributes(citation_element, href='neither url nor file')
+            inserted = set_element_attributes(citation_element, href='neither url nor file')
+        self.assertIsNotNone(inserted, 'Invalid ISO href attribute URL was not added')
 
-        # Assert that the href attribute was removed and a different one was read in
+        # Assert that the href attribute was ignored and the nested data was read in
         iso_parser = IsoParser(element_to_string(iso_element))
         attributes = iso_parser.attributes
-        self.assertIsNone(iso_parser._attr_details_file_url, 'Invalid URL stored with parser')
+        self.assertIsNone(iso_parser._attr_details_file_url, 'Invalid URL was stored with parser')
         self.assertEqual(
-            attributes, TEST_METADATA_VALUES[ATTRIBUTES], 'Invalid parsed attributes: {0}'.format(attributes)
+            attributes, TEST_METADATA_VALUES[ATTRIBUTES],
+            msg='Invalid parsed attributes with invalid URL: {0}'.format(attributes)
         )
 
     def test_parser_values(self):
@@ -819,8 +889,10 @@ class MetadataParserTests(MetadataParserTestCase):
                 self.assert_equal_for(parser_type, prop, getattr(parser, prop), target)
 
     def test_parser_conversion(self):
-        arcgis_parser = ArcGISParser(self.arcgis_metadata)
-        fgdc_parser = FgdcParser(self.fgdc_metadata)
+        with open(self.arcgis_file) as arcgis_metadata:
+            arcgis_parser = ArcGISParser(arcgis_metadata)
+        with open(self.fgdc_file) as fgdc_metadata:
+            fgdc_parser = FgdcParser(fgdc_metadata)
 
         # Remove references to remote attribute details files in MD_FeatureCatalogueDescription
         iso_element = get_remote_element(self.iso_file)
@@ -841,8 +913,10 @@ class MetadataParserTests(MetadataParserTestCase):
         self.assertEqual(iso_parser.convert_to(dict), TEST_METADATA_VALUES)
 
     def test_conversion_from_dict(self):
-        arcgis_parser = ArcGISParser(self.arcgis_metadata)
-        fgdc_parser = FgdcParser(self.fgdc_metadata)
+        with open(self.arcgis_file) as arcgis_metadata:
+            arcgis_parser = ArcGISParser(arcgis_metadata)
+        with open(self.fgdc_file) as fgdc_metadata:
+            fgdc_parser = FgdcParser(fgdc_metadata)
 
         # Remove references to remote attribute details files in MD_FeatureCatalogueDescription
         iso_element = get_remote_element(self.iso_file)
@@ -875,8 +949,10 @@ class MetadataParserTests(MetadataParserTestCase):
         self.assertEqual(iso_parser.convert_to(dict), TEST_METADATA_VALUES)
 
     def test_conversion_from_str(self):
-        arcgis_parser = ArcGISParser(self.arcgis_metadata)
-        fgdc_parser = FgdcParser(self.fgdc_metadata)
+        with open(self.arcgis_file) as arcgis_metadata:
+            arcgis_parser = ArcGISParser(arcgis_metadata)
+        with open(self.fgdc_file) as fgdc_metadata:
+            fgdc_parser = FgdcParser(fgdc_metadata)
 
         # Remove references to remote attribute details files in MD_FeatureCatalogueDescription
         iso_element = get_remote_element(self.iso_file)
@@ -911,9 +987,12 @@ class MetadataParserTests(MetadataParserTestCase):
     def test_reparse_complex_lists(self):
         complex_lists = (ATTRIBUTES, CONTACTS, DIGITAL_FORMS)
 
-        arcgis_parser = ArcGISParser(self.arcgis_metadata)
-        fgdc_parser = FgdcParser(self.fgdc_metadata)
-        iso_parser = IsoParser(self.iso_metadata)
+        with open(self.arcgis_file) as arcgis_metadata:
+            arcgis_parser = ArcGISParser(arcgis_metadata)
+        with open(self.fgdc_file) as fgdc_metadata:
+            fgdc_parser = FgdcParser(fgdc_metadata)
+        with open(self.iso_file) as iso_metadata:
+            iso_parser = IsoParser(iso_metadata)
 
         for parser in (arcgis_parser, fgdc_parser, iso_parser):
 
@@ -939,9 +1018,12 @@ class MetadataParserTests(MetadataParserTestCase):
     def test_reparse_complex_structs(self):
         complex_structs = (BOUNDING_BOX, LARGER_WORKS, RASTER_INFO)
 
-        arcgis_parser = ArcGISParser(self.arcgis_metadata)
-        fgdc_parser = FgdcParser(self.fgdc_metadata)
-        iso_parser = IsoParser(self.iso_metadata)
+        with open(self.arcgis_file) as arcgis_metadata:
+            arcgis_parser = ArcGISParser(arcgis_metadata)
+        with open(self.fgdc_file) as fgdc_metadata:
+            fgdc_parser = FgdcParser(fgdc_metadata)
+        with open(self.iso_file) as iso_metadata:
+            iso_parser = IsoParser(iso_metadata)
 
         for parser in (arcgis_parser, fgdc_parser, iso_parser):
 
@@ -963,9 +1045,12 @@ class MetadataParserTests(MetadataParserTestCase):
             (DATE_TYPE_MULTIPLE, ['first', 'next', 'last'])
         )
 
-        arcgis_parser = ArcGISParser(self.arcgis_metadata)
-        fgdc_parser = FgdcParser(self.fgdc_metadata)
-        iso_parser = IsoParser(self.iso_metadata)
+        with open(self.arcgis_file) as arcgis_metadata:
+            arcgis_parser = ArcGISParser(arcgis_metadata)
+        with open(self.fgdc_file) as fgdc_metadata:
+            fgdc_parser = FgdcParser(fgdc_metadata)
+        with open(self.iso_file) as iso_metadata:
+            iso_parser = IsoParser(iso_metadata)
 
         for parser in (arcgis_parser, fgdc_parser, iso_parser):
 
@@ -982,9 +1067,12 @@ class MetadataParserTests(MetadataParserTestCase):
 
     def test_reparse_keywords(self):
 
-        arcgis_parser = ArcGISParser(self.arcgis_metadata)
-        fgdc_parser = FgdcParser(self.fgdc_metadata)
-        iso_parser = IsoParser(self.iso_metadata)
+        with open(self.arcgis_file) as arcgis_metadata:
+            arcgis_parser = ArcGISParser(arcgis_metadata)
+        with open(self.fgdc_file) as fgdc_metadata:
+            fgdc_parser = FgdcParser(fgdc_metadata)
+        with open(self.iso_file) as iso_metadata:
+            iso_parser = IsoParser(iso_metadata)
 
         for parser in (arcgis_parser, fgdc_parser, iso_parser):
 
@@ -1001,9 +1089,12 @@ class MetadataParserTests(MetadataParserTestCase):
     def test_reparse_process_steps(self):
         proc_step_def = COMPLEX_DEFINITIONS[PROCESS_STEPS]
 
-        arcgis_parser = ArcGISParser(self.arcgis_metadata)
-        fgdc_parser = FgdcParser(self.fgdc_metadata)
-        iso_parser = IsoParser(self.iso_metadata)
+        with open(self.arcgis_file) as arcgis_metadata:
+            arcgis_parser = ArcGISParser(arcgis_metadata)
+        with open(self.fgdc_file) as fgdc_metadata:
+            fgdc_parser = FgdcParser(fgdc_metadata)
+        with open(self.iso_file) as iso_metadata:
+            iso_parser = IsoParser(iso_metadata)
 
         for parser in (arcgis_parser, fgdc_parser, iso_parser):
 
@@ -1033,9 +1124,12 @@ class MetadataParserTests(MetadataParserTestCase):
         simple_empty_vals = ('', u'', [])
         simple_valid_vals = (u'value', [u'item', u'list'])
 
-        arcgis_parser = ArcGISParser(self.arcgis_metadata)
-        fgdc_parser = FgdcParser(self.fgdc_metadata)
-        iso_parser = IsoParser(self.iso_metadata)
+        with open(self.arcgis_file) as arcgis_metadata:
+            arcgis_parser = ArcGISParser(arcgis_metadata)
+        with open(self.fgdc_file) as fgdc_metadata:
+            fgdc_parser = FgdcParser(fgdc_metadata)
+        with open(self.iso_file) as iso_metadata:
+            iso_parser = IsoParser(iso_metadata)
 
         for parser in (arcgis_parser, fgdc_parser, iso_parser):
 
@@ -1079,9 +1173,12 @@ class MetadataParserTests(MetadataParserTestCase):
             ('unknown', ['unknown'])
         )
 
-        arcgis_parser = ArcGISParser(self.arcgis_metadata)
-        fgdc_parser = FgdcParser(self.fgdc_metadata)
-        iso_parser = IsoParser(self.iso_metadata)
+        with open(self.arcgis_file) as arcgis_metadata:
+            arcgis_parser = ArcGISParser(arcgis_metadata)
+        with open(self.fgdc_file) as fgdc_metadata:
+            fgdc_parser = FgdcParser(fgdc_metadata)
+        with open(self.iso_file) as iso_metadata:
+            iso_parser = IsoParser(iso_metadata)
 
         for parser in (arcgis_parser, fgdc_parser, iso_parser):
             for val in invalid_values:
@@ -1098,15 +1195,15 @@ class MetadataParserTests(MetadataParserTestCase):
 
     def test_write_values(self):
 
-        self.assert_parser_after_write(ArcGISParser, self.arcgis_metadata, self.test_arcgis_file_path)
-        self.assert_parser_after_write(FgdcParser, self.fgdc_metadata, self.test_fgdc_file_path)
-        self.assert_parser_after_write(IsoParser, self.iso_metadata, self.test_iso_file_path)
+        self.assert_parser_after_write(ArcGISParser, self.arcgis_file, self.test_arcgis_file_path)
+        self.assert_parser_after_write(FgdcParser, self.fgdc_file, self.test_fgdc_file_path)
+        self.assert_parser_after_write(IsoParser, self.iso_file, self.test_iso_file_path)
 
     def test_write_values_to_template(self):
 
-        self.assert_parser_after_write(ArcGISParser, self.arcgis_metadata, self.test_arcgis_file_path, True)
-        self.assert_parser_after_write(FgdcParser, self.fgdc_metadata, self.test_fgdc_file_path, True)
-        self.assert_parser_after_write(IsoParser, self.iso_metadata, self.test_iso_file_path, True)
+        self.assert_parser_after_write(ArcGISParser, self.arcgis_file, self.test_arcgis_file_path, True)
+        self.assert_parser_after_write(FgdcParser, self.fgdc_file, self.test_fgdc_file_path, True)
+        self.assert_parser_after_write(IsoParser, self.iso_file, self.test_iso_file_path, True)
 
 
 class CustomIsoParser(IsoParser):

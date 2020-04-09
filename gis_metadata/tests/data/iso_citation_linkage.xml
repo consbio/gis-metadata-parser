@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="windows-1252"?>
+<gfc:FC_FeatureCatalogue xmlns="http://www.isotc211.org/2005/gfc" xmlns:gco="http://www.isotc211.org/2005/gco" xmlns:gfc="http://www.isotc211.org/2005/gfc" xmlns:gmd="http://www.isotc211.org/2005/gmd" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:gmx="http://www.isotc211.org/2005/gmx" xmlns:gsr="http://www.isotc211.org/2005/gsr" xmlns:gss="http://www.isotc211.org/2005/gss" xmlns:gts="http://www.isotc211.org/2005/gts" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="FC001" xsi:schemaLocation="http://www.isotc211.org/2005/gfc Q:\MetadataTrainingMaterial\ISO\schemas\ISOngdc\schema\gfc\gfc.xsd" uuid="87ffdfd0-775a-11e0-a1f0-0800200c9a66">
+  <gfc:featureType>
+    <gfc:FC_FeatureType>
+      <gfc:carrierOfCharacteristics>
+        <gfc:FC_FeatureAttribute>
+          <gfc:aliases>
+            <gfc:LocalName>LINKAGE Attributes Alias 1</gfc:LocalName>
+          </gfc:aliases>
+          <gfc:definition>
+            <CharacterString>LINKAGE Attributes Definition 1</CharacterString>
+          </gfc:definition>
+          <gfc:memberName>
+            <gfc:LocalName>LINKAGE Attributes Label 1</gfc:LocalName>
+          </gfc:memberName>
+          <gfc:definitionReference>
+            <gfc:FC_DefinitionReference>
+              <gfc:definitionSource>
+                <gfc:FC_DefinitionSource>
+                  <gfc:source>
+                    <CI_Citation>
+                      <citedResponsibleParty>
+                        <CI_ResponsibleParty>
+                          <organisationName>
+                            <CharacterString>LINKAGE Attributes Definition Source 1</CharacterString>
+                          </organisationName>
+                        </CI_ResponsibleParty>
+                      </citedResponsibleParty>
+                    </CI_Citation>
+                  </gfc:source>
+                </gfc:FC_DefinitionSource>
+              </gfc:definitionSource>
+            </gfc:FC_DefinitionReference>
+          </gfc:definitionReference>
+        </gfc:FC_FeatureAttribute>
+      </gfc:carrierOfCharacteristics>
+    </gfc:FC_FeatureType>
+  </gfc:featureType>
+  <gfc:featureType>
+    <gfc:FC_FeatureType>
+      <gfc:carrierOfCharacteristics>
+        <gfc:FC_FeatureAttribute>
+          <gfc:aliases>
+            <gfc:LocalName>LINKAGE Attributes Alias 2</gfc:LocalName>
+          </gfc:aliases>
+          <gfc:definition>
+            <CharacterString>LINKAGE Attributes Definition 2</CharacterString>
+          </gfc:definition>
+          <gfc:memberName>
+            <gfc:LocalName>LINKAGE Attributes Label 2</gfc:LocalName>
+          </gfc:memberName>
+          <gfc:definitionReference>
+            <gfc:FC_DefinitionReference>
+              <gfc:definitionSource>
+                <gfc:FC_DefinitionSource>
+                  <gfc:source>
+                    <CI_Citation>
+                      <citedResponsibleParty>
+                        <CI_ResponsibleParty>
+                          <organisationName>
+                            <CharacterString>LINKAGE Attributes Definition Source 2</CharacterString>
+                          </organisationName>
+                        </CI_ResponsibleParty>
+                      </citedResponsibleParty>
+                    </CI_Citation>
+                  </gfc:source>
+                </gfc:FC_DefinitionSource>
+              </gfc:definitionSource>
+            </gfc:FC_DefinitionReference>
+          </gfc:definitionReference>
+        </gfc:FC_FeatureAttribute>
+      </gfc:carrierOfCharacteristics>
+      <gfc:carrierOfCharacteristics>
+        <gfc:FC_FeatureAttribute>
+          <gfc:aliases>
+            <gfc:LocalName>LINKAGE Attributes Alias 3</gfc:LocalName>
+          </gfc:aliases>
+          <gfc:definition>
+            <CharacterString>LINKAGE Attributes Definition 3</CharacterString>
+          </gfc:definition>
+          <gfc:memberName>
+            <gfc:LocalName>LINKAGE Attributes Label 3</gfc:LocalName>
+          </gfc:memberName>
+          <gfc:definitionReference>
+            <gfc:FC_DefinitionReference>
+              <gfc:definitionSource>
+                <gfc:FC_DefinitionSource>
+                  <gfc:source>
+                    <CI_Citation>
+                      <citedResponsibleParty>
+                        <CI_ResponsibleParty>
+                          <organisationName>
+                            <CharacterString>LINKAGE Attributes Definition Source 3</CharacterString>
+                          </organisationName>
+                        </CI_ResponsibleParty>
+                      </citedResponsibleParty>
+                    </CI_Citation>
+                  </gfc:source>
+                </gfc:FC_DefinitionSource>
+              </gfc:definitionSource>
+            </gfc:FC_DefinitionReference>
+          </gfc:definitionReference>
+        </gfc:FC_FeatureAttribute>
+      </gfc:carrierOfCharacteristics>
+    </gfc:FC_FeatureType>
+  </gfc:featureType>
+</gfc:FC_FeatureCatalogue>

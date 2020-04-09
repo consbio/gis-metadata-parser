@@ -374,6 +374,7 @@ class IsoParser(MetadataParser):
             self._xml_tree, None, self._data_map, '_attributes_file'
         )
         if not self._attr_details_file_url:
+            self._attr_details_file_url = None
             return None
 
         try:
