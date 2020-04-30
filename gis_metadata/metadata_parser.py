@@ -217,8 +217,8 @@ class MetadataParser(object):
         :see: get_parsed_content(metdata_content) for more on what constitutes valid content
         """
 
-        self._has_data = False
-        self._out_file_or_path = out_file_or_path
+        self.has_data = False
+        self.out_file_or_path = out_file_or_path
 
         self._xml_tree = None
         self._data_map = None
@@ -251,7 +251,7 @@ class MetadataParser(object):
         for prop in self._data_map:
             setattr(self, prop, parse_property(self._xml_tree, None, self._data_map, prop))
 
-        self._has_data = any(getattr(self, prop) for prop in self._data_map)
+        self.has_data = any(getattr(self, prop) for prop in self._data_map)
 
     def _init_data_map(self):
         """ Default data map initialization: MUST be overridden in children """
@@ -383,12 +383,12 @@ class MetadataParser(object):
         """
         Validates instance properties, updates an XML tree with them, and writes the content to a file.
         :param use_template: if True, updates a new template XML tree; otherwise the original XML tree
-        :param out_file_or_path: optionally override self._out_file_or_path with a custom file path
+        :param out_file_or_path: optionally override self.out_file_or_path with a custom file path
         :param encoding: optionally use another encoding instead of UTF-8
         """
 
         if not out_file_or_path:
-            out_file_or_path = self._out_file_or_path
+            out_file_or_path = self.out_file_or_path
 
         if not out_file_or_path:
             # FileNotFoundError doesn't exist in Python 2
