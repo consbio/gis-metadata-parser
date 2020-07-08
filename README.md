@@ -1,4 +1,4 @@
-# gis_metadata_parser
+# gis-metadata-parser
 
 XML parsers for GIS metadata that are designed to read in, validate, update and output a core set of properties that have been mapped between the most common standards, currently:
 

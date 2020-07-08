@@ -23,12 +23,12 @@ with open('README.md') as readme:
 
 
 setup(
-    name='gis_metadata_parser',
+    name='gis-metadata-parser',
     description='Parser for GIS metadata standards including FGDC and ISO-19115',
     long_description=long_description,
     long_description_content_type='text/markdown',
     keywords='arcgis,fgdc,iso,ISO-19115,ISO-19139,gis,metadata,parser,xml,gis_metadata,gis_metadata_parser',
-    version='1.2.2',
+    version='1.2.3',
     packages=[
         'gis_metadata', 'gis_metadata.tests'
     ],
