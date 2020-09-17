@@ -86,7 +86,7 @@
 <!ELEMENT illAziAng (#PCDATA)>
 <!ELEMENT imagCond (ImgCondCd)>
 <!ELEMENT ImgCondCd (#PCDATA)>
-<!ATTLIST ImgCondCd value CDATA>
+<!ATTLIST ImgCondCd value CDATA >
 <!ELEMENT imagQuCode (identAuth, identCode)>
 <!ELEMENT cloudCovPer (#PCDATA)>
 <!ELEMENT prcTyppCde (identAuth, identCode)>

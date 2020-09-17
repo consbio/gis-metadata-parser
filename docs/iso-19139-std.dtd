@@ -76,7 +76,7 @@
 <!ELEMENT gmd:spatialRepresentationInfo (gmd:MD_GridSpatialRepresentation | gmd:MD_Georeferenceable | gmd:MD_Georectified | gmd:MD_VectorSpatialRepresentation)>
 <!ELEMENT gmd:MD_GridSpatialRepresentation (gmd:numberOfDimensions, gmd:axisDimensionProperties*, gmd:cellGeometry, gmd:transformationParameterAvailability)>
 <!ELEMENT gmd:MD_Georeferenceable (gmd:numberOfDimensions, gmd:axisDimensionProperties*, gmd:cellGeometry, gmd:transformationParameterAvailability, gmd:controlPointAvailability, gmd:orientationParameterAvailability, gmd:orientationParameterDescription?, gmd:georeferencedParameters, gmd:parameterCitation*)>
-<!ELEMENT gmd:MD_Georectified (gmd:numberOfDimensions, gmd:axisDimensionProperties*, gmd:cellGeometry, gmd:transformationParameterAvailability, gmd:checkPointAvailability, gmd:checkPointDescription?, gmd:cornerPoints*, gmd:centerPoint?, gmd:pointInPixel, gmd:transformationDimensinonDescription?, gmd:transformationDimensionMapping{0,2})>
+<!ELEMENT gmd:MD_Georectified (gmd:numberOfDimensions, gmd:axisDimensionProperties*, gmd:cellGeometry, gmd:transformationParameterAvailability, gmd:checkPointAvailability, gmd:checkPointDescription?, gmd:cornerPoints*, gmd:centerPoint?, gmd:pointInPixel, gmd:transformationDimensinonDescription?, gmd:transformationDimensionMapping+)>
 <!ELEMENT gmd:MD_VectorSpatialRepresentation (gmd:topologyLevel, gmd:geometricObjects)>
 <!ELEMENT gmd:numberOfDimensions (gco:Integer)>
 <!ELEMENT gmd:axisDimensionProperties (gmd:MD_Dimension?)>
@@ -101,16 +101,16 @@
 <!-- MD_Metadata.spatialRepresentationInfo.MD_VectorSpatialRepresentation -->
 <!ELEMENT gmd:topologyLevel (gmd:MD_TopologyLevelCode)>
 <!ELEMENT gmd:MD_TopologyLevelCode (#PCDATA)>
-<!ATTLIST gmd:MD_TopologyLevelCode codeListValue CDATA>
-<!ATTLIST gmd:MD_TopologyLevelCode codeList CDATA>
-<!ATTLIST gmd:MD_TopologyLevelCode codeSpace CDATA>
+<!ATTLIST gmd:MD_TopologyLevelCode codeListValue CDATA >
+<!ATTLIST gmd:MD_TopologyLevelCode codeList CDATA >
+<!ATTLIST gmd:MD_TopologyLevelCode codeSpace CDATA >
 <!ELEMENT gmd:geometricObjects (gmd:MD_GeometricObjects)>
 <!ELEMENT gmd:MD_GeometricObjects (gmd:geometricObjectType, gmd:geometricObjectCount)>
 <!ELEMENT gmd:geometricObjectType (gmd:MD_GeometricObjectTypeCode)>
 <!ELEMENT gmd:MD_GeometricObjectTypeCode (#PCDATA)>
-<!ATTLIST gmd:MD_GeometricObjectTypeCode codeListValue CDATA>
-<!ATTLIST gmd:MD_GeometricObjectTypeCode codeList CDATA>
-<!ATTLIST gmd:MD_GeometricObjectTypeCode codeSpace CDATA>
+<!ATTLIST gmd:MD_GeometricObjectTypeCode codeListValue CDATA >
+<!ATTLIST gmd:MD_GeometricObjectTypeCode codeList CDATA >
+<!ATTLIST gmd:MD_GeometricObjectTypeCode codeSpace CDATA >
 <!ELEMENT gmd:geometricObjectCount (gco:Integer)>
 
 <!-- MD_Metadata.referenceSystemInfo -->
