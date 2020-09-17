@@ -6,7 +6,7 @@ from os.path import os
 
 from parserutils.collections import wrap_value
 from parserutils.elements import element_exists, element_to_dict, element_to_string
-from parserutils.elements import clear_element, get_element_text, get_elements, get_remote_element
+from parserutils.elements import clear_element, get_element, get_element_text, get_elements, get_remote_element
 from parserutils.elements import insert_element, remove_element, remove_element_attributes, set_element_attributes
 
 from gis_metadata.arcgis_metadata_parser import ArcGISParser, ARCGIS_NODES, ARCGIS_ROOTS
@@ -21,7 +21,8 @@ from gis_metadata.utils import ATTRIBUTES, CONTACTS, DIGITAL_FORMS, PROCESS_STEP
 from gis_metadata.utils import BOUNDING_BOX, DATES, LARGER_WORKS, RASTER_INFO
 from gis_metadata.utils import KEYWORDS_PLACE, KEYWORDS_STRATUM, KEYWORDS_TEMPORAL, KEYWORDS_THEME
 from gis_metadata.utils import COMPLEX_DEFINITIONS, SUPPORTED_PROPS, ParserProperty
-from gis_metadata.utils import format_xpaths, get_default_for_complex
+from gis_metadata.utils import format_xpaths, get_default_for_complex, parse_property, update_property
+from gis_metadata.utils import validate_complex, validate_complex_list, validate_dates
 
 
 iteritems = getattr(six, 'iteritems')
@@ -633,30 +634,6 @@ class MetadataParserTests(MetadataParserTestCase):
         """ Covers code that enforces certain behaviors for custom parsers """
 
         parser = MetadataParser()
-        prop_get = '{0}'.format
-        prop_set = '{xpaths}'.format
-
-        with self.assertRaises(ConfigurationError):
-            # Un-callable property parser (no xpath)
-            ParserProperty(None, None)
-
-        with self.assertRaises(ConfigurationError):
-            # Un-callable property parser (no xpath)
-            ParserProperty(None, prop_set)
-
-        with self.assertRaises(ConfigurationError):
-            # Un-callable property updater
-            ParserProperty(prop_get, None)
-
-        parser_prop = ParserProperty(None, prop_set, 'path')
-        with self.assertRaises(ConfigurationError):
-            # Un-callable property parser with xpath
-            parser_prop.get_prop('prop')
-
-        parser_prop = ParserProperty(prop_get, prop_set, 'path')
-        self.assertEqual(parser_prop.get_prop('prop'), 'prop')
-        self.assertEqual(parser_prop.set_prop(), 'path')
-        self.assertEqual(parser_prop.set_prop(xpaths='diff'), 'path')
 
         data_map_1 = parser._data_map
         parser._init_data_map()
@@ -1207,6 +1184,140 @@ class MetadataParserTests(MetadataParserTestCase):
         self.assert_parser_after_write(IsoParser, self.iso_file, self.test_iso_file_path, True)
 
 
+class ParserUtilityTestCase(unittest.TestCase):
+    """ A test case to cover utility function edge cases not covered by test data """
+
+    def setUp(self):
+        sep = os.path.sep
+        dir_name = os.path.dirname(os.path.abspath(__file__))
+
+        self.data_dir = sep.join((dir_name, 'data'))
+        self.xml_data = sep.join((self.data_dir, 'utility_metadata.xml'))
+
+        with open(self.xml_data) as xml_data:
+            self.utility_parser = UtilityFgdcParser(xml_data)
+
+    def test_parser_property(self):
+        prop_get = '{0}'.format
+        prop_set = '{xpaths}'.format
+
+        with self.assertRaises(ConfigurationError):
+            # Un-callable property parser (no xpath)
+            ParserProperty(None, None)
+
+        with self.assertRaises(ConfigurationError):
+            # Un-callable property parser (no xpath)
+            ParserProperty(None, prop_set)
+
+        with self.assertRaises(ConfigurationError):
+            # Un-callable property updater
+            ParserProperty(prop_get, None)
+
+        parser_prop = ParserProperty(None, prop_set, 'path')
+        with self.assertRaises(ConfigurationError):
+            # Un-callable property parser with xpath
+            parser_prop.get_prop('prop')
+
+        parser_prop = ParserProperty(prop_get, prop_set, 'path')
+        self.assertEqual(parser_prop.get_prop('prop'), 'prop')
+        self.assertEqual(parser_prop.set_prop(), 'path')
+        self.assertEqual(parser_prop.set_prop(xpaths='diff'), 'path')
+
+    def test_parse_dates(self):
+
+        prop = DATES
+
+        # Test single date stored as multiple (mdattim) is converted to single
+        multiple_to_single_date = {'Multiple Date 1'}
+        self.assertEqual(set(self.utility_parser.dates['values']), multiple_to_single_date)
+        validate_dates(prop, self.utility_parser.dates, self.utility_parser._data_structures[prop])
+
+        # Remove multiple date root in order to parse multiple-range dates (rngdates)
+        with open(self.xml_data) as xml_data:
+            xml_tree = get_element(xml_data)
+            remove_element(xml_tree, 'idinfo/timeperd/timeinfo/mdattim')
+            self.utility_parser = UtilityFgdcParser(xml_tree)
+
+        # Test multiple dates stored as range (rngdates) are converted to multiple
+        range_to_multiple_dates = {'Date Range Start 1', 'Date Range Start 2', 'Date Range End 1', 'Date Range End 2'}
+        self.assertEqual(set(self.utility_parser.dates['values']), range_to_multiple_dates)
+        validate_dates(prop, self.utility_parser.dates, self.utility_parser._data_structures[prop])
+
+        # Test validation with missing "type" parameter and non-standard dates prop
+        self.utility_parser.dates['no_type'] = self.utility_parser.dates.pop('type')
+        with self.assertRaises(ValidationError):
+            validate_dates('nope', self.utility_parser.dates, self.utility_parser._data_structures[prop])
+
+        # Test validation with missing "values" parameter and non-standard dates prop
+        self.utility_parser.dates['type'] = self.utility_parser.dates.pop('no_type')
+        self.utility_parser.dates['no_vals'] = self.utility_parser.dates.pop('values')
+        with self.assertRaises(ValidationError):
+            validate_dates('nope', self.utility_parser.dates, self.utility_parser._data_structures[prop])
+
+    def test_parse_property(self):
+
+        initial_vals = {}
+        updated_vals = {}
+
+        for prop in self.utility_parser._parser_props:
+
+            # Test that each property was initialized as expected
+            init_val = getattr(self.utility_parser, prop)
+            test_val = self.utility_parser._data_map[prop].get_prop(prop)
+            self.assertEqual(init_val, test_val, 'Unmatching utility parser values for "{0}"'.format(prop))
+
+            initial_vals[prop] = test_val
+            updated_vals[prop] = test_val[::-1]
+            setattr(self.utility_parser, prop, updated_vals[prop])
+
+        self.utility_parser.update()
+
+        for prop in updated_vals:
+            # Test that each property was updated in the XML
+            old_val = initial_vals[prop]
+            new_val = updated_vals[prop]
+            get_val = getattr(self.utility_parser, prop)
+            xml_val = self.utility_parser._data_map[prop].get_prop(prop)
+
+            self.assertNotEqual(old_val, new_val, 'Utility parser property unchanged: "{0}"'.format(prop))
+            self.assertEqual(get_val, new_val, 'Utility parser property not set: "{0}"'.format(prop))
+            self.assertEqual(get_val, new_val, 'Utility parser property not applied: "{0}"'.format(prop))
+            self.assertEqual(get_val, xml_val, 'Utility parser XML not updated for "{0}"'.format(prop))
+
+    def test_validate_complex(self):
+        complex_props = (BOUNDING_BOX, LARGER_WORKS, RASTER_INFO)
+
+        for prop in complex_props:
+            rprop = prop[::-1]
+            value = getattr(self.utility_parser, prop)
+            setattr(self.utility_parser, rprop, value)
+            # Test the same valid structure under a different prop name
+            validate_complex(rprop, value, self.utility_parser._data_structures[prop])
+
+    def test_validate_complex_list(self):
+        complex_props = (ATTRIBUTES, CONTACTS, DIGITAL_FORMS, PROCESS_STEPS)
+
+        for prop in complex_props:
+            rprop = prop[::-1]
+            value = getattr(self.utility_parser, prop)
+            setattr(self.utility_parser, rprop, value)
+            # Test the same valid list structure under a different prop name
+            validate_complex_list(rprop, value, self.utility_parser._data_structures[prop])
+
+    def test_validate_dates(self):
+
+        # Test validation with missing "type" parameter and non-standard dates prop
+        self.utility_parser.dates['no_type'] = self.utility_parser.dates.pop('type')
+        with self.assertRaises(ValidationError):
+            validate_dates('nope', self.utility_parser.dates, self.utility_parser._data_structures[DATES])
+
+        # Test validation with missing "values" parameter and non-standard dates prop
+        self.utility_parser.dates['type'] = self.utility_parser.dates.pop('no_type')
+        self.utility_parser.dates['no_vals'] = self.utility_parser.dates.pop('values')
+        with self.assertRaises(ValidationError):
+            validate_dates('nope', self.utility_parser.dates, self.utility_parser._data_structures[DATES])
+
+
 class CustomIsoParser(IsoParser):
 
     def _init_data_map(self):
@@ -1248,3 +1359,39 @@ class CustomIsoParser(IsoParser):
 
         self._metadata_props.add(lang_prop)
         self._metadata_props.add(ct_prop)
+
+
+class UtilityFgdcParser(FgdcParser):
+
+    def _init_data_map(self):
+        """ Convert all string xpaths in data map to equivalent ParserProperty """
+
+        super(UtilityFgdcParser, self)._init_data_map()
+
+        # Replace all string paths in data map with dummy parser
+
+        updated_data_map = {}
+        for prop, xpath in iteritems(self._data_map):
+            if prop in self._metadata_props and isinstance(xpath, six.string_types):
+                updated_data_map[prop] = ParserProperty(self._parse_prop, self._update_prop, xpath)
+
+        # Ensure at least one property was updated (should be many) and add to data map
+
+        assert len(updated_data_map) > 0
+
+        self._parser_props = list(updated_data_map)
+        self._data_map.update(updated_data_map)
+
+    def _parse_prop(self, prop):
+        """ :return: the data map property directly, same as self._data_map[prop] """
+        return parse_property(self._xml_tree, None, self._data_map, prop)
+
+    def _update_prop(self, **update_props):
+        """ Update the value directly, same as utils._update_property """
+
+        tree_to_update = update_props['tree_to_update']
+        prop = update_props['prop']
+        values = update_props['values']
+        xpaths = self._data_map[prop].xpath
+
+        return update_property(tree_to_update, None, xpaths, prop, values)

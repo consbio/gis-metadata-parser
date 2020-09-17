@@ -1,0 +1,261 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<metadata>
+  <idinfo>
+    <descript>
+      <abstract>Test Abstract</abstract>
+      <purpose>Test Purpose</purpose>
+      <supplinf>Test Supplementary Info</supplinf>
+    </descript>
+    <citation>
+      <citeinfo>
+        <origin>Test Originators</origin>
+        <pubdate>Test Publish Date</pubdate>
+        <title>Test Title</title>
+        <onlink>http://test.onlinelinkages.org</onlink>
+        <othercit>Test Other Citation Info</othercit>
+        <pubinfo>
+          <publish />
+          <pubplace />
+        </pubinfo>
+        <lworkcit>
+          <citeinfo>
+            <origin>Larger Works Originator</origin>
+            <pubdate>Larger Works Date</pubdate>
+            <title>Larger Works Title</title>
+            <edition>Larger Works Edition</edition>
+            <othercit>Larger Works Other Citation</othercit>
+            <onlink>http://test.largerworks.online.linkage.com</onlink>
+            <pubinfo>
+              <publish>Larger Works Info</publish>
+              <pubplace>Larger Works Place</pubplace>
+            </pubinfo>
+          </citeinfo>
+        </lworkcit>
+      </citeinfo>
+    </citation>
+    <timeperd>
+      <timeinfo>
+        <rngdates>
+          <begdate>Date Range Start 1</begdate>
+          <begdate>Date Range Start 2</begdate>
+          <enddate>Date Range End 1</enddate>
+          <enddate>Date Range End 2</enddate>
+        </rngdates>
+        <mdattim>
+          <sngdate>
+            <caldate>Multiple Date 1</caldate>
+          </sngdate>
+        </mdattim>
+        <current />
+      </timeinfo>
+    </timeperd>
+    <status>
+      <progress />
+      <update />
+    </status>
+    <spdom>
+      <bounding>
+        <westbc>-179.99999999998656</westbc>
+        <eastbc>179.99999999998656</eastbc>
+        <northbc>87.81211601444309</northbc>
+        <southbc>-86.78249642712764</southbc>
+      </bounding>
+    </spdom>
+    <keywords>
+      <place>
+        <placekey>Oregon</placekey>
+        <placekey>Washington</placekey>
+      </place>
+      <stratum>
+        <stratkey>Layer One</stratkey>
+        <stratkey>Layer Two</stratkey>
+      </stratum>
+      <temporal>
+        <tempkey>Now</tempkey>
+        <tempkey>Later</tempkey>
+      </temporal>
+      <theme>
+        <themekey>Ecoregion</themekey>
+        <themekey>Risk</themekey>
+        <themekey>Threat</themekey>
+        <themekey>Habitat</themekey>
+      </theme>
+    </keywords>
+    <useconst>Test Use Constraints</useconst>
+    <datacred>Test Data Credits</datacred>
+    <ptcontac>
+      <cntinfo>
+        <cntemail>Contact Email 1</cntemail>
+        <cntpos>Contact Position 1</cntpos>
+        <cntorgp>
+          <cntper>Contact Name 1</cntper>
+          <cntorg>Contact Organization 1</cntorg>
+        </cntorgp>
+      </cntinfo>
+    </ptcontac>
+    <ptcontac>
+      <cntinfo>
+        <cntemail>Contact Email 2</cntemail>
+        <cntpos>Contact Position 2</cntpos>
+        <cntperp>
+          <cntper>Contact Name 2</cntper>
+          <cntorg>Contact Organization 2</cntorg>
+        </cntperp>
+      </cntinfo>
+    </ptcontac>
+  </idinfo>
+  <distinfo>
+    <distrib>
+      <cntinfo>
+        <cntorgp>
+          <cntorg>Test Distribution Org</cntorg>
+          <cntper>Test Distribution Person</cntper>
+        </cntorgp>
+        <cntaddr>
+          <addrtype>Test Distribution Address Type</addrtype>
+          <address>Test Distribution Address</address>
+          <city>Test Distribution City</city>
+          <state>OR</state>
+          <postal>12345</postal>
+          <country>US</country>
+        </cntaddr>
+        <cntvoice>Test Distribution Phone</cntvoice>
+        <cntemail>Test Distribution Email</cntemail>
+      </cntinfo>
+    </distrib>
+    <resdesc>Test Resource Description</resdesc>
+    <distliab>Test Distribution Liability</distliab>
+    <stdorder>
+      <digform>
+        <digtinfo>
+          <formname>Digital Form Name 1</formname>
+          <formvern>Digital Form Version 1</formvern>
+          <formcont>Digital Form Content 1</formcont>
+          <formspec>Digital Form Specification 1</formspec>
+          <filedec>Digital Form Decompression 1</filedec>
+        </digtinfo>
+        <digtopt>
+          <onlinopt>
+            <computer>
+              <networka>
+                <networkr>Digital Form Resource 1</networkr>
+              </networka>
+            </computer>
+            <accinstr>Digital Form Access Instructions 1</accinstr>
+            <oncomp>Digital Form Access Description 1</oncomp>
+          </onlinopt>
+        </digtopt>
+      </digform>
+      <digform>
+        <digtinfo>
+          <formname>Digital Form Name 2</formname>
+          <formvern>Digital Form Version 2</formvern>
+          <formcont>Digital Form Content 2</formcont>
+          <formspec>Digital Form Specification 2</formspec>
+          <filedec>Digital Form Decompression 2</filedec>
+        </digtinfo>
+        <digtopt>
+          <onlinopt>
+            <computer>
+              <networka>
+                <networkr>Digital Form Resource 2</networkr>
+              </networka>
+            </computer>
+            <accinstr>Digital Form Access Instructions 2</accinstr>
+            <oncomp>Digital Form Access Description 2</oncomp>
+          </onlinopt>
+        </digtopt>
+      </digform>
+      <fees>Test Processing Fees</fees>
+      <ordering>Test Processing Instructions</ordering>
+    </stdorder>
+    <techpreq>Test Technical Prerequisites</techpreq>
+  </distinfo>
+  <eainfo>
+    <detailed>
+      <attr>
+        <attrlabl>Attributes Label 1</attrlabl>
+        <attalias>Attributes Alias 1</attalias>
+        <attrdef>Attributes Definition 1</attrdef>
+        <attrdefs>Attributes Definition Source 1</attrdefs>
+        <attrdomv />
+      </attr>
+      <attr>
+        <attrlabl>Attributes Label 2</attrlabl>
+        <attalias>Attributes Alias 2</attalias>
+        <attrdef>Attributes Definition 2</attrdef>
+        <attrdefs>Attributes Definition Source 2</attrdefs>
+        <attrdomv />
+      </attr>
+      <attr>
+        <attrlabl>Attributes Label 3</attrlabl>
+        <attalias>Attributes Alias 3</attalias>
+        <attrdef>Attributes Definition 3</attrdef>
+        <attrdefs>Attributes Definition Source 3</attrdefs>
+        <attrdomv />
+      </attr>
+    </detailed>
+  </eainfo>
+  <dataqual>
+    <lineage>
+      <procstep>
+        <date>20070210</date>
+        <time>15093700</time>
+      </procstep>
+      <procstep>
+        <date>20070418</date>
+        <time>10392700</time>
+      </procstep>
+      <procstep>
+        <procdesc>Process Step Description 1</procdesc>
+        <procdate>Process Step Date 1</procdate>
+        <srcused>Process Step Sources 1.1</srcused>
+        <srcused>Process Step Sources 1.2</srcused>
+      </procstep>
+      <procstep>
+        <procdesc>Process Step Description 2</procdesc>
+      </procstep>
+      <procstep>
+        <procdate>
+Process Step Date 3
+        </procdate>
+      </procstep>
+      <procstep>
+        <procdesc>
+Process Step Description 4
+        </procdesc>
+        <srcused>Process Step Sources 4.1</srcused>
+        <srcused>Process Step Sources 4.2</srcused>
+      </procstep>
+    </lineage>
+    <complete>Test Dataset Completeness</complete>
+    <attracc>
+      <attraccr>Test Attribute Accuracy</attraccr>
+    </attracc>
+  </dataqual>
+  <spdoinfo>
+    <rastinfo>
+      <colcount>Test Column Count</colcount>
+      <vrtcount>Test Vertical Count</vrtcount>
+      <rowcount>Test Row Count</rowcount>
+      <rasttype>Test # Dimensions</rasttype>
+    </rastinfo>
+  </spdoinfo>
+  <spref>
+    <horizsys>
+      <geograph>
+        <!-- Will not exist if <planar> tag is present -->
+        <latres>Test Backup Y Resolution</latres>
+        <longres>Test Backup X Resolution</longres>
+      </geograph>
+      <planar>
+        <planci>
+          <coordrep>
+            <ordres>Test Y Resolution</ordres>
+            <absres>Test X Resolution</absres>
+          </coordrep>
+        </planci>
+      </planar>
+    </horizsys>
+  </spref>
+</metadata>
