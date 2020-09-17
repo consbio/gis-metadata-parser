@@ -298,7 +298,7 @@ class ArcGISParser(MetadataParser):
         parsed = (element_to_dict(e) for e in get_elements(self._xml_tree, xroot))
         parsed = flatten_items(e['children'] for e in parsed if e['attributes'].get('type') == item_type)
 
-        return reduce_value([p['text'] for p in parsed if p['name'] == 'measDesc'])
+        return reduce_value([p['text'] for p in parsed if p and p['name'] == 'measDesc'])
 
     def _parse_raster_info(self, prop=RASTER_INFO):
         """ Collapses multiple dimensions into a single raster_info complex struct """

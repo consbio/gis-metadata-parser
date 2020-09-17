@@ -7,21 +7,21 @@
         <attalias>Attributes Alias 1</attalias>
         <attrdef>Attributes Definition 1</attrdef>
         <attrdefs>Attributes Definition Source 1</attrdefs>
-        <attrdomv />
+        <attrdomv/>
       </attr>
       <attr>
         <attrlabl>Attributes Label 2</attrlabl>
         <attalias>Attributes Alias 2</attalias>
         <attrdef>Attributes Definition 2</attrdef>
         <attrdefs>Attributes Definition Source 2</attrdefs>
-        <attrdomv />
+        <attrdomv/>
       </attr>
       <attr>
         <attrlabl>Attributes Label 3</attrlabl>
         <attalias>Attributes Alias 3</attalias>
         <attrdef>Attributes Definition 3</attrdef>
         <attrdefs>Attributes Definition Source 3</attrdefs>
-        <attrdomv />
+        <attrdomv/>
       </attr>
     </detailed>
   </eainfo>
@@ -324,6 +324,8 @@ Process Step Date 3
     <report type="DQCompOm">
       <measDesc>Test Dataset Completeness</measDesc>
     </report>
+    <report type="DQCompComm" dimension=""/>
+    <report type="DQNonQuanAttAcc" dimension=""/>
   </dqInfo>
   <mdHrLvName>dataset</mdHrLvName>
   <refSysInfo>
