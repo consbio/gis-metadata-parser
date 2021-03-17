@@ -28,12 +28,12 @@ setup(
     long_description=long_description,
     long_description_content_type='text/markdown',
     keywords='arcgis,fgdc,iso,ISO-19115,ISO-19139,gis,metadata,parser,xml,gis_metadata,gis_metadata_parser',
-    version='1.2.4',
+    version='1.2.5',
     packages=[
         'gis_metadata', 'gis_metadata.tests'
     ],
     install_requires=[
-        'frozendict>=1.2', 'parserutils>=1.1', 'six>=1.9.0'
+        'frozendict>=1.2', 'parserutils>=1.2.3', 'six>=1.9.0'
     ],
     tests_require=['mock'],
     url='https://github.com/consbio/gis-metadata-parser',
