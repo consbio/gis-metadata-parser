@@ -253,6 +253,16 @@ Process Step Description 4
         <longres>Test Backup X Resolution</longres>
       </geograph>
       <planar>
+        <mapproj>
+          <mapprojn>Custom Projection</mapprojn>
+          <equirect>
+            <stdparll>7</stdparll>
+            <longcm>8</longcm>
+            <latprjo>9</latprjo>
+            <feast>22</feast>
+            <fnorth>11</fnorth>
+          </equirect>
+        </mapproj>
         <planci>
           <coordrep>
             <ordres>Test Y Resolution</ordres>

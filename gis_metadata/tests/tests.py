@@ -574,13 +574,66 @@ class MetadataParserTemplateTests(MetadataParserTestCase):
 
 class MetadataParserTests(MetadataParserTestCase):
 
-    def test_custom_parser(self):
-        """ Covers support for custom parsers """
+    def test_custom_fgdc_parser(self):
+        """ Covers support for custom FGDC parser fields """
+
+        target_prop = 'projection'
+        target_values = {
+            'name': 'Custom Projection',
+            'standard_parallel': '7',
+            'meridian_longitude': '8',
+            'origin_latitude': '9',
+            'false_easting': '22',
+            'false_northing': '11',
+        }
+
+        with open(self.fgdc_file) as fgdc_metadata:
+            custom_parser = CustomFgdcParser(fgdc_metadata)
+
+        self.assertEqual(custom_parser.projection, target_values, 'Custom FGDC projection values were not parsed')
+
+        complex_val = {
+            'name': 'New Projection Name',
+            'standard_parallel': '14',
+            'meridian_longitude': '16',
+            'origin_latitude': '18',
+            'false_easting': '44',
+            'false_northing': '22',
+        }
+        self.assert_reparsed_complex_for(custom_parser, target_prop, complex_val, complex_val)
+
+        # Test conversion with custom props
+        converted_parser = custom_parser.convert_to(CustomFgdcParser)
+
+        self.assert_parsers_are_equal(custom_parser, converted_parser)
+        self.assertEqual(converted_parser.projection, custom_parser.projection)
+
+        # Test conversion that must ignore custom props
+        agis_parser = custom_parser.convert_to(ArcGISParser)
+        iso_parser = custom_parser.convert_to(IsoParser)
+        self.assert_parsers_are_equal(agis_parser, iso_parser)
+
+        # Test invalid projection structure value
+
+        projection = custom_parser.projection
+        custom_parser.projection = u'Nope'
+
+        with self.assertRaises(ValidationError):
+            custom_parser.validate()
+
+        custom_parser.projection = projection
+        custom_parser.validate()
+
+    def test_custom_iso_parser(self):
+        """ Covers support for custom ISO parser fields """
 
         target_values = {
             'metadata_contacts': [{
-                'name': 'Custom Contact Name', 'email': 'Custom Contact Email', 'phone': 'Custom Contact Phone',
-                'position': 'Custom Contact Position', 'organization': 'Custom Contact Organization'
+                'name': 'Custom Contact Name',
+                'email': 'Custom Contact Email',
+                'phone': 'Custom Contact Phone',
+                'position': 'Custom Contact Position',
+                'organization': 'Custom Contact Organization'
             }],
             'metadata_language': ['eng', 'esp']
         }
@@ -589,11 +642,18 @@ class MetadataParserTests(MetadataParserTestCase):
             custom_parser = CustomIsoParser(iso_metadata)
 
         for prop in target_values:
-            self.assertEqual(getattr(custom_parser, prop), target_values[prop], 'Custom parser values were not parsed')
+            self.assertEqual(
+                getattr(custom_parser, prop),
+                target_values[prop],
+                'Custom ISO parser values were not parsed'
+            )
 
         complex_val = {
-            'name': 'Changed Contact Name', 'email': 'Changed Contact Email', 'phone': 'Changed Contact Phone',
-            'position': 'Changed Contact Position', 'organization': 'Changed Contact Organization'
+            'name': 'Changed Contact Name',
+            'email': 'Changed Contact Email',
+            'phone': 'Changed Contact Phone',
+            'position': 'Changed Contact Position',
+            'organization': 'Changed Contact Organization'
         }
         self.assert_reparsed_complex_for(custom_parser, 'metadata_contacts', complex_val, [complex_val])
         self.assert_reparsed_simple_for(custom_parser, ['metadata_language'], ['en', 'es'], ['en', 'es'])
@@ -613,12 +673,13 @@ class MetadataParserTests(MetadataParserTestCase):
         # Test invalid custom complex structure value
 
         metadata_contacts = custom_parser.metadata_contacts
-        custom_parser.metadata_contacts = u'None'
+        custom_parser.metadata_contacts = u'Nope'
 
         with self.assertRaises(ValidationError):
             custom_parser.validate()
 
         custom_parser.metadata_contacts = metadata_contacts
+        custom_parser.validate()
 
         # Test invalid custom simple value
 
@@ -629,6 +690,7 @@ class MetadataParserTests(MetadataParserTestCase):
             custom_parser.validate()
 
         custom_parser.metadata_language = metadata_language
+        custom_parser.validate()
 
     def test_generic_parser(self):
         """ Covers code that enforces certain behaviors for custom parsers """
@@ -1316,6 +1378,43 @@ class ParserUtilityTestCase(unittest.TestCase):
         self.utility_parser.dates['no_vals'] = self.utility_parser.dates.pop('values')
         with self.assertRaises(ValidationError):
             validate_dates('nope', self.utility_parser.dates, self.utility_parser._data_structures[DATES])
+
+
+class CustomFgdcParser(FgdcParser):
+
+    def _init_data_map(self):
+        super(CustomFgdcParser, self)._init_data_map()
+
+        # Define PROJECTION as a complex structure
+
+        mp_definition = {
+            'name': '{name}',
+            'standard_parallel': '{standard_parallel}',
+            'meridian_longitude': '{meridian_longitude}',
+            'origin_latitude': '{origin_latitude}',
+            'false_easting': '{false_easting}',
+            'false_northing': '{false_northing}',
+        }
+        mp_prop = 'projection'
+        mp_xpath = 'spref/horizsys/planar/mapproj/{mp_path}'
+
+        # Add PROJECTION structure to data map
+        self._data_structures[mp_prop] = format_xpaths(
+            mp_definition,
+            name=mp_xpath.format(mp_path='mapprojn'),
+            standard_parallel=mp_xpath.format(mp_path='equirect/stdparll'),
+            meridian_longitude=mp_xpath.format(mp_path='equirect/longcm'),
+            origin_latitude=mp_xpath.format(mp_path='equirect/latprjo'),
+            false_easting=mp_xpath.format(mp_path='equirect/feast'),
+            false_northing=mp_xpath.format(mp_path='equirect/fnorth'),
+        )
+
+        # Set the root and add getter/setter (parser/updater) to the data map
+        self._data_map['_{prop}_root'.format(prop=mp_prop)] = mp_prop
+        self._data_map[mp_prop] = ParserProperty(self._parse_complex, self._update_complex)
+
+        # Let the parent validation logic know about the two new custom properties
+        self._metadata_props.add(mp_prop)
 
 
 class CustomIsoParser(IsoParser):
