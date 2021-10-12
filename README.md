@@ -8,7 +8,7 @@ XML parsers for GIS metadata that are designed to read in, validate, update and 
 
 This library is compatible with Python versions 2.7 and 3.4 through 3.6.
 
-[![Build Status](https://travis-ci.org/consbio/gis-metadata-parser.png?branch=main)](https://travis-ci.org/consbio/gis-metadata-parser)
+[![Build Status](https://api.travis-ci.com/consbio/gis-metadata-parser.png?branch=main)](https://app.travis-ci.com/github/consbio/gis-metadata-parser)
 [![Coverage Status](https://coveralls.io/repos/github/consbio/gis-metadata-parser/badge.svg?branch=main)](https://coveralls.io/github/consbio/gis-metadata-parser?branch=main)
 
 ## Installation

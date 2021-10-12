@@ -24,16 +24,14 @@ with open('README.md') as readme:
 
 setup(
     name='gis-metadata-parser',
-    description='Parser for GIS metadata standards including FGDC and ISO-19115',
+    description='Parser for GIS metadata standards including ArcGIS FGDC and ISO-19115',
     long_description=long_description,
     long_description_content_type='text/markdown',
     keywords='arcgis,fgdc,iso,ISO-19115,ISO-19139,gis,metadata,parser,xml,gis_metadata,gis_metadata_parser',
-    version='1.2.6',
-    packages=[
-        'gis_metadata', 'gis_metadata.tests'
-    ],
+    version='2.0',
+    packages=['gis_metadata'],
     install_requires=[
-        'frozendict==1.2', 'parserutils>=1.2.3', 'six>=1.9.0'
+        'frozendict>=2.0', 'parserutils>=2.0.1'
     ],
     tests_require=['mock'],
     url='https://github.com/consbio/gis-metadata-parser',
