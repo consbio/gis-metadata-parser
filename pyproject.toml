@@ -8,6 +8,9 @@ readme = "README.md"
 homepage = "https://github.com/consbio/gis-metadata-parser/"
 repository = "https://github.com/consbio/gis-metadata-parser/"
 license = "BSD"
+packages = [
+    { include = "gis_metadata" },
+]
 
 [tool.poetry.dependencies]
 python = "^3.6"
