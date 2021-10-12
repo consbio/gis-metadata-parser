@@ -1,7 +1,5 @@
 """ A module to contain utility metadata parsing helpers """
 
-import six
-
 from copy import deepcopy
 
 from parserutils.elements import create_element_tree, element_exists, element_to_string
@@ -14,9 +12,6 @@ from gis_metadata.utils import DATE_TYPE_RANGE, DATE_TYPE_RANGE_BEGIN, DATE_TYPE
 from gis_metadata.utils import SUPPORTED_PROPS
 from gis_metadata.utils import parse_complex, parse_complex_list, parse_dates, parse_property
 from gis_metadata.utils import update_complex, update_complex_list, update_property, validate_any, validate_properties
-
-
-iteritems = getattr(six, 'iteritems')
 
 
 # Place holders for lazy, one-time FGDC & ISO imports
@@ -271,7 +266,7 @@ class MetadataParser(object):
 
         template_tree = self._xml_tree = create_element_tree(root)
 
-        for prop, val in iteritems(metadata_defaults):
+        for prop, val in metadata_defaults.items():
             path = self._data_map.get(prop)
             if path and val:
                 setattr(self, prop, val)
@@ -391,7 +386,6 @@ class MetadataParser(object):
             out_file_or_path = self.out_file_or_path
 
         if not out_file_or_path:
-            # FileNotFoundError doesn't exist in Python 2
             raise IOError('Output file path has not been provided')
 
         write_element(self.update(use_template), out_file_or_path, encoding)
@@ -407,7 +401,7 @@ class MetadataParser(object):
         tree_to_update = self._xml_tree if not use_template else self._get_template(**metadata_defaults)
         supported_props = self._metadata_props
 
-        for prop, xpath in iteritems(self._data_map):
+        for prop, xpath in self._data_map.items():
             if not prop.startswith('_') or prop.strip('_') in supported_props:
                 # Send only public or alternate properties
                 update_property(

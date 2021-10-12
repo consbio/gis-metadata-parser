@@ -1,7 +1,5 @@
 """ A module to contain utility FGDC metadata parsing helpers """
 
-import six
-
 from frozendict import frozendict
 from parserutils.elements import get_element_name, remove_element
 
@@ -22,13 +20,10 @@ from gis_metadata.utils import COMPLEX_DEFINITIONS, ParserProperty
 from gis_metadata.utils import format_xpaths, update_complex
 
 
-iteritems = getattr(six, 'iteritems')
-
-
 FGDC_ROOT = 'metadata'
 
 # Define backup locations for contact and raster_info sub-properties
-FGDC_DEFINITIONS = dict({k: dict(v) for k, v in iteritems(COMPLEX_DEFINITIONS)})
+FGDC_DEFINITIONS = dict({k: dict(v) for k, v in dict(COMPLEX_DEFINITIONS).items()})
 FGDC_DEFINITIONS[CONTACTS].update({
     '_name': '{_name}',
     '_organization': '{_organization}'
@@ -37,7 +32,7 @@ FGDC_DEFINITIONS[RASTER_INFO].update({
     '_x_resolution': '{_x_resolution}',
     '_y_resolution': '{_y_resolution}'
 })
-FGDC_DEFINITIONS = frozendict({k: frozendict(v) for k, v in iteritems(FGDC_DEFINITIONS)})
+FGDC_DEFINITIONS = frozendict({k: frozendict(v) for k, v in FGDC_DEFINITIONS.items()})
 
 FGDC_TAG_FORMATS = frozendict({
     '_attributes_root': 'eainfo/detailed/attr',
@@ -217,7 +212,7 @@ class FgdcParser(MetadataParser):
 
         # Assign XPATHS and gis_metadata.utils.ParserProperties to fgdc_data_map
 
-        for prop, xpath in iteritems(FGDC_TAG_FORMATS):
+        for prop, xpath in FGDC_TAG_FORMATS.items():
             if prop in (ATTRIBUTES, CONTACTS, DIGITAL_FORMS, PROCESS_STEPS):
                 fgdc_data_map[prop] = ParserProperty(self._parse_complex_list, self._update_complex_list)
 

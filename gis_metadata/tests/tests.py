@@ -1,4 +1,4 @@
-import six
+import io
 import mock
 import unittest
 
@@ -24,9 +24,6 @@ from gis_metadata.utils import COMPLEX_DEFINITIONS, SUPPORTED_PROPS, ParserPrope
 from gis_metadata.utils import format_xpaths, get_default_for_complex, parse_property, update_property
 from gis_metadata.utils import validate_complex, validate_complex_list, validate_dates
 
-
-iteritems = getattr(six, 'iteritems')
-StringIO = getattr(six, 'StringIO')
 
 KEYWORD_PROPS = (KEYWORDS_PLACE, KEYWORDS_STRATUM, KEYWORDS_TEMPORAL, KEYWORDS_THEME)
 
@@ -243,7 +240,7 @@ class MetadataParserTestCase(unittest.TestCase):
 
         if isinstance(reparsed, dict):
             # Reparsed is a dict: compare each value with corresponding in target
-            for key, val in iteritems(reparsed):
+            for key, val in reparsed.items():
                 self.assert_equal_for(
                     parser_name, '{0}.{1}'.format(prop, key), val, target.get(key, u'')
                 )
@@ -258,7 +255,7 @@ class MetadataParserTestCase(unittest.TestCase):
                 if not isinstance(value, dict):
                     self.assert_equal_for(parser_name, '{0}[{1}]'.format(prop, idx), value, target[idx])
                 else:
-                    for key, val in iteritems(value):
+                    for key, val in value.items():
                         self.assert_equal_for(
                             parser_name, '{0}.{1}'.format(prop, key), val, target[idx].get(key, u'')
                         )
@@ -381,7 +378,7 @@ class MetadataParserTemplateTests(MetadataParserTestCase):
         parser = parser_type(out_file_or_path=out_file_path)
 
         # Reverse each value and read the file in again
-        for prop, val in iteritems(TEST_TEMPLATE_VALUES):
+        for prop, val in TEST_TEMPLATE_VALUES.items():
             setattr(parser, prop, val[::-1])
 
         parser.write()
@@ -398,7 +395,7 @@ class MetadataParserTemplateTests(MetadataParserTestCase):
         self.assertIsNotNone(parser._xml_tree)
         self.assertEqual(parser._xml_tree.getroot().tag, parser._xml_root)
 
-        for prop, val in iteritems(TEST_TEMPLATE_VALUES):
+        for prop, val in TEST_TEMPLATE_VALUES.items():
             parsed_val = getattr(parser, prop)
             self.assertEqual(parsed_val, val, (
                 '{0} property {1}, "{2}", does not equal "{3}"'.format(parser_type, prop, parsed_val, val)
@@ -440,7 +437,7 @@ class MetadataParserTemplateTests(MetadataParserTestCase):
 
         bad_root_format = 'Bad root test failed for {0} with {1}'
 
-        for bad_root in (None, u'', StringIO(u''), {}, '<?xml version="1.0" encoding="UTF-8"?>\n'):
+        for bad_root in (None, u'', io.StringIO(u''), {}, '<?xml version="1.0" encoding="UTF-8"?>\n'):
             with self.assertRaises(NoContent, msg=bad_root_format.format('get_parsed_content', bad_root)):
                 get_parsed_content(bad_root)
             with self.assertRaises(NoContent, msg=bad_root_format.format('get_parsed_content', bad_root)):
@@ -1150,7 +1147,7 @@ class MetadataParserTests(MetadataParserTestCase):
 
                 # Process steps must have a single string value for all but sources
                 complex_struct.update({
-                    k: ', '.join(wrap_value(v)) for k, v in iteritems(complex_struct) if k != 'sources'
+                    k: ', '.join(wrap_value(v)) for k, v in complex_struct.items() if k != 'sources'
                 })
 
                 complex_list.append(complex_struct)
@@ -1470,8 +1467,8 @@ class UtilityFgdcParser(FgdcParser):
         # Replace all string paths in data map with dummy parser
 
         updated_data_map = {}
-        for prop, xpath in iteritems(self._data_map):
-            if prop in self._metadata_props and isinstance(xpath, six.string_types):
+        for prop, xpath in self._data_map.items():
+            if prop in self._metadata_props and isinstance(xpath, str):
                 updated_data_map[prop] = ParserProperty(self._parse_prop, self._update_prop, xpath)
 
         # Ensure at least one property was updated (should be many) and add to data map

@@ -1,7 +1,5 @@
 """ Data structures and functionality used by all Metadata Parsers """
 
-import six
-
 from frozendict import frozendict
 
 from parserutils.collections import filter_empty, flatten_items, reduce_value, wrap_value
@@ -11,10 +9,6 @@ from parserutils.elements import remove_element_attributes, set_element_attribut
 from parserutils.elements import XPATH_DELIM
 
 from gis_metadata.exceptions import ConfigurationError, ValidationError
-
-
-iteritems = getattr(six, 'iteritems')
-string_types = getattr(six, 'string_types')
 
 
 # Generic identifying property name constants
@@ -163,7 +157,7 @@ def format_xpaths(xpath_map, *args, **kwargs):
 
     formatted = {}.fromkeys(xpath_map)
 
-    for key, xpath in iteritems(xpath_map):
+    for key, xpath in xpath_map.items():
         formatted[key] = xpath.format(*args, **kwargs)
 
     return formatted
@@ -222,7 +216,7 @@ def get_default_for_complex(prop, value, xpath=''):
 
     # Ensure sub-props of complex structs and complex lists that take multiple values are wrapped as lists
     val = [
-        {k: get_default_for_complex_sub(prop, k, v, xpath) for k, v in iteritems(val)}
+        {k: get_default_for_complex_sub(prop, k, v, xpath) for k, v in val.items()}
         for val in wrap_value(value)
     ]
 
@@ -442,7 +436,7 @@ def _update_property(tree_to_update, xpath_root, xpaths, values):
             if has_root:
                 elem_to_update = insert_element(elem, (i + idx), root)
 
-            val = val.decode('utf-8') if not isinstance(val, string_types) else val
+            val = val.decode('utf-8') if not isinstance(val, str) else val
             if not attr:
                 items.append(insert_element(elem_to_update, i, path, val))
             elif path:
@@ -458,7 +452,7 @@ def _update_property(tree_to_update, xpath_root, xpaths, values):
     xpaths = reduce_value(xpaths)
     values = filter_empty(values)
 
-    if isinstance(xpaths, string_types):
+    if isinstance(xpaths, str):
         return update_element(tree_to_update, 0, xpath_root, xpaths, values)
     else:
         each = []
@@ -488,7 +482,7 @@ def update_complex(tree_to_update, xpath_root, xpath_map, prop, values):
         # Returns the elements corresponding to property removed from the tree
         updated = update_property(tree_to_update, xpath_root, xpath_root, prop, values)
     else:
-        for subprop, value in iteritems(values):
+        for subprop, value in values.items():
             xpath = xpath_map[subprop]
             value = get_default_for_complex_sub(prop, subprop, value, xpath)
             update_property(tree_to_update, None, xpath, subprop, value)
@@ -520,7 +514,7 @@ def update_complex_list(tree_to_update, xpath_root, xpath_map, prop, values):
             # Insert a new complex element root for each dict in the list
             complex_element = insert_element(tree_to_update, idx, xpath_root)
 
-            for subprop, value in iteritems(complex_struct):
+            for subprop, value in complex_struct.items():
                 xpath = get_xpath_branch(xpath_root, xpath_map[subprop])
                 value = get_default_for_complex_sub(prop, subprop, value, xpath)
                 complex_list.append(update_property(complex_element, None, xpath, subprop, value))
@@ -550,7 +544,7 @@ def validate_any(prop, value, xpath_map=None):
 
         else:
             for val in wrap_value(value, include_empty=True):
-                validate_type(prop, val, (string_types, list))
+                validate_type(prop, val, (str, list))
 
 
 def validate_complex(prop, value, xpath_map=None):
@@ -564,13 +558,13 @@ def validate_complex(prop, value, xpath_map=None):
         else:
             complex_keys = {} if xpath_map is None else xpath_map
 
-        for complex_prop, complex_val in iteritems(value):
+        for complex_prop, complex_val in value.items():
             complex_key = '.'.join((prop, complex_prop))
 
             if complex_prop not in complex_keys:
                 _validation_error(prop, None, value, ('keys: {0}'.format(','.join(complex_keys))))
 
-            validate_type(complex_key, complex_val, (string_types, list))
+            validate_type(complex_key, complex_val, (str, list))
 
 
 def validate_complex_list(prop, value, xpath_map=None):
@@ -588,18 +582,18 @@ def validate_complex_list(prop, value, xpath_map=None):
             cs_idx = prop + '[' + str(idx) + ']'
             validate_type(cs_idx, complex_struct, dict)
 
-            for cs_prop, cs_val in iteritems(complex_struct):
+            for cs_prop, cs_val in complex_struct.items():
                 cs_key = '.'.join((cs_idx, cs_prop))
 
                 if cs_prop not in complex_keys:
                     _validation_error(prop, None, value, ('keys: {0}'.format(','.join(complex_keys))))
 
                 if not isinstance(cs_val, list):
-                    validate_type(cs_key, cs_val, (string_types, list))
+                    validate_type(cs_key, cs_val, (str, list))
                 else:
                     for list_idx, list_val in enumerate(cs_val):
                         list_prop = cs_key + '[' + str(list_idx) + ']'
-                        validate_type(list_prop, list_val, string_types)
+                        validate_type(list_prop, list_val, str)
 
 
 def validate_dates(prop, value, xpath_map=None):
@@ -644,7 +638,7 @@ def validate_dates(prop, value, xpath_map=None):
 
             for idx, date in enumerate(date_vals):
                 date_key = 'dates.value[' + str(idx) + ']'
-                validate_type(date_key, date, string_types)
+                validate_type(date_key, date, str)
 
 
 def validate_process_steps(prop, value):
@@ -659,20 +653,20 @@ def validate_process_steps(prop, value):
             ps_idx = prop + '[' + str(idx) + ']'
             validate_type(ps_idx, procstep, dict)
 
-            for ps_prop, ps_val in iteritems(procstep):
+            for ps_prop, ps_val in procstep.items():
                 ps_key = '.'.join((ps_idx, ps_prop))
 
                 if ps_prop not in procstep_keys:
                     _validation_error(prop, None, value, ('keys: {0}'.format(','.join(procstep_keys))))
 
                 if ps_prop != 'sources':
-                    validate_type(ps_key, ps_val, string_types)
+                    validate_type(ps_key, ps_val, str)
                 else:
-                    validate_type(ps_key, ps_val, (string_types, list))
+                    validate_type(ps_key, ps_val, (str, list))
 
                     for src_idx, src_val in enumerate(wrap_value(ps_val)):
                         src_key = ps_key + '[' + str(src_idx) + ']'
-                        validate_type(src_key, src_val, string_types)
+                        validate_type(src_key, src_val, str)
 
 
 def validate_properties(props, required):

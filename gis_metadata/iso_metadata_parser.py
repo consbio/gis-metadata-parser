@@ -1,10 +1,8 @@
 """ A module to contain utility ISO-19115 metadata parsing helpers """
 
-import six
-
-from collections import OrderedDict
+from _collections import OrderedDict
 from copy import deepcopy
-from frozendict import frozendict, FrozenOrderedDict
+from frozendict import frozendict as FrozenOrderedDict
 
 from parserutils.collections import filter_empty, reduce_value, wrap_value
 from parserutils.elements import get_element_name, get_element_text, get_elements_text
@@ -29,16 +27,10 @@ from gis_metadata.utils import format_xpaths, get_default_for_complex, get_defau
 from gis_metadata.utils import parse_complex_list, parse_property, update_complex_list, update_property
 
 
-iteritems = getattr(six, 'iteritems')
-string_types = getattr(six, 'string_types')
-six_moves = getattr(six, 'moves')
-xrange = getattr(six_moves, 'xrange')
-
-
 ISO_ROOTS = ('MD_Metadata', 'MI_Metadata')
 
 KEYWORD_PROPS = (KEYWORDS_PLACE, KEYWORDS_STRATUM, KEYWORDS_TEMPORAL, KEYWORDS_THEME)
-KEYWORD_TYPES = frozendict({
+KEYWORD_TYPES = FrozenOrderedDict({
     KEYWORDS_PLACE: 'place',
     KEYWORDS_STRATUM: 'stratum',
     KEYWORDS_TEMPORAL: 'temporal',
@@ -49,14 +41,14 @@ KEYWORD_TYPES = frozendict({
 ISO_DIGITAL_FORMS_DELIM = '@------------------------------@'
 
 # Define backup locations for attribute sub-properties and dimension type property
-ISO_DEFINITIONS = dict({k: dict(v) for k, v in iteritems(COMPLEX_DEFINITIONS)})
+ISO_DEFINITIONS = dict({k: dict(v) for k, v in dict(COMPLEX_DEFINITIONS).items()})
 ISO_DEFINITIONS[ATTRIBUTES].update({
     '_definition_source': '{_definition_src}',
     '__definition_source': '{__definition_src}',
     '___definition_source': '{___definition_src}'
 })
 ISO_DEFINITIONS[RASTER_DIMS]['_type'] = '{_type}'
-ISO_DEFINITIONS = frozendict({k: frozendict(v) for k, v in iteritems(ISO_DEFINITIONS)})
+ISO_DEFINITIONS = FrozenOrderedDict({k: FrozenOrderedDict(v) for k, v in ISO_DEFINITIONS.items()})
 
 ISO_TAG_ROOTS = OrderedDict((
     # First process private dependency tags (order enforced by key sorting)
@@ -176,7 +168,7 @@ ISO_TAG_FORMATS = {
 # Apply XPATH root formats to the basic data map formats
 ISO_TAG_FORMATS.update(ISO_TAG_ROOTS)
 ISO_TAG_FORMATS.update(format_xpaths(ISO_TAG_FORMATS, **ISO_TAG_ROOTS))
-ISO_TAG_FORMATS = frozendict(ISO_TAG_FORMATS)
+ISO_TAG_FORMATS = FrozenOrderedDict(ISO_TAG_FORMATS)
 
 ISO_TAG_PRIMITIVES = frozenset({
     'Binary', 'Boolean', 'CharacterString',
@@ -320,7 +312,7 @@ class IsoParser(MetadataParser):
 
         # Assign XPATHS and gis_metadata.utils.ParserProperties to data map
 
-        for prop, xpath in iteritems(dict(iso_data_map)):
+        for prop, xpath in dict(iso_data_map).items():
             if prop == ATTRIBUTES:
                 iso_data_map[prop] = ParserProperty(self._parse_attribute_details, self._update_attribute_details)
 
@@ -407,7 +399,7 @@ class IsoParser(MetadataParser):
 
         for digital_form in digital_forms:
             specs = reduce_value(digital_form['specification'])
-            specs = specs.splitlines() if isinstance(specs, string_types) else specs
+            specs = specs.splitlines() if isinstance(specs, str) else specs
 
             specifications = wrap_value(s.strip() for s in specs)
 
@@ -434,7 +426,7 @@ class IsoParser(MetadataParser):
         to_len = len(transfer_opts)
         parsed_forms = []
 
-        for idx in xrange(0, max(df_len, to_len)):
+        for idx in range(0, max(df_len, to_len)):
             digital_form = {}.fromkeys(ISO_DEFINITIONS[prop], u'')
 
             if idx < df_len:
@@ -676,7 +668,7 @@ class IsoParser(MetadataParser):
         #
         # This prevents multiple primitive tags from being inserted under an element
 
-        for prop, xpath in iteritems(self._data_map):
+        for prop, xpath in self._data_map.items():
             if not prop.startswith('_') or prop.strip('_') in supported_props:
                 # Send only public or alternate properties
                 xroot = self._trim_xpath(xpath, prop)
@@ -690,7 +682,7 @@ class IsoParser(MetadataParser):
 
         xroot = self._get_xroot_for(prop)
 
-        if xroot is None and isinstance(xpath, string_types):
+        if xroot is None and isinstance(xpath, str):
             xtags = xpath.split(XPATH_DELIM)
 
             if xtags[-1] in ISO_TAG_PRIMITIVES:

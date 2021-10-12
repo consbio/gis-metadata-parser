@@ -1,7 +1,5 @@
 """ A module to contain utility ArcGIS metadata parsing helpers """
 
-import six
-
 from frozendict import frozendict
 from parserutils.collections import flatten_items, reduce_value, wrap_value
 from parserutils.elements import get_elements, get_element_name, get_element_attributes
@@ -23,11 +21,6 @@ from gis_metadata.utils import RASTER_DIMS, RASTER_INFO
 from gis_metadata.utils import COMPLEX_DEFINITIONS, ParserProperty
 from gis_metadata.utils import format_xpaths, get_default_for_complex, get_default_for_complex_sub
 from gis_metadata.utils import parse_complex_list, parse_property, update_complex_list, update_property
-
-
-iteritems = getattr(six, 'iteritems')
-six_moves = getattr(six, 'moves')
-xrange = getattr(six_moves, 'xrange')
 
 
 ARCGIS_ROOTS = ('metadata', 'Metadata')
@@ -226,7 +219,7 @@ class ArcGISParser(MetadataParser):
 
         # Assign XPATHS and gis_metadata.utils.ParserProperties to data map
 
-        for prop, xpath in iteritems(dict(agis_data_map)):
+        for prop, xpath in dict(agis_data_map).items():
             if prop in (ATTRIBUTES, CONTACTS, PROCESS_STEPS):
                 agis_data_map[prop] = ParserProperty(self._parse_complex_list, self._update_complex_list)
 
@@ -270,7 +263,7 @@ class ArcGISParser(MetadataParser):
         to_len = len(transfer_opts)
         parsed_forms = []
 
-        for idx in xrange(0, max(df_len, to_len)):
+        for idx in range(0, max(df_len, to_len)):
             digital_form = {}.fromkeys(COMPLEX_DEFINITIONS[prop], u'')
 
             if idx < df_len:
