@@ -283,7 +283,7 @@ class MetadataParser(object):
     def _get_xroot_for(self, prop):
         """ :return: the configured root for a given property based on the property name """
 
-        return self._get_xpath_for('_{prop}_root'.format(prop=prop))
+        return self._get_xpath_for(f'_{prop}_root')
 
     def _parse_complex(self, prop):
         """ Default parsing operation for a complex struct """
