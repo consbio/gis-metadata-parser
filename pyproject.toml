@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "gis-metadata-parser"
-version = "2.0"
+version = "2.0.1"
 description = "Parser for GIS metadata standards including ArcGIS, FGDC and ISO-19115"
 authors = ["dharvey-consbio <dani.harvey@consbio.org>"]
 keywords = ["arcgis", "fgdc", "iso", "ISO-19115", "ISO-19139", "gis", "metadata", "parser", "xml", "gis_metadata", "gis_metadata_parser"]

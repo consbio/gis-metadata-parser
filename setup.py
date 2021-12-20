@@ -28,7 +28,7 @@ setup(
     long_description=long_description,
     long_description_content_type='text/markdown',
     keywords='arcgis,fgdc,iso,ISO-19115,ISO-19139,gis,metadata,parser,xml,gis_metadata,gis_metadata_parser',
-    version='2.1.2',
+    version='2.0.1',
     packages=['gis_metadata'],
     install_requires=[
         'frozendict>=2.0', 'parserutils>=2.0.1'
